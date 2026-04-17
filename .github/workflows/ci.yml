@@ -2,13 +2,29 @@ name: CI
 
 on:
   push:
-    branches: [main, feat/**]
+    branches:
+      - main
+      - "feat/**"
+      - "fix/**"
+      - "refactor/**"
   pull_request:
-    branches: [main]
+    branches:
+      - main
+
+# Run official JS actions (checkout, setup-node, upload-artifact) on Node 24 per
+# https://github.blog/changelog/2025-09-19-deprecation-of-node-20-on-github-actions-runners/
+env:
+  FORCE_JAVASCRIPT_ACTIONS_TO_NODE24: true
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+# ─── spectra-app (Next.js 16 frontend) ────────────────────────────────────────
 
 jobs:
-  lint-and-typecheck-app:
-    name: spectra-app — lint + typecheck
+  app-security-audit:
+    name: "spectra-app — Security Audit"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -17,15 +33,138 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-app/package-lock.json
+      - run: npm ci
+      - name: npm audit (high/critical only)
+        run: npm run audit:high
+
+  app-lint:
+    name: "spectra-app — Lint"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
           cache: npm
           cache-dependency-path: apps/spectra-app/package-lock.json
       - run: npm ci
       - run: npm run lint
+
+  app-type-check:
+    name: "spectra-app — Type Check"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-app/package-lock.json
+      - run: npm ci
       - run: npm run type-check
 
-  lint-and-typecheck-api:
-    name: spectra-api — lint + typecheck
+  app-build:
+    name: "spectra-app — Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-app/package-lock.json
+      - run: npm ci
+      - run: npm run build
+        env:
+          NEXT_TELEMETRY_DISABLED: 1
+
+  app-unit-tests:
+    name: "spectra-app — Unit Tests"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-app/package-lock.json
+      - run: npm ci
+      - run: npm run test
+      - run: npm run test:coverage
+      - uses: actions/upload-artifact@v4
+        with:
+          name: app-coverage-report
+          path: apps/spectra-app/coverage/
+
+  app-e2e:
+    name: "spectra-app — E2E Tests"
+    runs-on: ubuntu-latest
+    needs: [app-lint, app-type-check, app-build, app-unit-tests]
+    timeout-minutes: 30
+    defaults:
+      run:
+        working-directory: apps/spectra-app
+    env:
+      CI: true
+      NEXT_TELEMETRY_DISABLED: 1
+      # Auth
+      JWT_SECRET: ${{ secrets.JWT_SECRET }}
+      NEXT_PUBLIC_SUPABASE_URL: ${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}
+      NEXT_PUBLIC_SUPABASE_ANON_KEY: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}
+      SUPABASE_SERVICE_KEY: ${{ secrets.SUPABASE_SERVICE_KEY }}
+      # Rate limiting
+      UPSTASH_REDIS_URL: ${{ secrets.UPSTASH_REDIS_URL }}
+      UPSTASH_REDIS_TOKEN: ${{ secrets.UPSTASH_REDIS_TOKEN }}
+      # AWS (presigned URL generation)
+      AWS_REGION: eu-west-1
+      AWS_ACCESS_KEY_ID: ${{ secrets.AWS_ACCESS_KEY_ID }}
+      AWS_SECRET_ACCESS_KEY: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+      AWS_LAMBDA_JOB_PROCESSOR_NAME: ${{ secrets.AWS_LAMBDA_JOB_PROCESSOR_NAME }}
+      # Inngest
+      INNGEST_SIGNING_KEY: ${{ secrets.INNGEST_SIGNING_KEY }}
+      INNGEST_EVENT_KEY: ${{ secrets.INNGEST_EVENT_KEY }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-app/package-lock.json
+      - run: npm ci
+      - run: npx playwright install --with-deps chromium
+      - name: Dashboard smoke tests
+        run: npx playwright test tests/dashboard.spec.ts --project=chromium
+      - name: Upload flow smoke tests
+        run: npx playwright test tests/upload-flow.spec.ts --project=chromium
+      - name: Auth guard smoke tests
+        run: npx playwright test tests/auth.spec.ts --project=chromium
+      - name: Upload Playwright report on failure
+        if: failure()
+        uses: actions/upload-artifact@v4
+        with:
+          name: app-playwright-report
+          path: apps/spectra-app/playwright-report/
+          retention-days: 7
+
+# ─── spectra-api (AWS CDK + Lambda) ───────────────────────────────────────────
+
+  api-security-audit:
+    name: "spectra-api — Security Audit"
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -34,33 +173,49 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-api/package-lock.json
+      - run: npm ci
+      - name: npm audit (high/critical only)
+        run: npm audit --audit-level=high
+
+  api-type-check:
+    name: "spectra-api — Type Check"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-api/package-lock.json
+      - run: npm ci
+      - run: npx tsc --noEmit
+
+  api-build:
+    name: "spectra-api — Build"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
           cache: npm
           cache-dependency-path: apps/spectra-api/package-lock.json
       - run: npm ci
       - run: npm run build
 
-  test-app:
-    name: spectra-app — unit tests
+  api-unit-tests:
+    name: "spectra-api — Unit Tests"
     runs-on: ubuntu-latest
-    needs: lint-and-typecheck-app
-    defaults:
-      run:
-        working-directory: apps/spectra-app
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-node@v4
-        with:
-          node-version: 20
-          cache: npm
-          cache-dependency-path: apps/spectra-app/package-lock.json
-      - run: npm ci
-      - run: npm run test
-
-  test-api:
-    name: spectra-api — unit tests
-    runs-on: ubuntu-latest
-    needs: lint-and-typecheck-api
+    needs: [api-type-check]
     defaults:
       run:
         working-directory: apps/spectra-api
@@ -68,8 +223,12 @@ jobs:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version: "22"
           cache: npm
           cache-dependency-path: apps/spectra-api/package-lock.json
       - run: npm ci
       - run: npm run test
+      - uses: actions/upload-artifact@v4
+        with:
+          name: api-coverage-report
+          path: apps/spectra-api/coverage/
