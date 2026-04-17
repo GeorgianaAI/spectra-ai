@@ -1,0 +1,334 @@
+# SPECTRA AI | Architecture & Governance
+
+## 1. Project Intent
+
+Spectra AI is a multimodal intelligence agent that routes documents, images, and audio through a specialist multi-agent graph — Document, Vision, and Audio agents processing in parallel, a Synthesis agent merging findings with per-modality citations, and an LLM-as-Judge Auditor scoring faithfulness across all three.
+
+Built on LangGraph, Claude Sonnet, GPT-4o, and Whisper, with AWS infrastructure (S3, Lambda, Bedrock), Inngest for job orchestration, and a live agent status dashboard streaming results in real time. The Router Agent runs on AWS Bedrock (Nova Micro) for cost-optimized classification, while quality-critical nodes use Claude Sonnet for grounded synthesis and GPT-4o for native image understanding — deliberately matching model capability to task rather than defaulting to a single provider.
+
+Portfolio-scale project. AWS free tier priority. Hard billing ceiling at $20/month via CloudWatch alarm.
+
+## 2. Technical Stack
+
+### spectra-app (Frontend — Vercel)
+
+- **Framework:** Next.js 15 App Router
+- **Language:** TypeScript — strict mode, no exceptions
+- **UI:** Tailwind CSS 4 (layout/spacing only), CSS variables for theming
+- **AI (streaming):** Vercel AI SDK (`ai`) — streaming synthesis output to UI
+- **Schema validation:** Zod
+- **Auth:** JWT/RBAC — middleware guard on `/dashboard`
+- **Database client:** Supabase JS SDK
+- **Rate limiting:** `@upstash/ratelimit` + `@upstash/redis`
+- **Job orchestration:** Inngest serve handler at `/api/inngest`
+- **Error tracking:** Sentry (`@sentry/nextjs`)
+- **Deployment:** Vercel
+
+### spectra-api (Backend — AWS)
+
+- **IaC:** AWS CDK (TypeScript)
+- **Compute:** AWS Lambda (two functions: `ingestHandler`, `jobProcessor`)
+- **Storage:** AWS S3 (`spectra-uploads` bucket)
+- **AI routing:** AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`) for Router Agent only
+- **Agent orchestration:** LangGraph (StateGraph, parallel branching, checkpointing)
+- **Tracing:** LangSmith (end-to-end across all agent nodes)
+- **Models:**
+  - Router: Nova Micro (Bedrock)
+  - Document Agent: Claude Sonnet (Anthropic SDK)
+  - Vision Agent: GPT-4o (OpenAI API)
+  - Audio Agent: Whisper (OpenAI API) + Claude Sonnet for extraction
+  - Synthesis Agent: GPT-4o (OpenAI API)
+  - Auditor: Claude Sonnet (Anthropic SDK)
+- **Embeddings:** `text-embedding-3-small`
+- **Vector store:** Upstash Vector (session-namespaced)
+- **Checkpointing / rate limiting:** Upstash Redis
+- **Document parsing:** LangChain document loaders / pdf2json
+- **Database:** Supabase PostgreSQL (jobs table + Auth)
+- **Job lifecycle:** Inngest (triggers, retries, state tracking between Next.js and Lambda)
+- **Email:** Resend (job completion notifications)
+- **Monitoring:** UptimeRobot, CloudWatch, Sentry
+- **CI/Testing:** Vitest (unit), Playwright (E2E), GitHub Actions
+
+## 2.1 Version Governance & Stability Lock
+
+**Strict Version Policy:** Locked to **Next.js 15** and the dependency versions installed during Phase 1 scaffold. Do not upgrade without an explicit decision from the Architect.
+
+- Do not use React 19-specific APIs unless already present in the scaffold.
+- If an "upgrade available" notice appears, ignore it.
+
+## 3. Development Workflow (The Sprint Protocol)
+
+- **Repo Layout:** `spectra/` is the root container. `apps/spectra-app/` and `apps/spectra-api/` are independently deployable sub-projects, each with their own `package.json`.
+- **Feature Branches:** `feat/`, `fix/`, `refactor/`
+- **Atomic Commits:** Group changed files meaningfully. Separate concerns across commits:
+  1. Infrastructure / IaC
+  2. API Routes / Lambda handlers
+  3. Agent logic / LangGraph graph
+  4. UI / Components
+  5. Config / Env / CI
+- **Commit Metadata:** Never include "Co-authored-by: Claude", "Co-Authored-By:", or any AI attribution tags in commit messages.
+- **Lock file rule:** Always stage `package-lock.json` alongside `package.json`. Every `npm install` updates both — committing one without the other leaves a dirty working tree.
+- **No Merges:** Pushing to remote is encouraged, but merging is restricted to the Architect (User).
+- **Branch Hygiene Gate:** Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
+- **Build Order is Strict:** Follow the phase sequence in SPEC.md. Do not implement a later phase while an earlier one is incomplete.
+- **SPEC.md is immutable:** Never modify SPEC.md. It is kept out of version control (see `.gitignore`).
+
+### Build Phases
+
+| Phase | Area                                                                                              | Status      |
+| :---- | :------------------------------------------------------------------------------------------------ | :---------- |
+| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                                  | 🔄 In Progress |
+| 2     | LangGraph agent graph + Inngest + API surface                                                     | ⬜ Pending  |
+| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                             | ⬜ Pending  |
+| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright)   | ⬜ Pending  |
+| 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                   | ⬜ Pending  |
+
+## 4. Modular Architecture
+
+Maintain thin entrypoints. Extract logic once a file exceeds approximately 200–300 lines (**except** sequential functions that are 400–500 lines and cannot be split without losing cohesion).
+
+### Extraction Pattern
+
+| File                     | Purpose                   |
+| :----------------------- | :------------------------ |
+| `[feature].types.ts`     | Interfaces/Types          |
+| `[feature].hooks.ts`     | React hooks and state     |
+| `[feature].utils.ts`     | Pure helper functions     |
+| `[feature].constants.ts` | Static config and strings |
+
+### spectra-app Directory Mapping
+
+| Area                         | Purpose                                                                                              |
+| :--------------------------- | :--------------------------------------------------------------------------------------------------- |
+| `app/`                       | **Routing Only:** `page.tsx`, `layout.tsx`, `loading.tsx`. Minimal logic.                            |
+| `app/dashboard/`             | Main app shell — upload zone, agent graph, synthesis panel.                                          |
+| `app/dashboard/job/[id]/`    | Job detail — full report, governance trace, citations, LLM-as-Judge scores.                          |
+| `app/dashboard/history/`     | Past job runs list.                                                                                   |
+| `app/dashboard/governance/`  | Full NIST AI RMF compliance ledger.                                                                   |
+| `app/api/`                   | API Routes: `/api/upload`, `/api/job/[id]`, `/api/job/[id]/trace`, `/api/auth/token`, `/api/inngest`. |
+| `components/`                | Feature components: `UploadZone`, `AgentGraph`, `SynthesisPanel`, `GovernanceTrace`, `ConfidenceBar`. |
+| `lib/`                       | Glue: `api.ts`, `types.ts`, `constants.ts`, Supabase client, JWT helpers, Inngest client.            |
+| `middleware.ts`              | JWT auth guard — protects all `/dashboard` routes.                                                   |
+
+### spectra-api Directory Mapping
+
+| Area                       | Purpose                                                                              |
+| :------------------------- | :----------------------------------------------------------------------------------- |
+| `bin/`                     | CDK app entry point.                                                                 |
+| `lib/stacks/`              | CDK stacks: `StorageStack`, `ComputeStack`, `ObservabilityStack`.                   |
+| `src/handlers/`            | Lambda handlers: `ingestHandler.ts`, `jobProcessor.ts`.                              |
+| `src/graph/`               | LangGraph agent graph: `graph.ts`, node files, `state.ts`.                          |
+| `src/graph/nodes/`         | One file per agent node: `routerNode.ts`, `documentNode.ts`, `visionNode.ts`, `audioNode.ts`, `synthesisNode.ts`, `auditorNode.ts`. |
+| `src/lib/`                 | Shared utilities: Bedrock client, S3 client, Supabase client, PII redaction.        |
+| `src/lib/schemas.ts`       | **Single source of truth** — all Zod schemas for node I/O, exported for reuse.     |
+| `migrations/`              | Supabase SQL migration files.                                                        |
+
+### Naming Conventions
+
+- **Markdown files:** ALL_CAPS names (e.g. `CLAUDE.md`, `README.md`). Extension lowercase.
+- **React hooks:** camelCase filenames (e.g. `useJobStatus.ts`).
+- **Components:** PascalCase filenames (e.g. `UploadZone.tsx`).
+- **CDK stacks:** PascalCase with `Stack` suffix (e.g. `StorageStack`).
+- **Lambda handlers:** camelCase (e.g. `ingestHandler.ts`).
+
+## 4.1 TypeScript Strictness
+
+- **No `any` types.** Use `unknown` with a type guard, explicit interfaces, or `Record<string, unknown>`.
+- **Explicit `useState` generics:** `useState<boolean>(false)`, `useState<Job | null>(null)`.
+- **Explicit `useRef` generics:** `useRef<HTMLInputElement>(null)`.
+- **Strict null checks:** No non-null assertions (`!`) unless provably safe.
+
+## 4.2 Architectural Rules
+
+- **No Magic Strings:** All status values, modality names, NIST tags, and model IDs live in constants files.
+- **Server-First:** No direct Supabase or AI API calls from client components. Use API routes or Server Actions.
+- **Supabase Service Key:** Never expose `SUPABASE_SERVICE_KEY` to the client. No `NEXT_PUBLIC_` prefix.
+- **Path Aliases:** `@/*` for all internal imports within each app.
+- **Schemas are shared:** All agent node I/O schemas live in `spectra-api/src/lib/schemas.ts`. Import from there — never duplicate.
+- **Separation of Concerns:** Business logic out of UI. JSX must be declarative.
+- **No SQS, no Step Functions:** These are explicitly excluded. LangGraph handles agent orchestration; Inngest handles job lifecycle. Do not add them.
+- **Lambda triggered by S3 directly:** `ingestHandler` fires on S3 `ObjectCreated`. No SQS queue between S3 and Lambda.
+- **Bedrock scope:** Nova Micro only. No other Bedrock models. All other model calls go through Anthropic SDK or OpenAI SDK directly.
+
+## 4.3 Agent Graph Rules
+
+- **Parallel execution:** `documentNode`, `visionNode`, `audioNode` run in parallel via LangGraph branching, conditional on `activeModalities`.
+- **Always sequential:** `synthesisNode` runs after all specialist nodes; `auditorNode` always runs last.
+- **Schema validation on every node boundary:** Use Zod `.parse()` on input and output at each node.
+- **LangSmith tracing:** The graph is wrapped with a LangSmith tracer in all environments (dev + prod).
+- **PII redaction:** Applied in `documentNode` before vectorization. Reuse the Sentinel Docs pattern.
+- **Session-namespaced vectors:** Upstash Vector keys prefixed with `{jobId}/{userId}/` to isolate retrieval.
+
+## 5. Database Schema
+
+### `jobs` table (Supabase PostgreSQL)
+
+| Column              | Type        | Notes                                                              |
+| :------------------ | :---------- | :----------------------------------------------------------------- |
+| `id`                | uuid        | PK, `uuid_generate_v4()`                                           |
+| `user_id`           | uuid        | FK → `auth.users(id)`, cascade delete                              |
+| `status`            | text        | `pending` \| `processing` \| `completed` \| `failed`              |
+| `created_at`        | timestamptz | default `now()`                                                    |
+| `completed_at`      | timestamptz | nullable                                                           |
+| `result_url`        | text        | nullable                                                           |
+| `confidence_scores` | jsonb       | `{ doc: number, vision: number, audio: number }`                   |
+| `governance_trace`  | jsonb       | `[{ timestamp, agent, finding, confidence, nistTag }]`             |
+| `modalities_used`   | jsonb       | `{ document: boolean, vision: boolean, audio: boolean }`           |
+| `error`             | text        | nullable — error message if status is `failed`                     |
+
+- Row Level Security enabled. Users can only read/write their own jobs.
+- Indexes on `user_id`, `created_at DESC`, `status`.
+- Migration file: `apps/spectra-api/migrations/001_jobs.sql`
+- Demo seed: `apps/spectra-api/migrations/002_demo_seed.sql`
+
+## 6. Auth & Demo Access
+
+Auth is implemented (JWT/RBAC middleware, Supabase Auth) but the demo account has publicly visible credentials so recruiters can use the app without friction:
+
+```
+Email:    demo@spectra.app
+Password: spectra-demo
+```
+
+Demo account constraints (same as all users):
+- Rate limit: 3 job runs per day per IP (Upstash sliding window)
+- Max file sizes: 2MB PDF, 1MB image, 30s audio
+- Preset sample files available on the dashboard
+
+The real cost guard is the CloudWatch billing alarm at **$20/month** — not the rate limit.
+
+## 7. UI Theme
+
+Dark, precise, analyst-grade. Not a generic SaaS dashboard — closer to an intelligence workstation.
+
+### Color Tokens (CSS variables in `globals.css`)
+
+| Variable             | Value       | Usage                                     |
+| :------------------- | :---------- | :---------------------------------------- |
+| `--bg`               | `#09090b`   | App shell background                      |
+| `--surface`          | `#111116`   | Cards, panels                             |
+| `--border`           | `#1e1e26`   | Subtle borders                            |
+| `--accent`           | `#c8922a`   | Active states, highlights, key labels     |
+| `--text-primary`     | `#e8e6df`   | Body text                                 |
+| `--text-secondary`   | `#6b6a63`   | Metadata, labels                          |
+| `--modality-doc`     | `#2dd4bf`   | Document agent tag / confidence bar       |
+| `--modality-vision`  | `#38bdf8`   | Vision agent tag / confidence bar         |
+| `--modality-audio`   | `#f87171`   | Audio agent tag / confidence bar          |
+
+### Typography
+
+- UI labels, navigation, controls: clean sans-serif
+- Agent output, trace log, citations: `font-family: monospace`
+- Wordmark: `letter-spacing: 0.08em`, weight 500, amber-gold
+
+### Component Style Rules
+
+- Use **CSS modules or inline styles** inside feature components — no Tailwind utility classes inside `UploadZone`, `AgentGraph`, `SynthesisPanel`, `GovernanceTrace`.
+- Tailwind is permitted for layout scaffolding in page files only.
+- Processing nodes show a soft amber pulsing ring via CSS animation (not JS).
+- Citation badges styled as terminal tags: `[D1]` teal, `[V2]` sky blue, `[A1]` coral.
+
+## 8. LLM Integration Rules
+
+### Model-to-Task Mapping (enforced — do not deviate)
+
+| Agent       | Model              | Reason                                             |
+| :---------- | :----------------- | :------------------------------------------------- |
+| Router      | Nova Micro (Bedrock) | Classification only — cheapest correct model      |
+| Document    | Claude Sonnet      | RAG + grounded citation extraction                 |
+| Vision      | GPT-4o             | Best native image understanding                    |
+| Audio       | Whisper → Sonnet   | Transcription then structured extraction           |
+| Synthesis   | GPT-4o             | Merging + conflict resolution                      |
+| Auditor     | Claude Sonnet      | Faithfulness scoring + hallucination detection     |
+
+### Input Validation
+
+All user-supplied file content is treated as untrusted input. Apply PII redaction before vectorization. Zod `.parse()` on every node boundary.
+
+### LangSmith
+
+`LANGCHAIN_TRACING_V2=true` and `LANGSMITH_PROJECT=spectra` in all environments. Wrap the LangGraph graph with a LangSmith tracer before export.
+
+## 9. Environment Variables
+
+### spectra-app (`.env.local`)
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:3000
+JWT_SECRET=your_jwt_secret_here
+NEXT_PUBLIC_SENTRY_DSN=your_sentry_dsn_here
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url_here
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_supabase_anon_key_here
+SUPABASE_SERVICE_KEY=your_supabase_service_key_here
+UPSTASH_REDIS_URL=your_upstash_redis_url_here
+UPSTASH_REDIS_TOKEN=your_upstash_redis_token_here
+AWS_REGION=eu-west-1
+AWS_ACCESS_KEY_ID=your_aws_access_key_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_here
+AWS_LAMBDA_JOB_PROCESSOR_NAME=spectra-job-processor
+INNGEST_SIGNING_KEY=your_inngest_signing_key_here
+INNGEST_EVENT_KEY=your_inngest_event_key_here
+```
+
+### spectra-api (`.env`)
+
+```bash
+AWS_REGION=eu-west-1
+AWS_ACCOUNT_ID=your_aws_account_id_here
+AWS_ACCESS_KEY_ID=your_aws_access_key_here
+AWS_SECRET_ACCESS_KEY=your_aws_secret_here
+S3_BUCKET_NAME=spectra-uploads
+BEDROCK_NOVA_MICRO_MODEL_ID=amazon.nova-micro-v1:0
+ANTHROPIC_API_KEY=your_anthropic_api_key_here
+OPENAI_API_KEY=your_openai_api_key_here
+OPENAI_WHISPER_API_KEY=your_openai_whisper_api_key_here
+SUPABASE_URL=your_supabase_url_here
+SUPABASE_SERVICE_KEY=your_supabase_service_key_here
+UPSTASH_VECTOR_URL=your_upstash_vector_url_here
+UPSTASH_VECTOR_TOKEN=your_upstash_vector_token_here
+UPSTASH_REDIS_URL=your_upstash_redis_url_here
+UPSTASH_REDIS_TOKEN=your_upstash_redis_token_here
+LANGSMITH_API_KEY=your_langsmith_api_key_here
+LANGSMITH_PROJECT=spectra
+LANGCHAIN_TRACING_V2=true
+INNGEST_SIGNING_KEY=your_inngest_signing_key_here
+SENTRY_DSN=your_sentry_dsn_here
+```
+
+## 10. Operational Commands
+
+### spectra-app
+
+```bash
+npm run dev          # Start Next.js dev server (port 3000)
+npm run build        # Production build
+npm run lint         # ESLint
+npm run type-check   # tsc --noEmit
+npm run test         # Vitest unit tests
+npm run test:e2e     # Playwright E2E (requires dev server)
+```
+
+### spectra-api
+
+```bash
+npm run build        # tsc compile
+npm run cdk:diff     # CDK diff against deployed stack
+npm run cdk:deploy   # Deploy all CDK stacks
+npm run test         # Vitest unit tests on schemas + routing logic
+```
+
+## 11. Update Papers
+
+`CLAUDE.md`, `README.md`, `ARCHITECTURE.md`, and any other papers (e.g. `ARCHITECTURE_FLOWS.md`, `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`) must be reviewed and updated after each implemented Phase. `SPEC.md` is **never** modified by Claude.
+
+Papers to create (after all phases are complete, unless specified earlier):
+1. `ARCHITECTURE_FLOWS.md` — detailed flow diagrams per use case
+2. `TECHNICAL_ADVISORY.md` — architecture decisions and tradeoffs (see SPEC.md "Papers" section for structure)
+3. `HARDENING_ROADMAP.md` — post-launch hardening checklist
+
+## 12. Branch & Merge Hygiene
+
+1. Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
+2. If a branch appears unmerged but the Architect confirms it was merged, delete it cleanly — do not leave stale branches.
+3. Alert the Architect if a genuinely unmerged branch is found. **Never** merge recent changes until older branches have been merged and the Architect confirms CI is green.
+4. For each Phase, alert the Architect with a list of **AWS Console / external platform steps** required to support the changes made (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
