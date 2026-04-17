@@ -324,12 +324,12 @@ npm run test         # Vitest unit tests on schemas + routing logic
 
 ## 11. Update Papers
 
-`CLAUDE.md`, `README.md`, `ARCHITECTURE.md`, and any other papers (e.g. `ARCHITECTURE_FLOWS.md`, `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`) must be reviewed and updated after each implemented Phase. `SPEC.md` is **never** modified by Claude.
+`CLAUDE.md`, `README.md`, `ARCHITECTURE_FLOWS.md`, and any other papers (e.g. `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`) must be reviewed and updated after each implemented Phase. `SPEC.md` is **never** modified by Claude.
 
 Papers to create (after all phases are complete, unless specified earlier):
 
-1. `ARCHITECTURE_FLOWS.md` — detailed flow diagrams per use case
-2. `TECHNICAL_ADVISORY.md` — architecture decisions and tradeoffs (see SPEC.md "Papers" section for structure)
+1. `ARCHITECTURE_FLOWS.md` — detailed flow diagrams per use case ✅ created Phase 1
+2. `TECHNICAL_ADVISORY.md` — implementation challenges, root causes, and solutions applied
 3. `HARDENING_ROADMAP.md` — post-launch hardening checklist
 
 ## 12. Branch & Merge Hygiene

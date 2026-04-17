@@ -8,7 +8,7 @@
 
 The premise is that real-world intelligence problems are never single-modality. A security analyst gets a PDF report, a screenshot of an anomaly, and a voice memo from a colleague — and has to reason across all three simultaneously. Spectra ingests all three, routes each to a specialized agent, and a synthesis layer produces a single cited output with the reasoning process visible live in the UI.
 
-Built on **LangGraph**, **Claude Sonnet**, **GPT-4o**, and **Whisper**, with **AWS infrastructure** (S3, Lambda, Bedrock), **Inngest** for job orchestration, and a **live agent status dashboard** streaming results in real time. Deployed as two independently deployable units — **spectra-app** (Next.js 15 on Vercel) and **spectra-api** (AWS CDK + Lambda).
+Built on **LangGraph**, **Claude Sonnet**, **GPT-4o**, and **Whisper**, with **AWS infrastructure** (S3, Lambda, Bedrock), **Inngest** for job orchestration, and a **live agent status dashboard** streaming results in real time. Deployed as two independently deployable units — **spectra-app** (Next.js 16 on Vercel) and **spectra-api** (AWS CDK + Lambda).
 
 ---
 
@@ -34,7 +34,7 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ## 🖼️ Product Snapshot
 
-> *(Screenshots added after Phase 3 UI implementation)*
+> _(Screenshots added after Phase 3 UI implementation)_
 
 ---
 
@@ -118,7 +118,7 @@ write to Supabase
 ```
 spectra-app (Vercel)                     spectra-api (AWS)
 ──────────────────────                   ─────────────────────────────
-Next.js 15 App Router                    CDK: StorageStack + ComputeStack
+Next.js 16 App Router                    CDK: StorageStack + ComputeStack
 Vercel AI SDK (streaming)                S3: spectra-uploads (versioned)
 JWT/RBAC middleware                      Lambda: ingestHandler (S3 trigger)
 Inngest serve handler                    Lambda: jobProcessor (Inngest HTTP)
@@ -130,28 +130,28 @@ Supabase client (polling)                LangGraph (inside jobProcessor)
                                          CloudWatch (billing alarm + dashboard)
 ```
 
-For the full narrative, data flow, and infrastructure decisions see [ARCHITECTURE.md](./ARCHITECTURE.md).
+For the full runtime flows, sequence diagrams, and infrastructure decisions see [ARCHITECTURE_FLOWS.md](./ARCHITECTURE_FLOWS.md).
 
 ---
 
 ## 🛠️ Tech Stack
 
-| Area              | Technology                                                            |
-| :---------------- | :-------------------------------------------------------------------- |
-| Frontend          | Next.js 16 App Router · TypeScript · Tailwind CSS 4 · Vercel AI SDK  |
-| Backend IaC       | AWS CDK (TypeScript)                                                  |
-| Compute           | AWS Lambda (Node.js 20.x)                                             |
-| AI routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                   |
+| Area              | Technology                                                             |
+| :---------------- | :--------------------------------------------------------------------- |
+| Frontend          | Next.js 16 App Router · TypeScript · Tailwind CSS 4 · Vercel AI SDK    |
+| Backend IaC       | AWS CDK (TypeScript)                                                   |
+| Compute           | AWS Lambda (Node.js 20.x)                                              |
+| AI routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                    |
 | Agent graph       | LangGraph (TypeScript) — StateGraph, parallel branching, checkpointing |
-| Tracing           | LangSmith                                                             |
-| Models            | Claude Sonnet · GPT-4o · Whisper · Nova Micro                         |
-| Embeddings        | text-embedding-3-small                                                |
-| Vector store      | Upstash Vector (session-namespaced)                                   |
-| Database          | Supabase PostgreSQL + Auth (RLS)                                      |
-| Job orchestration | Inngest (event-driven, retries, state tracking)                       |
-| Rate limiting     | Upstash Redis (3 req/day/IP sliding window)                           |
-| Error tracking    | Sentry (client + server + Lambda)                                     |
-| CI                | GitHub Actions (lint, typecheck, Vitest, Playwright)                  |
+| Tracing           | LangSmith                                                              |
+| Models            | Claude Sonnet · GPT-4o · Whisper · Nova Micro                          |
+| Embeddings        | text-embedding-3-small                                                 |
+| Vector store      | Upstash Vector (session-namespaced)                                    |
+| Database          | Supabase PostgreSQL + Auth (RLS)                                       |
+| Job orchestration | Inngest (event-driven, retries, state tracking)                        |
+| Rate limiting     | Upstash Redis (3 req/day/IP sliding window)                            |
+| Error tracking    | Sentry (client + server + Lambda)                                      |
+| CI                | GitHub Actions (lint, typecheck, Vitest, Playwright)                   |
 
 ---
 
@@ -159,14 +159,14 @@ For the full narrative, data flow, and infrastructure decisions see [ARCHITECTUR
 
 Spectra deliberately matches model capability to task rather than defaulting to a single provider:
 
-| Agent       | Model                  | Rationale                                                      |
-| :---------- | :--------------------- | :------------------------------------------------------------- |
-| Router      | Nova Micro (Bedrock)   | Classification only — cheapest correct model, no reasoning depth needed |
-| Document    | Claude Sonnet          | RAG + grounded citation extraction — Anthropic's core strength  |
-| Vision      | GPT-4o                 | Best native image understanding available — non-negotiable      |
-| Audio       | Whisper → Claude Sonnet| Transcription (Whisper) + structured extraction (Sonnet)        |
-| Synthesis   | GPT-4o                 | Multi-source merging and conflict resolution                    |
-| Auditor     | Claude Sonnet          | Faithfulness + hallucination detection — Anthropic's core strength |
+| Agent     | Model                   | Rationale                                                               |
+| :-------- | :---------------------- | :---------------------------------------------------------------------- |
+| Router    | Nova Micro (Bedrock)    | Classification only — cheapest correct model, no reasoning depth needed |
+| Document  | Claude Sonnet           | RAG + grounded citation extraction — Anthropic's core strength          |
+| Vision    | GPT-4o                  | Best native image understanding available — non-negotiable              |
+| Audio     | Whisper → Claude Sonnet | Transcription (Whisper) + structured extraction (Sonnet)                |
+| Synthesis | GPT-4o                  | Multi-source merging and conflict resolution                            |
+| Auditor   | Claude Sonnet           | Faithfulness + hallucination detection — Anthropic's core strength      |
 
 ---
 
@@ -196,6 +196,7 @@ npm run cdk:deploy
 ```
 
 Run Supabase migrations in order:
+
 1. `migrations/001_jobs.sql`
 2. `migrations/002_demo_seed.sql`
 
@@ -213,13 +214,13 @@ npm run dev
 
 ## 🚦 Build Phases
 
-| Phase | Area                                                                                           | Status         |
-| :---- | :--------------------------------------------------------------------------------------------- | :------------- |
-| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | 🔄 In Progress |
-| 2     | LangGraph agent graph + Inngest + API surface                                                  | ⬜ Pending     |
-| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                                     | ⬜ Pending     |
-| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright)                 | ⬜ Pending     |
-| 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot, Resend)                           | ⬜ Pending     |
+| Phase | Area                                                                          | Status         |
+| :---- | :---------------------------------------------------------------------------- | :------------- |
+| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | 🔄 In Progress |
+| 2     | LangGraph agent graph + Inngest + API surface                                 | ⬜ Pending     |
+| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ⬜ Pending     |
+| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
+| 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot, Resend)           | ⬜ Pending     |
 
 ---
 
