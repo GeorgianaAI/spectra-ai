@@ -15,7 +15,9 @@
     "test:coverage": "vitest run --coverage --passWithNoTests",
     "audit:high": "npm audit --audit-level=high",
     "test:e2e": "playwright test",
-    "test:e2e:ui": "playwright test --ui"
+    "test:e2e:ui": "playwright test --ui",
+    "verify:env": "node scripts/check-env-parity.mjs",
+    "verify:ready": "node scripts/verify-ready.mjs"
   },
   "dependencies": {
     "@sentry/nextjs": "^10.49.0",
