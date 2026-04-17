@@ -130,7 +130,7 @@ Supabase client (polling)                LangGraph (inside jobProcessor)
                                          CloudWatch (billing alarm + dashboard)
 ```
 
-For the full narrative, data flow, and infrastructure decisions see [spectra/ARCHITECTURE.md](./spectra/ARCHITECTURE.md).
+For the full narrative, data flow, and infrastructure decisions see [ARCHITECTURE.md](./ARCHITECTURE.md).
 
 ---
 
@@ -138,7 +138,7 @@ For the full narrative, data flow, and infrastructure decisions see [spectra/ARC
 
 | Area              | Technology                                                            |
 | :---------------- | :-------------------------------------------------------------------- |
-| Frontend          | Next.js 15 App Router · TypeScript · Tailwind CSS 4 · Vercel AI SDK  |
+| Frontend          | Next.js 16 App Router · TypeScript · Tailwind CSS 4 · Vercel AI SDK  |
 | Backend IaC       | AWS CDK (TypeScript)                                                  |
 | Compute           | AWS Lambda (Node.js 20.x)                                             |
 | AI routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                   |
@@ -186,7 +186,7 @@ Spectra deliberately matches model capability to task rather than defaulting to 
 ### Backend (spectra-api)
 
 ```bash
-cd spectra/apps/spectra-api
+cd apps/spectra-api
 cp .env.example .env
 # Fill in all values
 npm install
@@ -202,7 +202,7 @@ Run Supabase migrations in order:
 ### Frontend (spectra-app)
 
 ```bash
-cd spectra/apps/spectra-app
+cd apps/spectra-app
 cp .env.example .env.local
 # Fill in all values (point NEXT_PUBLIC_API_URL at your deployed Lambda or localhost)
 npm install
