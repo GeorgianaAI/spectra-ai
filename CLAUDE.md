@@ -12,7 +12,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 ### spectra-app (Frontend — Vercel)
 
-- **Framework:** Next.js 15 App Router
+- **Framework:** Next.js 16 App Router
 - **Language:** TypeScript — strict mode, no exceptions
 - **UI:** Tailwind CSS 4 (layout/spacing only), CSS variables for theming
 - **AI (streaming):** Vercel AI SDK (`ai`) — streaming synthesis output to UI
@@ -51,7 +51,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 ## 2.1 Version Governance & Stability Lock
 
-**Strict Version Policy:** Locked to **Next.js 15** and the dependency versions installed during Phase 1 scaffold. Do not upgrade without an explicit decision from the Architect.
+**Strict Version Policy:** Locked to **Next.js 16.2.4** and the dependency versions installed during Phase 1 scaffold. Do not upgrade without an explicit decision from the Architect.
 
 - Do not use React 19-specific APIs unless already present in the scaffold.
 - If an "upgrade available" notice appears, ignore it.
@@ -301,12 +301,16 @@ SENTRY_DSN=your_sentry_dsn_here
 ### spectra-app
 
 ```bash
-npm run dev          # Start Next.js dev server (port 3000)
-npm run build        # Production build
-npm run lint         # ESLint
-npm run type-check   # tsc --noEmit
-npm run test         # Vitest unit tests
-npm run test:e2e     # Playwright E2E (requires dev server)
+npm run dev            # Start Next.js 16 dev server (port 3000)
+npm run build          # Production build
+npm run lint           # ESLint (app/, components/, lib/)
+npm run type-check     # tsc --noEmit
+npm run test           # Vitest unit tests (single run)
+npm run test:watch     # Vitest watch mode
+npm run test:coverage  # Vitest with v8 coverage report
+npm run test:e2e       # Playwright E2E
+npm run test:e2e:ui    # Playwright interactive UI mode
+npm run audit:high     # npm audit --audit-level=high
 ```
 
 ### spectra-api
