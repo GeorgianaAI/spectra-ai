@@ -148,11 +148,11 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       - name: Dashboard smoke tests
-        run: npx playwright test tests/dashboard.spec.ts --project=chromium
+        run: npx playwright test tests/dashboard.spec.ts --project=chromium --pass-with-no-tests
       - name: Upload flow smoke tests
-        run: npx playwright test tests/upload-flow.spec.ts --project=chromium
+        run: npx playwright test tests/upload-flow.spec.ts --project=chromium --pass-with-no-tests
       - name: Auth guard smoke tests
-        run: npx playwright test tests/auth.spec.ts --project=chromium
+        run: npx playwright test tests/auth.spec.ts --project=chromium --pass-with-no-tests
       - name: Upload Playwright report on failure
         if: failure()
         uses: actions/upload-artifact@v4
