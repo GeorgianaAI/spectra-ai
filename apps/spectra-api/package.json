@@ -1,6 +1,8 @@
 {
   "name": "spectra-api",
   "version": "0.1.0",
+  "author": "Georgiana Chiriac georgianachiriacweb@gmail.com",
+  "license": "MIT",
   "private": true,
   "description": "Spectra AI — AWS CDK + Lambda backend",
   "scripts": {
@@ -14,8 +16,6 @@
     "test:watch": "vitest"
   },
   "keywords": [],
-  "author": "",
-  "license": "ISC",
   "devDependencies": {
     "@types/aws-lambda": "^8.10.161",
     "@types/node": "^25.6.0",
