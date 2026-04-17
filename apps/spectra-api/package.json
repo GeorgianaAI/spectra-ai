@@ -12,7 +12,7 @@
     "cdk:deploy": "cdk deploy --all",
     "cdk:destroy": "cdk destroy --all",
     "cdk:synth": "cdk synth",
-    "test": "vitest run",
+    "test": "vitest run --passWithNoTests",
     "test:watch": "vitest"
   },
   "keywords": [],
