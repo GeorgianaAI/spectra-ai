@@ -1,10 +1,10 @@
 # spectra-app
 
-Next.js 15 frontend for Spectra AI. Independently deployable to Vercel — no shared build system with `spectra-api`.
+Next.js 16 frontend for Spectra AI. Independently deployable to Vercel — no shared build system with `spectra-api`.
 
 ## Stack
 
-- **Framework:** Next.js 15 App Router
+- **Framework:** Next.js 16 App Router
 - **Language:** TypeScript (strict mode)
 - **UI:** Tailwind CSS 4 (layout only), CSS variables for dark theme
 - **AI streaming:** Vercel AI SDK (`ai`)
@@ -44,13 +44,13 @@ npm run dev
 
 ### API
 
-| Route                    | Method | Description                        |
-| :----------------------- | :----- | :--------------------------------- |
-| `/api/upload`            | POST   | Upload files, trigger job pipeline |
-| `/api/job/[id]`          | GET    | Job status + result                |
-| `/api/job/[id]/trace`    | GET    | Governance trace entries           |
-| `/api/auth/token`        | POST   | Issue JWT                          |
-| `/api/inngest`           | POST   | Inngest serve handler              |
+| Route                 | Method | Description                        |
+| :-------------------- | :----- | :--------------------------------- |
+| `/api/upload`         | POST   | Upload files, trigger job pipeline |
+| `/api/job/[id]`       | GET    | Job status + result                |
+| `/api/job/[id]/trace` | GET    | Governance trace entries           |
+| `/api/auth/token`     | POST   | Issue JWT                          |
+| `/api/inngest`        | POST   | Inngest serve handler              |
 
 ## Demo Access
 
