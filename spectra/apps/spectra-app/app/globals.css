@@ -1,0 +1,54 @@
+@import "tailwindcss";
+
+/* Spectra AI design tokens */
+:root {
+  --bg: #09090b;
+  --surface: #111116;
+  --border: #1e1e26;
+  --accent: #c8922a;
+  --text-primary: #e8e6df;
+  --text-secondary: #6b6a63;
+  --modality-doc: #2dd4bf;
+  --modality-vision: #38bdf8;
+  --modality-audio: #f87171;
+
+  /* Legacy tokens for Tailwind theme compat */
+  --background: var(--bg);
+  --foreground: var(--text-primary);
+}
+
+@theme inline {
+  --color-background: var(--bg);
+  --color-foreground: var(--text-primary);
+  --font-sans: var(--font-geist-sans);
+  --font-mono: var(--font-geist-mono);
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html {
+  color-scheme: dark;
+}
+
+body {
+  background: var(--bg);
+  color: var(--text-primary);
+  font-family: var(--font-sans), system-ui, sans-serif;
+  min-height: 100vh;
+  margin: 0;
+  /* Subtle dot-grid background at very low opacity */
+  background-image: radial-gradient(circle, #1e1e26 1px, transparent 1px);
+  background-size: 24px 24px;
+  background-attachment: fixed;
+}
+
+/* Agent output, trace logs, citations always use monospace */
+code,
+pre,
+.mono {
+  font-family: var(--font-mono), "Courier New", monospace;
+}

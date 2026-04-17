@@ -6,7 +6,7 @@ Spectra AI is a multimodal intelligence agent that routes documents, images, and
 
 Built on LangGraph, Claude Sonnet, GPT-4o, and Whisper, with AWS infrastructure (S3, Lambda, Bedrock), Inngest for job orchestration, and a live agent status dashboard streaming results in real time. The Router Agent runs on AWS Bedrock (Nova Micro) for cost-optimized classification, while quality-critical nodes use Claude Sonnet for grounded synthesis and GPT-4o for native image understanding — deliberately matching model capability to task rather than defaulting to a single provider.
 
-Portfolio-scale project. AWS free tier priority. Hard billing ceiling at $20/month via CloudWatch alarm.
+Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/month via CloudWatch alarm.
 
 ## 2. Technical Stack
 
@@ -75,13 +75,13 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at $20/mon
 
 ### Build Phases
 
-| Phase | Area                                                                                              | Status      |
-| :---- | :------------------------------------------------------------------------------------------------ | :---------- |
-| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                                  | 🔄 In Progress |
-| 2     | LangGraph agent graph + Inngest + API surface                                                     | ⬜ Pending  |
-| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                             | ⬜ Pending  |
-| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright)   | ⬜ Pending  |
-| 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                   | ⬜ Pending  |
+| Phase | Area                                                                                           | Status         |
+| :---- | :--------------------------------------------------------------------------------------------- | :------------- |
+| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | 🔄 In Progress |
+| 2     | LangGraph agent graph + Inngest + API surface                                                  | ⬜ Pending     |
+| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ⬜ Pending     |
+| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
+| 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
 
 ## 4. Modular Architecture
 
@@ -98,30 +98,30 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 
 ### spectra-app Directory Mapping
 
-| Area                         | Purpose                                                                                              |
-| :--------------------------- | :--------------------------------------------------------------------------------------------------- |
-| `app/`                       | **Routing Only:** `page.tsx`, `layout.tsx`, `loading.tsx`. Minimal logic.                            |
-| `app/dashboard/`             | Main app shell — upload zone, agent graph, synthesis panel.                                          |
-| `app/dashboard/job/[id]/`    | Job detail — full report, governance trace, citations, LLM-as-Judge scores.                          |
-| `app/dashboard/history/`     | Past job runs list.                                                                                   |
-| `app/dashboard/governance/`  | Full NIST AI RMF compliance ledger.                                                                   |
-| `app/api/`                   | API Routes: `/api/upload`, `/api/job/[id]`, `/api/job/[id]/trace`, `/api/auth/token`, `/api/inngest`. |
-| `components/`                | Feature components: `UploadZone`, `AgentGraph`, `SynthesisPanel`, `GovernanceTrace`, `ConfidenceBar`. |
-| `lib/`                       | Glue: `api.ts`, `types.ts`, `constants.ts`, Supabase client, JWT helpers, Inngest client.            |
-| `middleware.ts`              | JWT auth guard — protects all `/dashboard` routes.                                                   |
+| Area                        | Purpose                                                                                               |
+| :-------------------------- | :---------------------------------------------------------------------------------------------------- |
+| `app/`                      | **Routing Only:** `page.tsx`, `layout.tsx`, `loading.tsx`. Minimal logic.                             |
+| `app/dashboard/`            | Main app shell — upload zone, agent graph, synthesis panel.                                           |
+| `app/dashboard/job/[id]/`   | Job detail — full report, governance trace, citations, LLM-as-Judge scores.                           |
+| `app/dashboard/history/`    | Past job runs list.                                                                                   |
+| `app/dashboard/governance/` | Full NIST AI RMF compliance ledger.                                                                   |
+| `app/api/`                  | API Routes: `/api/upload`, `/api/job/[id]`, `/api/job/[id]/trace`, `/api/auth/token`, `/api/inngest`. |
+| `components/`               | Feature components: `UploadZone`, `AgentGraph`, `SynthesisPanel`, `GovernanceTrace`, `ConfidenceBar`. |
+| `lib/`                      | Glue: `api.ts`, `types.ts`, `constants.ts`, Supabase client, JWT helpers, Inngest client.             |
+| `middleware.ts`             | JWT auth guard — protects all `/dashboard` routes.                                                    |
 
 ### spectra-api Directory Mapping
 
-| Area                       | Purpose                                                                              |
-| :------------------------- | :----------------------------------------------------------------------------------- |
-| `bin/`                     | CDK app entry point.                                                                 |
-| `lib/stacks/`              | CDK stacks: `StorageStack`, `ComputeStack`, `ObservabilityStack`.                   |
-| `src/handlers/`            | Lambda handlers: `ingestHandler.ts`, `jobProcessor.ts`.                              |
-| `src/graph/`               | LangGraph agent graph: `graph.ts`, node files, `state.ts`.                          |
-| `src/graph/nodes/`         | One file per agent node: `routerNode.ts`, `documentNode.ts`, `visionNode.ts`, `audioNode.ts`, `synthesisNode.ts`, `auditorNode.ts`. |
-| `src/lib/`                 | Shared utilities: Bedrock client, S3 client, Supabase client, PII redaction.        |
-| `src/lib/schemas.ts`       | **Single source of truth** — all Zod schemas for node I/O, exported for reuse.     |
-| `migrations/`              | Supabase SQL migration files.                                                        |
+| Area                 | Purpose                                                                                                                             |
+| :------------------- | :---------------------------------------------------------------------------------------------------------------------------------- |
+| `bin/`               | CDK app entry point.                                                                                                                |
+| `lib/stacks/`        | CDK stacks: `StorageStack`, `ComputeStack`, `ObservabilityStack`.                                                                   |
+| `src/handlers/`      | Lambda handlers: `ingestHandler.ts`, `jobProcessor.ts`.                                                                             |
+| `src/graph/`         | LangGraph agent graph: `graph.ts`, node files, `state.ts`.                                                                          |
+| `src/graph/nodes/`   | One file per agent node: `routerNode.ts`, `documentNode.ts`, `visionNode.ts`, `audioNode.ts`, `synthesisNode.ts`, `auditorNode.ts`. |
+| `src/lib/`           | Shared utilities: Bedrock client, S3 client, Supabase client, PII redaction.                                                        |
+| `src/lib/schemas.ts` | **Single source of truth** — all Zod schemas for node I/O, exported for reuse.                                                      |
+| `migrations/`        | Supabase SQL migration files.                                                                                                       |
 
 ### Naming Conventions
 
@@ -163,18 +163,18 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 
 ### `jobs` table (Supabase PostgreSQL)
 
-| Column              | Type        | Notes                                                              |
-| :------------------ | :---------- | :----------------------------------------------------------------- |
-| `id`                | uuid        | PK, `uuid_generate_v4()`                                           |
-| `user_id`           | uuid        | FK → `auth.users(id)`, cascade delete                              |
-| `status`            | text        | `pending` \| `processing` \| `completed` \| `failed`              |
-| `created_at`        | timestamptz | default `now()`                                                    |
-| `completed_at`      | timestamptz | nullable                                                           |
-| `result_url`        | text        | nullable                                                           |
-| `confidence_scores` | jsonb       | `{ doc: number, vision: number, audio: number }`                   |
-| `governance_trace`  | jsonb       | `[{ timestamp, agent, finding, confidence, nistTag }]`             |
-| `modalities_used`   | jsonb       | `{ document: boolean, vision: boolean, audio: boolean }`           |
-| `error`             | text        | nullable — error message if status is `failed`                     |
+| Column              | Type        | Notes                                                    |
+| :------------------ | :---------- | :------------------------------------------------------- |
+| `id`                | uuid        | PK, `uuid_generate_v4()`                                 |
+| `user_id`           | uuid        | FK → `auth.users(id)`, cascade delete                    |
+| `status`            | text        | `pending` \| `processing` \| `completed` \| `failed`     |
+| `created_at`        | timestamptz | default `now()`                                          |
+| `completed_at`      | timestamptz | nullable                                                 |
+| `result_url`        | text        | nullable                                                 |
+| `confidence_scores` | jsonb       | `{ doc: number, vision: number, audio: number }`         |
+| `governance_trace`  | jsonb       | `[{ timestamp, agent, finding, confidence, nistTag }]`   |
+| `modalities_used`   | jsonb       | `{ document: boolean, vision: boolean, audio: boolean }` |
+| `error`             | text        | nullable — error message if status is `failed`           |
 
 - Row Level Security enabled. Users can only read/write their own jobs.
 - Indexes on `user_id`, `created_at DESC`, `status`.
@@ -191,11 +191,12 @@ Password: spectra-demo
 ```
 
 Demo account constraints (same as all users):
+
 - Rate limit: 3 job runs per day per IP (Upstash sliding window)
 - Max file sizes: 2MB PDF, 1MB image, 30s audio
 - Preset sample files available on the dashboard
 
-The real cost guard is the CloudWatch billing alarm at **$20/month** — not the rate limit.
+The real cost guard is the CloudWatch billing alarm at **$15/month** — not the rate limit.
 
 ## 7. UI Theme
 
@@ -203,17 +204,17 @@ Dark, precise, analyst-grade. Not a generic SaaS dashboard — closer to an inte
 
 ### Color Tokens (CSS variables in `globals.css`)
 
-| Variable             | Value       | Usage                                     |
-| :------------------- | :---------- | :---------------------------------------- |
-| `--bg`               | `#09090b`   | App shell background                      |
-| `--surface`          | `#111116`   | Cards, panels                             |
-| `--border`           | `#1e1e26`   | Subtle borders                            |
-| `--accent`           | `#c8922a`   | Active states, highlights, key labels     |
-| `--text-primary`     | `#e8e6df`   | Body text                                 |
-| `--text-secondary`   | `#6b6a63`   | Metadata, labels                          |
-| `--modality-doc`     | `#2dd4bf`   | Document agent tag / confidence bar       |
-| `--modality-vision`  | `#38bdf8`   | Vision agent tag / confidence bar         |
-| `--modality-audio`   | `#f87171`   | Audio agent tag / confidence bar          |
+| Variable            | Value     | Usage                                 |
+| :------------------ | :-------- | :------------------------------------ |
+| `--bg`              | `#09090b` | App shell background                  |
+| `--surface`         | `#111116` | Cards, panels                         |
+| `--border`          | `#1e1e26` | Subtle borders                        |
+| `--accent`          | `#c8922a` | Active states, highlights, key labels |
+| `--text-primary`    | `#e8e6df` | Body text                             |
+| `--text-secondary`  | `#6b6a63` | Metadata, labels                      |
+| `--modality-doc`    | `#2dd4bf` | Document agent tag / confidence bar   |
+| `--modality-vision` | `#38bdf8` | Vision agent tag / confidence bar     |
+| `--modality-audio`  | `#f87171` | Audio agent tag / confidence bar      |
 
 ### Typography
 
@@ -232,14 +233,14 @@ Dark, precise, analyst-grade. Not a generic SaaS dashboard — closer to an inte
 
 ### Model-to-Task Mapping (enforced — do not deviate)
 
-| Agent       | Model              | Reason                                             |
-| :---------- | :----------------- | :------------------------------------------------- |
-| Router      | Nova Micro (Bedrock) | Classification only — cheapest correct model      |
-| Document    | Claude Sonnet      | RAG + grounded citation extraction                 |
-| Vision      | GPT-4o             | Best native image understanding                    |
-| Audio       | Whisper → Sonnet   | Transcription then structured extraction           |
-| Synthesis   | GPT-4o             | Merging + conflict resolution                      |
-| Auditor     | Claude Sonnet      | Faithfulness scoring + hallucination detection     |
+| Agent     | Model                | Reason                                         |
+| :-------- | :------------------- | :--------------------------------------------- |
+| Router    | Nova Micro (Bedrock) | Classification only — cheapest correct model   |
+| Document  | Claude Sonnet        | RAG + grounded citation extraction             |
+| Vision    | GPT-4o               | Best native image understanding                |
+| Audio     | Whisper → Sonnet     | Transcription then structured extraction       |
+| Synthesis | GPT-4o               | Merging + conflict resolution                  |
+| Auditor   | Claude Sonnet        | Faithfulness scoring + hallucination detection |
 
 ### Input Validation
 
@@ -322,6 +323,7 @@ npm run test         # Vitest unit tests on schemas + routing logic
 `CLAUDE.md`, `README.md`, `ARCHITECTURE.md`, and any other papers (e.g. `ARCHITECTURE_FLOWS.md`, `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`) must be reviewed and updated after each implemented Phase. `SPEC.md` is **never** modified by Claude.
 
 Papers to create (after all phases are complete, unless specified earlier):
+
 1. `ARCHITECTURE_FLOWS.md` — detailed flow diagrams per use case
 2. `TECHNICAL_ADVISORY.md` — architecture decisions and tradeoffs (see SPEC.md "Papers" section for structure)
 3. `HARDENING_ROADMAP.md` — post-launch hardening checklist
