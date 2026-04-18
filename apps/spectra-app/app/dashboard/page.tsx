@@ -37,7 +37,13 @@ export default function DashboardPage() {
           }}
         >
           SPECTRA AI{' '}
-          <span style={{ fontWeight: 300, color: 'rgba(255, 255, 255, 0.5)' }}>
+          <span style={{
+            fontWeight: 500,
+            letterSpacing: '0.05em',
+            background: 'linear-gradient(to bottom, #fff 40%, rgba(255, 255, 255, 0.4))',
+            WebkitBackgroundClip: 'text',
+            WebkitTextFillColor: 'transparent',
+          }}>
             DASHBOARD
           </span>
         </h1>
