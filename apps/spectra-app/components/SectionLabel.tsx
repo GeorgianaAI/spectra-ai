@@ -10,6 +10,7 @@ export default function SectionLabel({ children, style }: SectionLabelProps) {
     <p
       style={{
         color: '#00f2ff',
+      opacity: 0.8,
         fontSize: '0.65rem',
         fontWeight: 700,
         textTransform: 'uppercase',
