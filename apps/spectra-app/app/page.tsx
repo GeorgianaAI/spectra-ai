@@ -110,21 +110,20 @@ export default function LandingPage() {
           position: "fixed",
           bottom: "2rem",
           fontSize: "0.7rem",
-          color: "rgba(255,255,255,0.2)",
           textTransform: "uppercase",
           letterSpacing: "0.1em",
           display: "flex",
           gap: "2rem",
         }}
       >
-        <span>
-          Status: <span style={{ color: "#10b981" }}>Systems Nominal</span>
+        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+          Engine: <span style={{ color: "#fff" }}>v1.0</span>
         </span>
-        <span>
-          Agents: <span style={{ color: "#fff" }}>03 Active</span>
+        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+          Nodes: <span style={{ color: "#fff" }}>06</span>
         </span>
-        <span>
-          Latency: <span style={{ color: "#fff" }}>24ms</span>
+        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+          Models: <span style={{ color: "#fff" }}>03</span>
         </span>
       </footer>
     </main>
