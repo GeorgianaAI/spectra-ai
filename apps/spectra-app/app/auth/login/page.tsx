@@ -187,7 +187,7 @@ export default function LoginPage() {
             </div>
           )}
 
-          <AzureButton type="submit" disabled={loading} style={{ width: "100%", marginTop: "1rem", padding: "1rem" }}>
+          <AzureButton type="submit" disabled={loading} style={{ width: "100%", marginTop: "1rem", padding: "1.1rem 1rem" }}>
             {loading ? "Decrypting..." : "Initialize Session"}
           </AzureButton>
         </form>
