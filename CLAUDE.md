@@ -77,8 +77,8 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 | Phase | Area                                                                                           | Status         |
 | :---- | :--------------------------------------------------------------------------------------------- | :------------- |
-| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | 🔄 In Progress |
-| 2     | LangGraph agent graph + Inngest + API surface                                                  | ⬜ Pending     |
+| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | ✅ Complete    |
+| 2     | LangGraph agent graph + Inngest + API surface                                                  | 🔄 In Progress |
 | 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ⬜ Pending     |
 | 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
@@ -336,5 +336,5 @@ Papers to create (after all phases are complete, unless specified earlier):
 
 1. Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
 2. If a branch appears unmerged but the Architect confirms it was merged, delete it cleanly — do not leave stale branches.
-3. Alert the Architect if a genuinely unmerged branch is found. **Never** merge recent changes until older branches have been merged and the Architect confirms CI is green.
+3. Alert the Architect if a genuinely unmerged branch is found. **Never** merge recent changes until older branches have been merged and the Architect confirms CI is green. Always check if the branch has been merged or not with `git branch --merged`.
 4. For each Phase, alert the Architect with a list of **AWS Console / external platform steps** required to support the changes made (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
