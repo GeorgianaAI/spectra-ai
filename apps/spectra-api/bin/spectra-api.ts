@@ -16,7 +16,7 @@ const storageStack = new StorageStack(app, 'SpectraStorageStack', { env });
 
 const computeStack = new ComputeStack(app, 'SpectraComputeStack', {
   env,
-  uploadsBucket: storageStack.uploadsBucket,
+  uploadsBucketName: 'spectra-uploads',
 });
 
 // Billing metrics (EstimatedCharges) only exist in us-east-1 — alarm must live there.

@@ -2,11 +2,12 @@ import * as cdk from 'aws-cdk-lib';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as logs from 'aws-cdk-lib/aws-logs';
 import * as s3 from 'aws-cdk-lib/aws-s3';
-import * as s3n from 'aws-cdk-lib/aws-s3-notifications';
 import { Construct } from 'constructs';
 
 interface ComputeStackProps extends cdk.StackProps {
-  uploadsBucket: s3.Bucket;
+  // Bucket name only — avoids a CDK cross-stack token that would create a dependency cycle
+  // with the S3 ObjectCreated notification wired in Phase 2.
+  uploadsBucketName: string;
 }
 
 export class ComputeStack extends cdk.Stack {
@@ -35,18 +36,14 @@ export class ComputeStack extends cdk.Stack {
         NODE_ENV: 'production',
         INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ?? '',
         INNGEST_EVENT_KEY: process.env.INNGEST_EVENT_KEY ?? '',
-        S3_BUCKET_NAME: props.uploadsBucket.bucketName,
+        S3_BUCKET_NAME: props.uploadsBucketName,
       },
     });
 
-    // Grant ingestHandler read access to the uploads bucket
-    props.uploadsBucket.grantRead(this.ingestHandler);
-
-    // S3 ObjectCreated → ingestHandler (all prefixes, all object types)
-    props.uploadsBucket.addEventNotification(
-      s3.EventType.OBJECT_CREATED,
-      new s3n.LambdaDestination(this.ingestHandler),
-    );
+    // Grant ingestHandler read access to the uploads bucket (referenced by name to avoid cycle)
+    const uploadsBucket = s3.Bucket.fromBucketName(this, 'UploadsBucketRef', props.uploadsBucketName);
+    uploadsBucket.grantRead(this.ingestHandler);
+    // S3 ObjectCreated → ingestHandler notification wired in Phase 2 (StorageStack owns the bucket).
 
     // jobProcessor: triggered by Inngest HTTP, runs LangGraph, writes to Supabase
     const jobProcessorLogGroup = new logs.LogGroup(this, 'JobProcessorLogs', {
@@ -69,7 +66,7 @@ export class ComputeStack extends cdk.Stack {
       environment: {
         NODE_ENV: 'production',
         AWS_REGION_OVERRIDE: props.env?.region ?? 'eu-west-1',
-        S3_BUCKET_NAME: props.uploadsBucket.bucketName,
+        S3_BUCKET_NAME: props.uploadsBucketName,
         BEDROCK_NOVA_MICRO_MODEL_ID: process.env.BEDROCK_NOVA_MICRO_MODEL_ID ?? 'amazon.nova-micro-v1:0',
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? '',
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? '',
@@ -88,8 +85,8 @@ export class ComputeStack extends cdk.Stack {
       },
     });
 
-    // Grant jobProcessor full access to the uploads bucket (needs to download files)
-    props.uploadsBucket.grantReadWrite(this.jobProcessor);
+    // Grant jobProcessor full access to the uploads bucket
+    uploadsBucket.grantReadWrite(this.jobProcessor);
 
     // Grant jobProcessor permission to call Bedrock (Nova Micro for Router Agent)
     this.jobProcessor.addToRolePolicy(
