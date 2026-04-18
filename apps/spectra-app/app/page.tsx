@@ -1,105 +1,136 @@
+"use client";
+
+import AzureButton from '@/components/AzureButton';
+import ModalityCard from '@/components/ModalityCard';
+
+const MODALITIES = [
+  {
+    label: "Document Intelligence",
+    icon: "📄",
+    color: "#3b82f6",
+    detail: "Advanced PDF parsing with multi-vector RAG retrieval.",
+    sub: "Automatic citation mapping and source grounding.",
+  },
+  {
+    label: "Neural Vision",
+    icon: "👁️",
+    color: "#10b981",
+    detail: "Spatial analysis and annotation via GPT-4o vision agents.",
+    sub: "Object detection, OCR, and structured data extraction.",
+  },
+  {
+    label: "Audio Extraction",
+    icon: "🎙️",
+    color: "#8b5cf6",
+    detail: "Whisper-Large transcription with timestamped diarization.",
+    sub: "Summarization and entity recognition from complex audio.",
+  },
+];
+
 export default function LandingPage() {
   return (
     <main
       style={{
         minHeight: "100vh",
+        backgroundColor: "#060609",
+        backgroundImage: `
+          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.15) 0%, transparent 40%),
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+        `,
+        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        gap: "2rem",
+        color: "#fff",
       }}
     >
-      <div style={{ textAlign: "center", maxWidth: "600px" }}>
-        <h1
-          style={{
-            color: "var(--accent)",
-            fontSize: "2.5rem",
-            fontWeight: 500,
-            letterSpacing: "0.08em",
-            marginBottom: "1rem",
-          }}
-        >
-          SPECTRA
-        </h1>
-        <p style={{ color: "var(--text-secondary)", fontSize: "1.1rem", lineHeight: 1.6, marginBottom: "2rem" }}>
-          Multimodal intelligence agent. Route documents, images, and audio through a
-          specialist multi-agent graph — synthesised, cited, and scored in real time.
-        </p>
-
-        {/* Demo credentials — displayed prominently for recruiters */}
+      <section style={{ textAlign: "center", marginBottom: "3rem" }}>
         <div
           style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            padding: "1.25rem 1.5rem",
-            marginBottom: "2rem",
-            textAlign: "left",
+            display: "inline-block",
+            padding: "0.5rem 1rem",
+            borderRadius: "50px",
+            background: "rgba(0, 242, 255, 0.1)",
+            border: "1px solid rgba(0, 242, 255, 0.2)",
+            color: "#00f2ff",
+            fontSize: "0.7rem",
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.2em",
+            marginBottom: "1.5rem",
           }}
         >
-          <p
-            style={{
-              color: "var(--text-secondary)",
-              fontSize: "0.75rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-              marginBottom: "0.75rem",
-            }}
-          >
-            Demo Access
-          </p>
-          <p style={{ fontFamily: "monospace", color: "var(--text-primary)", marginBottom: "0.25rem" }}>
-            <span style={{ color: "var(--text-secondary)" }}>Email: </span>demo@spectra.app
-          </p>
-          <p style={{ fontFamily: "monospace", color: "var(--text-primary)" }}>
-            <span style={{ color: "var(--text-secondary)" }}>Password: </span>spectra-demo
-          </p>
+          Multi-Agent Synthesis Engine v1.0
         </div>
 
-        <a
-          href="/auth/login"
+        <h1
           style={{
-            display: "inline-block",
-            background: "var(--accent)",
-            color: "#09090b",
-            padding: "0.75rem 2rem",
-            borderRadius: "6px",
-            fontWeight: 600,
-            textDecoration: "none",
-            fontSize: "0.95rem",
-            letterSpacing: "0.02em",
+            fontSize: "clamp(3rem, 8vw, 5rem)",
+            fontWeight: 800,
+            letterSpacing: "-0.04em",
+            lineHeight: 0.9,
+            marginBottom: "1.5rem",
+            background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
+            WebkitBackgroundClip: "text",
+            WebkitTextFillColor: "transparent",
           }}
         >
-          Try the Demo
-        </a>
-      </div>
+          SPECTRA AI
+        </h1>
 
-      {/* Modality highlights */}
-      <div style={{ display: "flex", gap: "1.5rem", flexWrap: "wrap", justifyContent: "center", maxWidth: "700px" }}>
-        {[
-          { label: "Document", color: "var(--modality-doc)", desc: "PDF parsing, RAG retrieval, citations" },
-          { label: "Vision", color: "var(--modality-vision)", desc: "GPT-4o image analysis, annotations" },
-          { label: "Audio", color: "var(--modality-audio)", desc: "Whisper transcription, structured extraction" },
-        ].map((m) => (
-          <div
-            key={m.label}
-            style={{
-              background: "var(--surface)",
-              border: `1px solid ${m.color}33`,
-              borderTop: `2px solid ${m.color}`,
-              borderRadius: "8px",
-              padding: "1rem 1.25rem",
-              minWidth: "180px",
-              flex: 1,
-            }}
-          >
-            <p style={{ color: m.color, fontWeight: 600, marginBottom: "0.25rem", fontSize: "0.85rem" }}>{m.label}</p>
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.8rem", lineHeight: 1.5 }}>{m.desc}</p>
-          </div>
+        <p
+          style={{
+            color: "rgba(255,255,255,0.5)",
+            fontSize: "1.2rem",
+            maxWidth: "600px",
+            margin: "0 auto 2.5rem",
+            lineHeight: 1.6,
+            textAlign: "center",
+          }}
+        >
+          Intelligence across{" "}
+          <span style={{ color: "#fff" }}>PDF, Vision, and Audio</span>.
+          <br />
+          Unified into a single grounded report.
+        </p>
+
+        <AzureButton href="/auth/login">INITIALIZE WORKSPACE</AzureButton>
+      </section>
+
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "repeat(auto-fit, minmax(320px, 1fr))",
+          gap: "1.5rem",
+          width: "100%",
+          maxWidth: "1100px",
+          marginTop: "1.5rem",
+        }}
+      >
+        {MODALITIES.map((m) => (
+          <ModalityCard key={m.label} {...m} />
         ))}
       </div>
+
+      <footer
+        style={{
+          position: "fixed",
+          bottom: "2rem",
+          fontSize: "0.7rem",
+          color: "rgba(255,255,255,0.2)",
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
+          display: "flex",
+          gap: "2rem",
+        }}
+      >
+        <span>Status: <span style={{ color: "#10b981" }}>Systems Nominal</span></span>
+        <span>Agents: <span style={{ color: "#fff" }}>03 Active</span></span>
+        <span>Latency: <span style={{ color: "#fff" }}>24ms</span></span>
+      </footer>
     </main>
   );
 }

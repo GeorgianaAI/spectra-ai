@@ -1,117 +1,156 @@
 // Phase 3: wire UploadZone, AgentGraph, SynthesisPanel, ConfidenceBar against real API
 export default function DashboardPage() {
   return (
-    <div style={{ padding: "2rem", minHeight: "100vh" }}>
+    <div
+      style={{
+        padding: "2rem",
+        minHeight: "100vh",
+        backgroundColor: "#060609",
+        backgroundImage: `
+          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.12) 0%, transparent 40%),
+          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
+        `,
+        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
+        color: "#fff",
+      }}
+    >
+      {/* Header - Recycled exactly from Login/Landing Theme */}
       <header
         style={{
           display: "flex",
           alignItems: "center",
-          gap: "1rem",
-          marginBottom: "2rem",
-          borderBottom: "1px solid var(--border)",
-          paddingBottom: "1rem",
+          gap: "1.25rem",
+          marginBottom: "2.5rem",
+          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+          paddingBottom: "1.5rem",
         }}
       >
-        <span
+        <h1
           style={{
-            color: "var(--accent)",
-            fontWeight: 500,
-            fontSize: "1.1rem",
-            letterSpacing: "0.08em",
+            fontSize: "1.25rem",
+            fontWeight: 800,
+            letterSpacing: "0.2em",
+            color: "#00f2ff",
+            textTransform: "uppercase",
           }}
         >
-          SPECTRA
-        </span>
+          SPECTRA AI{" "}
+          <span style={{ fontWeight: 300, color: "rgba(255, 255, 255, 0.5)" }}>
+            DASHBOARD
+          </span>
+        </h1>
+
         <span
           style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
+            background: "rgba(255, 255, 255, 0.03)",
+            border: "1px solid rgba(255, 255, 255, 0.1)",
             borderRadius: "4px",
-            padding: "2px 8px",
+            padding: "3px 10px",
             fontSize: "0.7rem",
             fontFamily: "monospace",
-            color: "var(--text-secondary)",
+            color: "rgba(255, 255, 255, 0.5)", // Recycled from Landing Subtitle color
+            letterSpacing: "0.1em",
           }}
         >
           MISSION-001
         </span>
-        <span
-          style={{
-            marginLeft: "auto",
-            background: "#c8922a22",
-            border: "1px solid var(--accent)",
-            borderRadius: "4px",
-            padding: "2px 8px",
-            fontSize: "0.7rem",
-            color: "var(--accent)",
-          }}
-        >
-          Idle
-        </span>
+
+        <div style={{ marginLeft: "auto", display: "flex", gap: "1rem" }}>
+          <span
+            style={{
+              fontSize: "0.65rem",
+              color: "#00f2ff",
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              padding: "4px 12px",
+              borderRadius: "50px",
+              border: "1px solid rgba(0, 242, 255, 0.3)",
+              background: "rgba(0, 242, 255, 0.05)",
+            }}
+          >
+            ● STATUS: NOMINAL
+          </span>
+        </div>
       </header>
 
-      <div style={{ display: "grid", gridTemplateColumns: "40% 1fr", gap: "1.5rem" }}>
-        {/* Left column: upload + agent graph */}
-        <div style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}>
-          <section
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "8px",
-              padding: "1.25rem",
-            }}
-          >
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "1rem" }}>
-              UploadZone — Phase 3
-            </p>
-            {/* UploadZone component goes here */}
+      {/* Main Grid - Using the same glass cards from Auth UI */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: "40% 1fr",
+          gap: "1.5rem",
+          alignItems: "stretch",
+        }}
+      >
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+        >
+          <section style={panelStyle}>
+            <p style={labelStyle}>OPERATOR // UPLOAD_ZONE</p>
           </section>
 
-          <section
-            style={{
-              background: "var(--surface)",
-              border: "1px solid var(--border)",
-              borderRadius: "8px",
-              padding: "1.25rem",
-            }}
-          >
-            <p style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "1rem" }}>
-              AgentGraph — Phase 3
-            </p>
-            {/* AgentGraph component goes here */}
+          <section style={{ ...panelStyle, flex: 1 }}>
+            <p style={labelStyle}>SYSTEM // AGENT_GRAPH</p>
           </section>
         </div>
 
-        {/* Right column: synthesis panel */}
-        <section
-          style={{
-            background: "var(--surface)",
-            border: "1px solid var(--border)",
-            borderRadius: "8px",
-            padding: "1.25rem",
-          }}
-        >
-          <p style={{ color: "var(--text-secondary)", fontSize: "0.75rem", marginBottom: "1rem" }}>
-            SynthesisPanel — Phase 3
-          </p>
-          {/* SynthesisPanel + ConfidenceBar goes here */}
+        <section style={{ ...panelStyle, minHeight: "450px" }}>
+          <p style={labelStyle}>ANALYSIS // SYNTHESIS_PANEL</p>
         </section>
       </div>
 
-      {/* Governance trace bottom strip */}
-      <section
+      {/* Persistence Footer - Recycled from Auth UI precisely */}
+      <footer
         style={{
           marginTop: "1.5rem",
-          background: "var(--surface)",
-          border: "1px solid var(--border)",
-          borderRadius: "8px",
+          background: "rgba(255, 255, 255, 0.03)",
+          backdropFilter: "blur(20px)",
+          border: "1px solid rgba(255, 255, 255, 0.08)",
+          borderRadius: "24px",
           padding: "1.25rem",
+          display: "flex",
+          justifyContent: "space-between",
+          fontSize: "0.7rem",
+          color: "rgba(255, 255, 255, 0.2)", // Muted base for footer
+          textTransform: "uppercase",
+          letterSpacing: "0.1em",
         }}
       >
-        <p style={{ color: "var(--text-secondary)", fontSize: "0.75rem" }}>
-          GovernanceTrace — Phase 3
-        </p>
-      </section>
+        <span>
+          AUTH:{" "}
+          <span style={{ color: "rgba(255, 255, 255, 0.8)" }}>ENFORCED</span>
+        </span>
+        <span>
+          NODE:{" "}
+          <span style={{ color: "rgba(255, 255, 255, 0.8)" }}>
+            SPECTRA_PRIME
+          </span>
+        </span>
+        <span style={{ color: "#00f2ff", opacity: 0.6 }}>
+          GOVERNANCE_TRACE // ACTIVE
+        </span>
+      </footer>
     </div>
   );
 }
+
+const panelStyle = {
+  background: "rgba(255, 255, 255, 0.03)",
+  backdropFilter: "blur(25px)",
+  border: "1px solid rgba(255, 255, 255, 0.08)",
+  borderRadius: "24px",
+  padding: "1.5rem",
+  boxShadow: "0 40px 100px rgba(0,0,0,0.4)",
+};
+
+const labelStyle = {
+  color: "#00f2ff",
+  fontSize: "0.65rem",
+  fontWeight: 700,
+  textTransform: "uppercase",
+  letterSpacing: "0.15em",
+  fontFamily: "monospace",
+  marginBottom: "1.25rem",
+};
