@@ -134,6 +134,42 @@ PII patterns (email, phone, SSN, credit card, full name heuristics) are stripped
 
 ---
 
+## 8. pdf2json Raw Data Access in v3
+
+### Context
+
+The Document Agent uses `pdf2json` to extract text from PDF uploads before chunking and vectorising.
+
+### Challenge
+
+`pdf2json` v3 changed its internal output shape. `getRawTextContent()` returns an empty string in v3 — the method exists but the underlying `rawTextContent` property is never populated. Relying on it produces silent empty-string results that pass through to the embedding stage without error.
+
+### Solution
+
+Read the raw data tree directly: `data.Pages[n].Texts[n].R[n].T`, then `decodeURIComponent()` each token. This accesses the underlying parsed structure that `getRawTextContent()` was intended to summarise. The `pdfParser_dataReady` callback receives the raw `Output` type; it is cast to `Record<string, unknown>` for safe traversal.
+
+**File:** `apps/spectra-api/src/graph/nodes/documentNode.ts`
+
+---
+
+## 9. Inngest v4 `createFunction` Signature Change
+
+### Context
+
+Inngest v4 (installed as `^4.2.4`) changed the `createFunction` API from a 3-argument form to a 2-argument form.
+
+### Challenge
+
+The v3 signature was `createFunction(options, trigger, handler)`. v4 merges `trigger` into `options` under a `triggers` array key: `createFunction({ id, triggers: [{ event }] }, handler)`. TypeScript surfaces this as "Expected 2 arguments, but got 3" — the compiler error is clear, but the fix is non-obvious without reading the v4 changelog.
+
+### Solution
+
+The `processJobFn` in `lib/inngest.ts` uses the v4 2-argument form with `triggers` inside the options object. The `event` handler type annotation is explicit (`{ event: { data: { jobId, userId, s3Keys } } }`) because Inngest's generic type inference requires typed event schemas for full inference.
+
+**File:** `apps/spectra-app/lib/inngest.ts`
+
+---
+
 ## Update Rules
 
 Update this document when a technical challenge is diagnosed and resolved that:

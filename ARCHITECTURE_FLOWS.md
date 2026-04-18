@@ -134,8 +134,7 @@ API->>API: Rate limit check — Upstash Redis (3/day/IP)
 API-->>UI: 429 { error, code: RATE_LIMITED } if exceeded
 API->>API: Validate file types + sizes (Zod)
 API-->>UI: 400 { error, code: INVALID_FILES } if invalid
-API->>S3: Generate presigned PUT URLs
-API->>S3: PUT each file (PDF · image · audio)
+API->>S3: PutObjectCommand — upload each file server-side (PDF · image · audio)
 API->>SUP: INSERT job { status: pending, modalities_used, user_id }
 API->>INN: Fire event spectra/job.process { jobId, userId, s3Keys }
 API-->>UI: 200 { jobId }

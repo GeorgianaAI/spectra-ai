@@ -217,8 +217,8 @@ npm run dev
 | Phase | Area                                                                          | Status         |
 | :---- | :---------------------------------------------------------------------------- | :------------- |
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | ✅ Complete    |
-| 2     | LangGraph agent graph + Inngest + API surface                                 | 🔄 In Progress |
-| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ⬜ Pending     |
+| 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete    |
+| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | 🔄 In Progress |
 | 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
 | 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot, Resend)           | ⬜ Pending     |
 

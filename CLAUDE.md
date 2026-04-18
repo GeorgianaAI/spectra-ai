@@ -60,7 +60,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 - **Repo Layout:** `spectra/` is the root container. `apps/spectra-app/` and `apps/spectra-api/` are independently deployable sub-projects, each with their own `package.json`.
 - **Feature Branches:** `feat/`, `fix/`, `refactor/`
-- **Atomic Commits:** Group changed files meaningfully. Separate concerns across commits:
+- **Atomic Commits:** Group changed files meaningfully. Separate concerns across multiple commits (not just 1-2) where applicable:
   1. Infrastructure / IaC
   2. API Routes / Lambda handlers
   3. Agent logic / LangGraph graph
@@ -78,8 +78,8 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 | Phase | Area                                                                                           | Status         |
 | :---- | :--------------------------------------------------------------------------------------------- | :------------- |
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | ✅ Complete    |
-| 2     | LangGraph agent graph + Inngest + API surface                                                  | 🔄 In Progress |
-| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ⬜ Pending     |
+| 2     | LangGraph agent graph + Inngest + API surface                                                  | ✅ Complete    |
+| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | 🔄 In Progress |
 | 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
 
