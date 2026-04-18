@@ -1,32 +1,70 @@
-/**
- * jobProcessor — triggered by Inngest HTTP invocation (not S3, not SQS).
- *
- * Responsibilities (Phase 2 implementation):
- *   1. Parse the Inngest job payload: { jobId, userId, s3Keys: { document?, image?, audio? } }.
- *   2. Execute the LangGraph multi-agent graph (routerNode → specialists → synthesisNode → auditorNode).
- *   3. Write confidenceScores, governanceTrace, and report to Supabase jobs table.
- *   4. Return 200 on success so Inngest marks the job complete, 500 on failure to trigger retry.
- *
- * Services this handler interacts with:
- *   - AWS S3 (download uploaded files for processing)
- *   - AWS Bedrock (Nova Micro for Router Agent classification)
- *   - Anthropic API (Claude Sonnet for Document Agent, Synthesis Agent, Auditor)
- *   - OpenAI API (GPT-4o for Vision Agent; Whisper for Audio Agent transcription)
- *   - Upstash Vector (session-namespaced document embeddings)
- *   - Upstash Redis (LangGraph checkpointing)
- *   - Supabase (write completed job results)
- *   - LangSmith (end-to-end agent graph tracing)
- */
-
 import type { APIGatewayProxyHandler, APIGatewayProxyResult } from 'aws-lambda';
+import { z } from 'zod';
+import { spectraGraph } from '../graph/graph';
+import { updateJobStatus, completeJob, failJob } from '../lib/supabase-client';
+
+const JobPayloadSchema = z.object({
+  jobId: z.string().uuid(),
+  userId: z.string().uuid(),
+  s3Keys: z.object({
+    document: z.string().optional(),
+    image: z.string().optional(),
+    audio: z.string().optional(),
+  }),
+});
 
 export const handler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
-  console.log('[jobProcessor] received Inngest invocation', JSON.stringify(event, null, 2));
+  let jobId: string | undefined;
 
-  // Phase 2: parse payload, run LangGraph graph, write results to Supabase
+  try {
+    const body = typeof event.body === 'string' ? JSON.parse(event.body) : event.body;
+    const payload = JobPayloadSchema.parse(body);
+    jobId = payload.jobId;
 
-  return {
-    statusCode: 200,
-    body: JSON.stringify({ status: 'ok', message: 'jobProcessor scaffold — Phase 2 will implement graph execution' }),
-  };
+    await updateJobStatus(jobId, 'processing');
+
+    const threadId = `${payload.userId}/${jobId}`;
+    const result = await spectraGraph.invoke(
+      {
+        jobId: payload.jobId,
+        userId: payload.userId,
+        s3Keys: payload.s3Keys,
+        activeModalities: [],
+        documentOutput: undefined,
+        visionOutput: undefined,
+        audioOutput: undefined,
+        synthesisOutput: undefined,
+        auditorOutput: undefined,
+      },
+      { configurable: { thread_id: threadId } },
+    );
+
+    if (!result.auditorOutput || !result.synthesisOutput) {
+      throw new Error('Graph completed without required outputs');
+    }
+
+    await completeJob(
+      jobId,
+      result.auditorOutput.confidenceScores,
+      result.auditorOutput.governanceTrace,
+      result.synthesisOutput.report,
+    );
+
+    return {
+      statusCode: 200,
+      body: JSON.stringify({ status: 'completed', jobId }),
+    };
+  } catch (err) {
+    const message = err instanceof Error ? err.message : 'Unknown error';
+    console.error('[jobProcessor] error', message, err);
+
+    if (jobId) {
+      await failJob(jobId, message).catch(() => {});
+    }
+
+    return {
+      statusCode: 500,
+      body: JSON.stringify({ status: 'failed', error: message }),
+    };
+  }
 };
