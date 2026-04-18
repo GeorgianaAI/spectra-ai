@@ -1,7 +1,7 @@
 import * as cdk from 'aws-cdk-lib';
+import * as iam from 'aws-cdk-lib/aws-iam';
 import * as lambda from 'aws-cdk-lib/aws-lambda';
 import * as logs from 'aws-cdk-lib/aws-logs';
-import * as s3 from 'aws-cdk-lib/aws-s3';
 import { Construct } from 'constructs';
 
 interface ComputeStackProps extends cdk.StackProps {
@@ -40,10 +40,14 @@ export class ComputeStack extends cdk.Stack {
       },
     });
 
-    // Grant ingestHandler read access to the uploads bucket (referenced by name to avoid cycle)
-    const uploadsBucket = s3.Bucket.fromBucketName(this, 'UploadsBucketRef', props.uploadsBucketName);
-    uploadsBucket.grantRead(this.ingestHandler);
-    // S3 ObjectCreated → ingestHandler notification wired in Phase 2 (StorageStack owns the bucket).
+    // Explicit IAM policy — avoids CDK cross-stack token that causes the StorageStack/ComputeStack cycle.
+    // S3 ARNs never include account/region so these are literal strings with no CDK dependency.
+    const bucketArn = `arn:aws:s3:::${props.uploadsBucketName}`;
+    this.ingestHandler.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject', 's3:ListBucket'],
+      resources: [bucketArn, `${bucketArn}/*`],
+    }));
+    // S3 ObjectCreated → ingestHandler notification wired in Phase 2.
 
     // jobProcessor: triggered by Inngest HTTP, runs LangGraph, writes to Supabase
     const jobProcessorLogGroup = new logs.LogGroup(this, 'JobProcessorLogs', {
@@ -85,8 +89,10 @@ export class ComputeStack extends cdk.Stack {
       },
     });
 
-    // Grant jobProcessor full access to the uploads bucket
-    uploadsBucket.grantReadWrite(this.jobProcessor);
+    this.jobProcessor.addToRolePolicy(new iam.PolicyStatement({
+      actions: ['s3:GetObject', 's3:PutObject', 's3:DeleteObject', 's3:ListBucket'],
+      resources: [bucketArn, `${bucketArn}/*`],
+    }));
 
     // Grant jobProcessor permission to call Bedrock (Nova Micro for Router Agent)
     this.jobProcessor.addToRolePolicy(
