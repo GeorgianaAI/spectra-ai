@@ -19,7 +19,8 @@ insert into auth.users (
   raw_user_meta_data,
   is_super_admin,
   role
-) values (
+)
+select
   uuid_generate_v4(),
   'demo@spectra.app',
   crypt('spectra-demo', gen_salt('bf')),
@@ -30,5 +31,6 @@ insert into auth.users (
   '{"name":"Demo User"}',
   false,
   'authenticated'
-)
-on conflict (email) do nothing;
+where not exists (
+  select 1 from auth.users where email = 'demo@spectra.app'
+);
