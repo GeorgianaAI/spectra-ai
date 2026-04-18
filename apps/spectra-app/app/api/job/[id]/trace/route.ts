@@ -1,17 +1,34 @@
-/**
- * GET /api/job/[id]/trace
- *
- * Phase 3 implementation:
- *   1. Validate JWT.
- *   2. Fetch job row from Supabase, enforce user ownership.
- *   3. Return governance_trace array from the completed job.
- *
- * Returns consistent error shape: { error: string, code: string }
- */
+import { NextRequest, NextResponse } from 'next/server';
+import { getSupabaseClient } from '@/lib/supabase';
+import { verifyJwt } from '@/lib/jwt';
 
-import { NextResponse } from 'next/server';
+export async function GET(request: NextRequest, { params }: { params: Promise<{ id: string }> }) {
+  const auth = request.headers.get('Authorization');
+  if (!auth?.startsWith('Bearer ')) {
+    return NextResponse.json({ error: 'Missing token', code: 'UNAUTHORIZED' }, { status: 401 });
+  }
+  let userId: string;
+  try {
+    const claims = await verifyJwt(auth.slice(7));
+    userId = claims.sub;
+  } catch {
+    return NextResponse.json({ error: 'Invalid token', code: 'UNAUTHORIZED' }, { status: 401 });
+  }
 
-export async function GET() {
-  // Phase 3: implement governance trace fetch
-  return NextResponse.json({ error: 'Not implemented', code: 'NOT_IMPLEMENTED' }, { status: 501 });
+  const { id } = await params;
+  const supabase = getSupabaseClient();
+  const { data, error } = await supabase
+    .from('jobs')
+    .select('user_id, governance_trace')
+    .eq('id', id)
+    .single();
+
+  if (error || !data) {
+    return NextResponse.json({ error: 'Job not found', code: 'NOT_FOUND' }, { status: 404 });
+  }
+  if (data.user_id !== userId) {
+    return NextResponse.json({ error: 'Forbidden', code: 'FORBIDDEN' }, { status: 403 });
+  }
+
+  return NextResponse.json(data.governance_trace ?? []);
 }

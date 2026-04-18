@@ -1,19 +1,34 @@
-/**
- * POST /api/auth/token
- *
- * Phase 3 implementation:
- *   1. Parse { email, password } from request body (Zod validated).
- *   2. Sign in via Supabase Auth (email/password).
- *   3. Issue a JWT signed with JWT_SECRET, payload: { sub: userId, email }.
- *   4. Return { token }.
- *
- * No rate limiting on this route.
- * Returns consistent error shape: { error: string, code: string }
- */
+import { NextRequest, NextResponse } from 'next/server';
+import { z } from 'zod';
+import { getSupabaseClient } from '@/lib/supabase';
+import { issueJwt } from '@/lib/jwt';
 
-import { NextResponse } from 'next/server';
+const BodySchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(1),
+});
 
-export async function POST() {
-  // Phase 3: implement JWT issuance
-  return NextResponse.json({ error: 'Not implemented', code: 'NOT_IMPLEMENTED' }, { status: 501 });
+export async function POST(request: NextRequest) {
+  let body: unknown;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: 'Invalid JSON', code: 'BAD_REQUEST' }, { status: 400 });
+  }
+
+  const parsed = BodySchema.safeParse(body);
+  if (!parsed.success) {
+    return NextResponse.json({ error: 'Invalid request body', code: 'BAD_REQUEST' }, { status: 400 });
+  }
+
+  const { email, password } = parsed.data;
+  const supabase = getSupabaseClient();
+
+  const { data, error } = await supabase.auth.signInWithPassword({ email, password });
+  if (error || !data.user) {
+    return NextResponse.json({ error: 'Invalid credentials', code: 'UNAUTHORIZED' }, { status: 401 });
+  }
+
+  const token = await issueJwt(data.user.id, data.user.email ?? email);
+  return NextResponse.json({ token });
 }
