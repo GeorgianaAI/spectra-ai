@@ -1,33 +1,45 @@
-/**
- * JWT auth guard — protects all /dashboard routes.
- *
- * Phase 3 implementation:
- *   - Extract Bearer token from Authorization header or __spectra_token cookie.
- *   - Verify with JWT_SECRET (jose library).
- *   - Redirect to /auth/login on missing or invalid token.
- *   - Pass through on valid token.
- *
- * Public routes (no auth required): /, /auth/login, /api/auth/token
- */
-
 import { NextRequest, NextResponse } from 'next/server';
+import { jwtVerify } from 'jose';
 
-export function middleware(request: NextRequest): NextResponse {
+function getSecret(): Uint8Array {
+  return new TextEncoder().encode(process.env.JWT_SECRET ?? '');
+}
+
+function extractToken(request: NextRequest): string | null {
+  const auth = request.headers.get('Authorization');
+  if (auth?.startsWith('Bearer ')) return auth.slice(7);
+  return request.cookies.get('__spectra_token')?.value ?? null;
+}
+
+export async function middleware(request: NextRequest): Promise<NextResponse> {
   const { pathname } = request.nextUrl;
 
-  // Public routes — no auth check
   if (
     pathname === '/' ||
     pathname.startsWith('/auth') ||
     pathname === '/api/auth/token' ||
-    pathname === '/api/inngest'
+    pathname.startsWith('/api/inngest')
   ) {
     return NextResponse.next();
   }
 
-  // Phase 3: verify JWT and redirect to /auth/login on failure
-  // Placeholder: allow all requests through during scaffold phase
-  return NextResponse.next();
+  const token = extractToken(request);
+  if (!token) {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Missing token', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
+
+  try {
+    await jwtVerify(token, getSecret());
+    return NextResponse.next();
+  } catch {
+    if (pathname.startsWith('/api/')) {
+      return NextResponse.json({ error: 'Invalid token', code: 'UNAUTHORIZED' }, { status: 401 });
+    }
+    return NextResponse.redirect(new URL('/auth/login', request.url));
+  }
 }
 
 export const config = {
