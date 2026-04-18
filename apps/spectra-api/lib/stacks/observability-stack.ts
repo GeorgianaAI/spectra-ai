@@ -9,6 +9,7 @@ import { Construct } from 'constructs';
 interface ObservabilityStackProps extends cdk.StackProps {
   ingestHandler: lambda.Function;
   jobProcessor: lambda.Function;
+  lambdaRegion: string;
 }
 
 export class ObservabilityStack extends cdk.Stack {
@@ -55,8 +56,8 @@ export class ObservabilityStack extends cdk.Stack {
     const makeInvocationWidget = (fn: lambda.Function, title: string) =>
       new cloudwatch.GraphWidget({
         title: `${title} — Invocations`,
-        left: [fn.metricInvocations({ statistic: 'Sum', period: cdk.Duration.minutes(5) })],
-        right: [fn.metricErrors({ statistic: 'Sum', period: cdk.Duration.minutes(5) })],
+        left: [fn.metricInvocations({ statistic: 'Sum', period: cdk.Duration.minutes(5), region: props.lambdaRegion })],
+        right: [fn.metricErrors({ statistic: 'Sum', period: cdk.Duration.minutes(5), region: props.lambdaRegion })],
         width: 12,
       });
 
@@ -64,8 +65,8 @@ export class ObservabilityStack extends cdk.Stack {
       new cloudwatch.GraphWidget({
         title: `${title} — Duration (ms)`,
         left: [
-          fn.metricDuration({ statistic: 'Average', period: cdk.Duration.minutes(5) }),
-          fn.metricDuration({ statistic: 'p99', period: cdk.Duration.minutes(5) }),
+          fn.metricDuration({ statistic: 'Average', period: cdk.Duration.minutes(5), region: props.lambdaRegion }),
+          fn.metricDuration({ statistic: 'p99', period: cdk.Duration.minutes(5), region: props.lambdaRegion }),
         ],
         width: 12,
       });

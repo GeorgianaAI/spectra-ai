@@ -19,10 +19,12 @@ const computeStack = new ComputeStack(app, 'SpectraComputeStack', {
   uploadsBucket: storageStack.uploadsBucket,
 });
 
+// Billing metrics (EstimatedCharges) only exist in us-east-1 — alarm must live there.
 new ObservabilityStack(app, 'SpectraObservabilityStack', {
-  env,
+  env: { account: process.env.AWS_ACCOUNT_ID, region: 'us-east-1' },
   ingestHandler: computeStack.ingestHandler,
   jobProcessor: computeStack.jobProcessor,
+  lambdaRegion: env.region ?? 'eu-west-1',
 });
 
 app.synth();
