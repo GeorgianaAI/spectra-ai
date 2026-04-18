@@ -29,12 +29,12 @@ export default function LandingPage() {
         <div
           style={{
             display: "inline-block",
-            padding: "0.5rem 1rem",
+            padding: "0.2rem 0.65rem 0.2rem 0.85rem",
             borderRadius: "50px",
             background: "rgba(0, 242, 255, 0.1)",
             border: "1px solid rgba(0, 242, 255, 0.2)",
             color: "#00f2ff",
-            fontSize: "0.7rem",
+            fontSize: "0.6rem",
             fontWeight: 700,
             textTransform: "uppercase",
             letterSpacing: "0.2em",
