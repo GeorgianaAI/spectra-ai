@@ -1,5 +1,6 @@
 "use client";
 
+import { Aperture } from "lucide-react";
 import AzureButton from "@/components/AzureButton";
 import ModalityCard from "@/components/ModalityCard";
 import { MODALITIES } from "@/lib/constants";
@@ -43,21 +44,32 @@ export default function LandingPage() {
           Multi-Agent Synthesis Engine v1.0
         </div>
 
-        <h1
+        <div
           style={{
-            fontSize: "clamp(3rem, 8vw, 5rem)",
-            fontWeight: 800,
-            letterSpacing: "-0.04em",
-            lineHeight: 0.9,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: "1rem",
             marginBottom: "1.5rem",
-            background:
-              "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
           }}
         >
-          SPECTRA AI 🌐
-        </h1>
+          <h1
+            style={{
+              fontSize: "clamp(3rem, 8vw, 5rem)",
+              fontWeight: 800,
+              letterSpacing: "-0.04em",
+              lineHeight: 0.9,
+              margin: 0,
+              background:
+                "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+            }}
+          >
+            SPECTRA AI
+          </h1>
+          <Aperture size={56} color="#00f2ff" strokeWidth={1.5} />
+        </div>
 
         <p
           style={{
