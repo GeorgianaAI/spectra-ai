@@ -55,3 +55,27 @@ export const API_ROUTES = {
 export const POLL_INTERVAL_MS = 2000;
 
 export const DEMO_EMAIL = 'demo@spectra.app';
+
+export const MODALITIES = [
+  {
+    label: 'Document Intelligence',
+    icon: '📄',
+    color: '#3b82f6',
+    detail: 'Advanced PDF parsing with multi-vector RAG retrieval.',
+    sub: 'Automatic citation mapping and source grounding.',
+  },
+  {
+    label: 'Neural Vision',
+    icon: '👁️',
+    color: '#10b981',
+    detail: 'Spatial analysis and annotation via GPT-4o vision agents.',
+    sub: 'Object detection, OCR, and structured data extraction.',
+  },
+  {
+    label: 'Audio Extraction',
+    icon: '🎙️',
+    color: '#8b5cf6',
+    detail: 'Whisper-Large transcription with timestamped diarization.',
+    sub: 'Summarization and entity recognition from complex audio.',
+  },
+] as const;

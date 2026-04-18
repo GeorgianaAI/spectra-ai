@@ -1,31 +1,8 @@
 "use client";
 
-import AzureButton from '@/components/AzureButton';
-import ModalityCard from '@/components/ModalityCard';
-
-const MODALITIES = [
-  {
-    label: "Document Intelligence",
-    icon: "📄",
-    color: "#3b82f6",
-    detail: "Advanced PDF parsing with multi-vector RAG retrieval.",
-    sub: "Automatic citation mapping and source grounding.",
-  },
-  {
-    label: "Neural Vision",
-    icon: "👁️",
-    color: "#10b981",
-    detail: "Spatial analysis and annotation via GPT-4o vision agents.",
-    sub: "Object detection, OCR, and structured data extraction.",
-  },
-  {
-    label: "Audio Extraction",
-    icon: "🎙️",
-    color: "#8b5cf6",
-    detail: "Whisper-Large transcription with timestamped diarization.",
-    sub: "Summarization and entity recognition from complex audio.",
-  },
-];
+import AzureButton from "@/components/AzureButton";
+import ModalityCard from "@/components/ModalityCard";
+import { MODALITIES } from "@/lib/constants";
 
 export default function LandingPage() {
   return (
@@ -73,12 +50,13 @@ export default function LandingPage() {
             letterSpacing: "-0.04em",
             lineHeight: 0.9,
             marginBottom: "1.5rem",
-            background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
+            background:
+              "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}
         >
-          SPECTRA AI
+          SPECTRA AI 🌐
         </h1>
 
         <p
@@ -127,9 +105,15 @@ export default function LandingPage() {
           gap: "2rem",
         }}
       >
-        <span>Status: <span style={{ color: "#10b981" }}>Systems Nominal</span></span>
-        <span>Agents: <span style={{ color: "#fff" }}>03 Active</span></span>
-        <span>Latency: <span style={{ color: "#fff" }}>24ms</span></span>
+        <span>
+          Status: <span style={{ color: "#10b981" }}>Systems Nominal</span>
+        </span>
+        <span>
+          Agents: <span style={{ color: "#fff" }}>03 Active</span>
+        </span>
+        <span>
+          Latency: <span style={{ color: "#fff" }}>24ms</span>
+        </span>
       </footer>
     </main>
   );
