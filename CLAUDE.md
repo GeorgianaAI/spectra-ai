@@ -98,17 +98,17 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 
 ### spectra-app Directory Mapping
 
-| Area                        | Purpose                                                                                               |
-| :-------------------------- | :---------------------------------------------------------------------------------------------------- |
-| `app/`                      | **Routing Only:** `page.tsx`, `layout.tsx`, `loading.tsx`. Minimal logic.                             |
-| `app/dashboard/`            | Main app shell — upload zone, agent graph, synthesis panel.                                           |
-| `app/dashboard/job/[id]/`   | Job detail — full report, governance trace, citations, LLM-as-Judge scores.                           |
-| `app/dashboard/history/`    | Past job runs list.                                                                                   |
-| `app/dashboard/governance/` | Full NIST AI RMF compliance ledger.                                                                   |
-| `app/api/`                  | API Routes: `/api/upload`, `/api/job/[id]`, `/api/job/[id]/trace`, `/api/auth/token`, `/api/inngest`. |
+| Area                        | Purpose                                                                                                                                                                               |
+| :-------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| `app/`                      | **Routing Only:** `page.tsx`, `layout.tsx`, `loading.tsx`. Minimal logic.                                                                                                             |
+| `app/dashboard/`            | Main app shell — upload zone, agent graph, synthesis panel.                                                                                                                           |
+| `app/dashboard/job/[id]/`   | Job detail — full report, governance trace, citations, LLM-as-Judge scores.                                                                                                           |
+| `app/dashboard/history/`    | Past job runs list.                                                                                                                                                                   |
+| `app/dashboard/governance/` | Full NIST AI RMF compliance ledger.                                                                                                                                                   |
+| `app/api/`                  | API Routes: `/api/upload`, `/api/job/[id]`, `/api/job/[id]/trace`, `/api/auth/token`, `/api/inngest`.                                                                                 |
 | `components/`               | Feature components: `UploadZone`, `AgentGraph`, `SynthesisPanel`, `GovernanceTrace`, `ConfidenceBar`. Shared primitives: `AzureButton`, `ModalityCard`, `GlassPanel`, `SectionLabel`. |
-| `lib/`                      | Glue: `api.ts`, `types.ts`, `constants.ts`, Supabase client, JWT helpers, Inngest client.             |
-| `middleware.ts`             | JWT auth guard — protects all `/dashboard` routes.                                                    |
+| `lib/`                      | Glue: `api.ts`, `types.ts`, `constants.ts`, Supabase client, JWT helpers, Inngest client.                                                                                             |
+| `middleware.ts`             | JWT auth guard — protects all `/dashboard` routes.                                                                                                                                    |
 
 ### spectra-api Directory Mapping
 
@@ -204,16 +204,16 @@ Dark, precise, analyst-grade. Not a generic SaaS dashboard — closer to an inte
 
 ### Color Tokens (CSS variables in `globals.css`)
 
-| Variable            | Value     | Usage                                      |
-| :------------------ | :-------- | :----------------------------------------- |
-| `--bg`              | `#060609` | App shell background                       |
-| `--surface`         | `#111116` | Cards, panels                              |
-| `--border`          | `#1e1e26` | Subtle borders                             |
-| `--accent`          | `#00f2ff` | Cyan — active states, labels, AzureButton  |
-| `--text-primary`    | `#e8e6df` | Body text                                  |
-| `--text-secondary`  | `#6b6a63` | Metadata, labels                           |
-| `--modality-doc`    | `#2dd4bf` | Document agent — FileText icon / confidence bar |
-| `--modality-vision` | `#38bdf8` | Vision agent — Aperture icon / confidence bar   |
+| Variable            | Value     | Usage                                             |
+| :------------------ | :-------- | :------------------------------------------------ |
+| `--bg`              | `#060609` | App shell background                              |
+| `--surface`         | `#111116` | Cards, panels                                     |
+| `--border`          | `#1e1e26` | Subtle borders                                    |
+| `--accent`          | `#00f2ff` | Cyan — active states, labels, AzureButton         |
+| `--text-primary`    | `#e8e6df` | Body text                                         |
+| `--text-secondary`  | `#6b6a63` | Metadata, labels                                  |
+| `--modality-doc`    | `#2dd4bf` | Document agent — FileText icon / confidence bar   |
+| `--modality-vision` | `#38bdf8` | Vision agent — Aperture icon / confidence bar     |
 | `--modality-audio`  | `#f87171` | Audio agent — AudioWaveform icon / confidence bar |
 
 ### Typography
@@ -226,23 +226,25 @@ Dark, precise, analyst-grade. Not a generic SaaS dashboard — closer to an inte
 ### Atmospheric Background
 
 All pages use a shared three-layer background applied as inline `backgroundImage`:
+
 ```
 radial-gradient(circle at 50% -20%, rgba(0,242,255,0.12–0.15) 0%, transparent 40%)  ← cyan top vignette
 linear-gradient(rgba(255,255,255,0.02) 1px, transparent 1px)                         ← horizontal grid
 linear-gradient(90deg, rgba(255,255,255,0.02) 1px, transparent 1px)                  ← vertical grid
 ```
+
 `backgroundSize: '100% 100%, 40px 40px, 40px 40px'`
 
 Cards (`ModalityCard`, `GlassPanel`) repeat the same grid overlay internally via an absolutely-positioned `div` so the grid lines are consistent at every depth.
 
 ### Shared Primitive Components
 
-| Component      | Purpose                                                                                                   |
-| :------------- | :-------------------------------------------------------------------------------------------------------- |
-| `AzureButton`  | CTA button — cyan `#00f2ff`, pill shape (`border-radius: 50px`), weight 800. Renders `<a>` when `href` is passed, `<button>` otherwise. |
-| `GlassPanel`   | Surface container — `rgba(255,255,255,0.03)` background, `backdropFilter: blur(25px)`, `border-radius: 24px`. |
+| Component      | Purpose                                                                                                                                                                        |
+| :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AzureButton`  | CTA button — cyan `#00f2ff`, pill shape (`border-radius: 50px`), weight 800. Renders `<a>` when `href` is passed, `<button>` otherwise.                                        |
+| `GlassPanel`   | Surface container — `rgba(255,255,255,0.03)` background, `backdropFilter: blur(25px)`, `border-radius: 24px`.                                                                  |
 | `ModalityCard` | Modality feature card — accepts `icon: LucideIcon`, `color`, `label`, `detail`, `sub`. Icon rendered inside a tinted badge (`color + '15'` background, `color + '30'` border). |
-| `SectionLabel` | Panel header label — monospace, `#00f2ff`, 0.8 opacity, uppercase, `letter-spacing: 0.15em`.              |
+| `SectionLabel` | Panel header label — monospace, `#00f2ff`, 0.8 opacity, uppercase, `letter-spacing: 0.15em`.                                                                                   |
 
 ### Component Style Rules
 
@@ -359,5 +361,5 @@ Papers to create (after all phases are complete, unless specified earlier):
 
 1. Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
 2. If a branch appears unmerged but the Architect confirms it was merged, delete it cleanly — do not leave stale branches.
-3. Alert the Architect if a genuinely unmerged branch is found. **Never** merge recent changes until older branches have been merged and the Architect confirms CI is green. Always check if the branch has been merged or not with `git branch --merged`.
+3. Run `git branch --merged` and delete the merged local branches. If you see a genuinely unmerged branch, alert the Architect so they can merge it. **Never** merge recent changes until older branches have been merged and the Architect confirms CI is green.
 4. For each Phase, alert the Architect with a list of **AWS Console / external platform steps** required to support the changes made (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
