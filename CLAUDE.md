@@ -70,9 +70,10 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 - **Lock file rule:** Always stage `package-lock.json` alongside `package.json`. Every `npm install` updates both — committing one without the other leaves a dirty working tree.
 - **Prettier config:** Every new repo or sub-app must include a `.prettierrc` at its root on day one. Config: `singleQuote: false` (double quotes), `semi: true`, `tabWidth: 2`, `trailingComma: "all"`, `printWidth: 100`. Run `prettier --write "**/*.{ts,tsx}"` after adding the config to normalize existing files.
 - **No Merges:** Pushing to remote is encouraged, but merging is restricted to the Architect (User).
-- **Branch Hygiene Gate:** Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
+- **Branch Hygiene Gate:** Before creating any new branch, run `git branch --merged` and delete any merged local branches. If genuinely unmerged branches exist, stop and alert the Architect — never create a new branch or merge until older branches are resolved and the Architect confirms CI is green.
 - **Build Order is Strict:** Follow the phase sequence in SPEC.md. Do not implement a later phase while an earlier one is incomplete.
 - **SPEC.md is immutable:** Never modify SPEC.md. It is kept out of version control (see `.gitignore`).
+- **Platform steps:** After each Phase, alert the Architect with a list of AWS Console / external platform steps required to support the changes (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
 
 ### Build Phases
 
@@ -367,9 +368,3 @@ npm run test         # Vitest unit tests on schemas + routing logic
 
 If a commit lands on the wrong branch: **stop, tell the Architect what happened, and ask how to proceed.** Do not attempt to self-correct with destructive commands. The Architect decides.
 
----
-
-## 12. Branch & Merge Hygiene
-
-1. Run `git branch --merged` and delete any merged local branches. If you see genuinely unmerged branches, alert the Architect so they can merge it. **Never** create new branch or merge recent changes until older branches have been merged and the Architect confirms the CI is green.
-2. For each Phase, alert the Architect with a list of **AWS Console / external platform steps** required to support the changes made (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars, etc.).
