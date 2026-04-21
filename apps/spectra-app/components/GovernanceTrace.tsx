@@ -48,7 +48,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
       >
         <span style={{ color: '#00f2ff', opacity: 0.8 }}>{expanded ? '▼' : '▶'}</span>
         <span style={{ color: '#00f2ff', opacity: 0.8 }}>Governance</span>
-        <span>// Trace</span>
+        <span>{'// Trace'}</span>
         <span
           style={{
             marginLeft: 'auto',

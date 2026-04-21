@@ -71,11 +71,8 @@ export default function SynthesisPanel({ stream, reportText, confidenceScores }:
     };
   }, [stream]);
 
-  useEffect(() => {
-    if (reportText !== undefined) setText(reportText);
-  }, [reportText]);
-
-  const hasContent = text.trim().length > 0;
+  const displayText = stream ? text : (reportText ?? '');
+  const hasContent = displayText.trim().length > 0;
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: '100%' }}>
@@ -93,7 +90,7 @@ export default function SynthesisPanel({ stream, reportText, confidenceScores }:
         }}
       >
         {hasContent ? (
-          <div style={{ whiteSpace: 'pre-wrap' }}>{renderWithCitations(text)}</div>
+          <div style={{ whiteSpace: 'pre-wrap' }}>{renderWithCitations(displayText)}</div>
         ) : (
           <div
             style={{
