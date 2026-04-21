@@ -67,8 +67,6 @@ export class ComputeStack extends cdk.Stack {
       // Agent graph needs time: 300s timeout, 1024MB for embedding/model calls
       timeout: cdk.Duration.seconds(300),
       memorySize: 1024,
-      // Single concurrency during demo period — prevents parallel runs stacking model costs
-      reservedConcurrentExecutions: 1,
       logGroup: jobProcessorLogGroup,
       environment: {
         NODE_ENV: "production",

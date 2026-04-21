@@ -96,7 +96,7 @@ The Supabase probe uses a raw `fetch()` to `${url}/rest/v1/` with the `apikey` h
 
 ---
 
-## 6. Lambda Concurrency = 1 on jobProcessor
+## 6. Lambda Concurrency Cap — Removed at Deploy (Phase 5)
 
 ### Context
 
@@ -108,9 +108,11 @@ Without a concurrency limit, a burst of upload requests (e.g. a recruiter sharin
 
 ### Solution
 
-`jobProcessor` is deployed with `reservedConcurrentExecutions: 1` via CDK. A second invocation while the first is running returns a Lambda throttle error; Inngest treats this as a retriable failure and retries with exponential backoff. The user sees a slightly delayed result rather than a cost spike.
+`reservedConcurrentExecutions: 1` was the intended CDK configuration. At deploy time, AWS rejected it: new accounts have a default regional concurrency limit of 10, and reserving 1 would drop the unreserved pool below AWS's enforced minimum of 10.
 
-This is a deliberate portfolio-scale decision. Production would set concurrency to match the paid tier budget, not hard-cap at 1.
+The setting was removed. Cost protection at portfolio scale is provided by two other mechanisms already in place: the Upstash rate limiter (3 req/day/IP on `/api/upload`) and the CloudWatch billing alarm ($20/month). The concurrency cap was belt-and-suspenders — not the primary guard.
+
+To re-enable it: request a Lambda concurrency limit increase via AWS Support (Service Quotas → Lambda → Concurrent executions), then restore `reservedConcurrentExecutions: 1` in `compute-stack.ts` and redeploy.
 
 **File:** `apps/spectra-api/lib/stacks/compute-stack.ts`
 
