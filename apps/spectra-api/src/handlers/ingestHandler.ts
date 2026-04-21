@@ -1,4 +1,11 @@
+import * as Sentry from "@sentry/aws-serverless";
 import type { S3Event, S3Handler } from "aws-lambda";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? "production",
+  tracesSampleRate: 0.2,
+});
 
 const INNGEST_EVENT_URL = `${process.env.INNGEST_BASE_URL ?? "https://inn.gs"}/e/${process.env.INNGEST_EVENT_KEY}`;
 
@@ -41,7 +48,7 @@ const MAX_BYTES: Record<"document" | "image" | "audio", number> = {
   audio: 50 * 1024 * 1024,
 };
 
-export const handler: S3Handler = async (event: S3Event): Promise<void> => {
+const rawHandler: S3Handler = async (event: S3Event): Promise<void> => {
   for (const record of event.Records) {
     const bucket = record.s3.bucket.name;
     const key = decodeURIComponent(record.s3.object.key.replace(/\+/g, " "));
@@ -75,17 +82,24 @@ export const handler: S3Handler = async (event: S3Event): Promise<void> => {
       data: { jobId, userId, s3Keys },
     };
 
-    const response = await fetch(INNGEST_EVENT_URL, {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify(inngestPayload),
-    });
+    try {
+      const response = await fetch(INNGEST_EVENT_URL, {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify(inngestPayload),
+      });
 
-    if (!response.ok) {
-      const text = await response.text();
-      throw new Error(`[ingestHandler] Inngest event failed: ${response.status} ${text}`);
+      if (!response.ok) {
+        const text = await response.text();
+        throw new Error(`Inngest event failed: ${response.status} ${text}`);
+      }
+
+      console.log(`[ingestHandler] Inngest event sent for job ${jobId}`);
+    } catch (err) {
+      Sentry.captureException(err, { extra: { bucket, key, jobId } });
+      throw err;
     }
-
-    console.log(`[ingestHandler] Inngest event sent for job ${jobId}`);
   }
 };
+
+export const handler = Sentry.wrapHandler(rawHandler);

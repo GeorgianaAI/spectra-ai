@@ -1,7 +1,14 @@
+import * as Sentry from "@sentry/aws-serverless";
 import type { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
 import { spectraGraph } from "../graph/graph";
 import { updateJobStatus, completeJob, failJob } from "../lib/supabase-client";
+
+Sentry.init({
+  dsn: process.env.SENTRY_DSN,
+  environment: process.env.NODE_ENV ?? "production",
+  tracesSampleRate: 0.2,
+});
 
 const JobPayloadSchema = z.object({
   jobId: z.string().uuid(),
@@ -13,7 +20,7 @@ const JobPayloadSchema = z.object({
   }),
 });
 
-export const handler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
   let jobId: string | undefined;
 
   try {
@@ -56,6 +63,7 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
     };
   } catch (err) {
     const message = err instanceof Error ? err.message : "Unknown error";
+    Sentry.captureException(err, { extra: { jobId } });
     console.error("[jobProcessor] error", message, err);
 
     if (jobId) {
@@ -68,3 +76,5 @@ export const handler: APIGatewayProxyHandler = async (event): Promise<APIGateway
     };
   }
 };
+
+export const handler = Sentry.wrapHandler(rawHandler);
