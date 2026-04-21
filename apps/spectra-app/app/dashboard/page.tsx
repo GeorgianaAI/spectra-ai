@@ -9,6 +9,7 @@ import UploadZone from '@/components/UploadZone';
 import AgentGraph from '@/components/AgentGraph';
 import SynthesisPanel from '@/components/SynthesisPanel';
 import GovernanceTrace from '@/components/GovernanceTrace';
+import GhostButton from '@/components/GhostButton';
 import { uploadFiles, fetchJobStatus, fetchJobTrace } from '@/lib/api';
 import { POLL_INTERVAL_MS } from '@/lib/constants';
 import type {
@@ -241,6 +242,8 @@ export default function DashboardPage() {
           >
             ● STATUS: {statusLabel}
           </span>
+
+          <GhostButton href="/">← Back to Base</GhostButton>
         </div>
       </header>
 
