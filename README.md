@@ -220,7 +220,7 @@ npm run dev
 | 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete    |
 | 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete    |
 | 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete    |
-| 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot, Resend)           | ⬜ Pending     |
+| 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot)                   | ✅ Complete    |
 
 ---
 

@@ -45,7 +45,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 - **Document parsing:** LangChain document loaders / pdf2json
 - **Database:** Supabase PostgreSQL (jobs table + Auth)
 - **Job lifecycle:** Inngest (triggers, retries, state tracking between Next.js and Lambda)
-- **Email:** Resend (job completion notifications)
+- **Email:** SNS (billing alarm notifications via CloudWatch)
 - **Monitoring:** UptimeRobot, CloudWatch, Sentry
 - **CI/Testing:** Vitest (unit), Playwright (E2E), GitHub Actions
 
@@ -121,7 +121,7 @@ If a commit lands on the wrong branch: **stop, tell the Architect what happened,
 | 2     | LangGraph agent graph + Inngest + API surface                                                  | ✅ Complete    |
 | 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ✅ Complete    |
 | 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete    |
-| 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
+| 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot)                         | ✅ Complete    |
 
 ## 5. App Structure
 
@@ -334,9 +334,6 @@ LANGSMITH_PROJECT=spectra
 LANGCHAIN_TRACING_V2=true
 INNGEST_SIGNING_KEY=your_inngest_signing_key_here
 SENTRY_DSN=your_sentry_dsn_here
-RESEND_API_KEY=your_resend_api_key_here
-RESEND_FROM_EMAIL=spectra@yourdomain.com
-NOTIFICATION_EMAIL=your_notification_email_here
 BILLING_ALERT_EMAIL=your_billing_alert_email_here
 ```
 

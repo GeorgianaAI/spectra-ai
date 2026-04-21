@@ -68,7 +68,6 @@ flowchart TD
         SUP["Supabase PostgreSQL\njobs · auth · RLS"]
         VEC["Upstash Vector\nSession-namespaced embeddings"]
         REDIS["Upstash Redis\nRate limiting · LangGraph checkpointing"]
-        RESEND["Resend\nJob completion email"]
     end
 
     A --> FE1
@@ -93,7 +92,6 @@ flowchart TD
     OBS -.->|monitors| JOBPROC
     SUP --> FE3
     FE3 --> FE4
-    SUP --> RESEND
 ```
 
 ---
@@ -348,6 +346,45 @@ apps/spectra-api/src/__tests__/
 Vitest picks up `**/*.test.ts` only. Playwright `.spec.ts` files are excluded from Vitest via explicit `exclude: ["tests/e2e/**"]` in `vitest.config.ts`.
 
 Playwright `webServer` block starts the Next.js dev server and injects `NEXT_PUBLIC_SENTRY_DSN: ""` (prevents missing-DSN startup failure in CI) and a predictable `JWT_SECRET` so E2E helpers can issue valid tokens.
+
+---
+
+## 8) Phase 5 AWS Deployment Topology
+
+### CDK Stack Deployment Order
+
+Three stacks deploy in dependency order — CDK resolves this automatically via cross-stack exports:
+
+```
+SpectraStorageStack   → S3 bucket + lifecycle + CORS
+SpectraComputeStack   → ingestHandler + jobProcessor Lambdas + IAM + Bedrock policy
+SpectraObservabilityStack (us-east-1) → billing alarm + SNS + CloudWatch dashboard
+```
+
+The S3 → `ingestHandler` event notification is wired at app level (`bin/spectra-api.ts`) after both stacks are instantiated, avoiding a circular dependency between StorageStack and ComputeStack:
+
+```ts
+storageStack.uploadsBucket.addEventNotification(
+  s3.EventType.OBJECT_CREATED,
+  new s3n.LambdaDestination(computeStack.ingestHandler),
+  { prefix: "uploads/" },
+);
+```
+
+CDK exports the Lambda ARN from ComputeStack and imports it into the bucket notification in StorageStack. Deploy order: ComputeStack before StorageStack update.
+
+### Lambda Configuration at Deployment
+
+| Function | Memory | Timeout | Concurrency |
+| :--- | :--- | :--- | :--- |
+| `spectra-ingest-handler` | 256 MB | 30s | unreserved |
+| `spectra-job-processor` | 1024 MB | 300s | `reservedConcurrentExecutions: 1` |
+
+`jobProcessor` concurrency is capped at 1 deliberately — prevents parallel runs stacking Bedrock + OpenAI + Anthropic costs during the demo period. A throttled second invocation is retried by Inngest with exponential backoff.
+
+### Billing Alarm
+
+CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app region. `ObservabilityStack` deploys to `us-east-1` specifically for this reason. The SNS topic (`spectra-billing-alerts`) sends an email to the configured `BILLING_ALERT_EMAIL` when estimated monthly charges hit $20.
 
 ---
 

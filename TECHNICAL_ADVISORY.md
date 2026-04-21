@@ -241,3 +241,21 @@ Update this document when a technical challenge is diagnosed and resolved that:
 - Would be confusing to a future reader without context
 
 If a code change resolves one of these challenges differently, update the relevant entry rather than appending a new one.
+
+---
+
+## 13. S3 → Lambda Event Notification — Cross-Stack CDK Wiring (Phase 5)
+
+### Context
+
+`ingestHandler` must fire on every S3 `ObjectCreated` event in the `spectra-uploads` bucket. The bucket lives in `StorageStack`; the Lambda lives in `ComputeStack`. These are separate CDK stacks to keep concerns separated and avoid re-deploying the bucket when Lambda code changes.
+
+### Challenge
+
+Calling `bucket.addEventNotification(EventType.OBJECT_CREATED, new LambdaDestination(fn))` from inside `StorageStack` requires a reference to the Lambda, creating a dependency on `ComputeStack`. Calling it from inside `ComputeStack` requires a full `IBucket` reference — imported buckets via `Bucket.fromBucketName()` do not support `addEventNotification` in CDK v2 (the method requires a concrete `Bucket` to attach the custom resource). Either direction creates a circular or unsupported dependency.
+
+### Solution
+
+Wire the notification at app level in `bin/spectra-api.ts`, after both stacks are instantiated but before `app.synth()`. The concrete `Bucket` object from `StorageStack` is passed directly; CDK exports the Lambda ARN from `ComputeStack` and imports it into the bucket notification configuration in `StorageStack`. No circular dependency — `StorageStack` and `ComputeStack` remain independent of each other. CDK resolves deployment order automatically from the cross-stack export/import.
+
+**File:** `apps/spectra-api/bin/spectra-api.ts`
