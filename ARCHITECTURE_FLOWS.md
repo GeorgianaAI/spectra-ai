@@ -384,7 +384,7 @@ CDK exports the Lambda ARN from ComputeStack and imports it into the bucket noti
 
 ### Billing Alarm
 
-CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app region. `ObservabilityStack` deploys to `us-east-1` specifically for this reason. The SNS topic (`spectra-billing-alerts`) sends an email to the configured `BILLING_ALERT_EMAIL` when estimated monthly charges hit $20.
+CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app region. `ObservabilityStack` deploys to `us-east-1` specifically for this reason. The SNS topic (`spectra-billing-alerts`) sends an email alert when estimated monthly charges hit $20.
 
 ---
 
@@ -402,7 +402,6 @@ Update this document whenever any of the following changes:
 
 ## Suggested Companion Docs
 
-- `ARCHITECTURE.md` — component responsibilities, model-to-task mapping, infrastructure decisions
 - `CLAUDE.md` — development governance, build phases, TypeScript rules
 - `TECHNICAL_ADVISORY.md` — architecture tradeoffs and cost decisions *(created after Phase 5)*
 - `HARDENING_ROADMAP.md` — post-launch hardening checklist *(created after Phase 5)*

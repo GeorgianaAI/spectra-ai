@@ -334,7 +334,6 @@ LANGSMITH_PROJECT=spectra
 LANGCHAIN_TRACING_V2=true
 INNGEST_SIGNING_KEY=your_inngest_signing_key_here
 SENTRY_DSN=your_sentry_dsn_here
-BILLING_ALERT_EMAIL=your_billing_alert_email_here
 ```
 
 ## 11. Operational Commands
