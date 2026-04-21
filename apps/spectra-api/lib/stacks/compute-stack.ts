@@ -90,9 +90,6 @@ export class ComputeStack extends cdk.Stack {
         LANGCHAIN_TRACING_V2: "true",
         SENTRY_DSN: process.env.SENTRY_DSN ?? "",
         INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ?? "",
-        RESEND_API_KEY: process.env.RESEND_API_KEY ?? "",
-        RESEND_FROM_EMAIL: process.env.RESEND_FROM_EMAIL ?? "spectra@resend.dev",
-        NOTIFICATION_EMAIL: process.env.NOTIFICATION_EMAIL ?? "",
       },
     });
 

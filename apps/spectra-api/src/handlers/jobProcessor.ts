@@ -2,8 +2,7 @@ import * as Sentry from "@sentry/aws-serverless";
 import type { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
 import { spectraGraph } from "../graph/graph";
-import { updateJobStatus, completeJob, failJob, getUserEmail } from "../lib/supabase-client";
-import { sendJobCompletionEmail } from "../lib/resend-client";
+import { updateJobStatus, completeJob, failJob } from "../lib/supabase-client";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -57,23 +56,6 @@ const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProx
       result.auditorOutput.governanceTrace,
       result.synthesisOutput.report,
     );
-
-    // Send completion email — non-critical: failure here must not fail the job
-    if (process.env.RESEND_API_KEY) {
-      const notificationTarget =
-        process.env.NOTIFICATION_EMAIL ||
-        (await getUserEmail(payload.userId).catch(() => null));
-      if (notificationTarget) {
-        await sendJobCompletionEmail(
-          notificationTarget,
-          jobId,
-          result.auditorOutput.confidenceScores,
-        ).catch((emailErr) => {
-          Sentry.captureException(emailErr, { extra: { jobId, context: "completion-email" } });
-          console.warn("[jobProcessor] completion email failed (non-fatal)", emailErr);
-        });
-      }
-    }
 
     return {
       statusCode: 200,
