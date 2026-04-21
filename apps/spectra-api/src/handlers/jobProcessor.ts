@@ -3,6 +3,11 @@ import type { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
 import { spectraGraph } from "../graph/graph";
 import { updateJobStatus, completeJob, failJob } from "../lib/supabase-client";
+import {
+  faithfulnessEvaluator,
+  citationAccuracyEvaluator,
+  logEvaluations,
+} from "../lib/langsmith-evaluators";
 
 Sentry.init({
   dsn: process.env.SENTRY_DSN,
@@ -49,6 +54,12 @@ const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProx
     if (!result.auditorOutput || !result.synthesisOutput) {
       throw new Error("Graph completed without required outputs");
     }
+
+    const evaluations = [
+      faithfulnessEvaluator(result.auditorOutput),
+      citationAccuracyEvaluator(result.synthesisOutput, result.auditorOutput),
+    ];
+    logEvaluations(jobId, evaluations);
 
     await completeJob(
       jobId,
