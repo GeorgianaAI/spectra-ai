@@ -353,7 +353,5 @@ npm run test         # Vitest unit tests on schemas + routing logic
 
 ## 12. Branch & Merge Hygiene
 
-1. Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
-2. If a branch appears unmerged but the Architect confirms it was merged, delete it cleanly — do not leave stale branches.
-3. Run `git branch --merged` and delete the merged local branches. If you see a genuinely unmerged branch, alert the Architect so they can merge it. **Never** merge recent changes until older branches have been merged and the Architect confirms CI is green.
-4. For each Phase, alert the Architect with a list of **AWS Console / external platform steps** required to support the changes made (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
+1. Run `git branch --merged` and delete any merged local branches. If you see genuinely unmerged branches, alert the Architect so they can merge it. **Never** create new branch or merge recent changes until older branches have been merged and the Architect confirms the CI is green.
+2. For each Phase, alert the Architect with a list of **AWS Console / external platform steps** required to support the changes made (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars, etc.).
