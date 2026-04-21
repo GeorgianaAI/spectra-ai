@@ -59,7 +59,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 ## 3. Development Workflow (The Sprint Protocol)
 
 - **Repo Layout:** `spectra/` is the root container. `apps/spectra-app/` and `apps/spectra-api/` are independently deployable sub-projects, each with their own `package.json`.
-- **Feature Branches:** `feat/`, `fix/`, `refactor/`
+- **Feature Branches:** `feat/`, `fix/`, `refactor/` — **always required** for any UI change, refactor, or code change. Only documentation updates (`.md` files) may be committed directly to `main`.
 - **Atomic Commits:** Group changed files meaningfully. Separate concerns across multiple commits (not just 1-2) where applicable:
   1. Infrastructure / IaC
   2. API Routes / Lambda handlers
