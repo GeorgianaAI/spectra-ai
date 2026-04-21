@@ -80,6 +80,9 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 - **SPEC.md is immutable:** Never modify SPEC.md. It is kept out of version control (see `.gitignore`).
 - **Platform steps:** After each Phase, alert the Architect with a list of AWS Console / external platform steps required to support the changes (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
 - **Thin entrypoints:** Keep files to approx. 200–300 lines. Exception: sequential functions that cannot be split without losing cohesion may go up to 400–500 lines.
+- **Modular Architecture:**
+  - **Extraction:** Extract logic into co-located flat files within the same directory (e.g., `constants.ts`, `types.ts`, `helpers.ts`, `validation.ts`). Only create subdirectories when there are files to put in them — never pre-create empty folders. A `hooks/` folder with nothing in it is a red flag. See `apps/spectra-app/app/dashboard/` as the reference.
+  - **Separation of Concerns:** Keep agent/RAG/AI logic out of UI components. Use API Route Handlers (`apps/spectra-app/app/api/`) for pipeline execution and maintain clean, declarative JSX.
 
 ### Naming Conventions
 
