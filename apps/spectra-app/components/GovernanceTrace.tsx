@@ -1,71 +1,64 @@
-/**
- * GovernanceTrace — collapsible decision log table.
- *
- * Phase 3 implementation:
- *   - Collapsible bottom panel (collapsed by default, expands on click).
- *   - Each row: timestamp, agent name (colored by modality), finding (monospace),
- *     confidence score, NIST RMF tag badge.
- *   - Subtle amber left border on each row.
- *   - Accepts entries: GovernanceEntry[] prop.
- *
- * Style: CSS modules or inline styles only — no Tailwind utility classes.
- */
-
 'use client';
 
 import { useState } from 'react';
 import type { GovernanceEntry } from '@/lib/types';
 
 const AGENT_COLORS: Record<string, string> = {
-  document: 'var(--modality-doc)',
-  vision: 'var(--modality-vision)',
-  audio: 'var(--modality-audio)',
-  synthesis: 'var(--accent)',
+  document:  '#2dd4bf',
+  vision:    '#38bdf8',
+  audio:     '#f87171',
+  synthesis: '#00f2ff',
+};
+
+const NIST_COLORS: Record<string, string> = {
+  GOVERN:  '#00f2ff',
+  MAP:     '#38bdf8',
+  MEASURE: '#2dd4bf',
+  MANAGE:  '#f87171',
 };
 
 interface GovernanceTraceProps {
   entries: GovernanceEntry[];
 }
 
-// Phase 3: implement collapsible table with full entry rendering
 export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
-  const [expanded, setExpanded] = useState(false);
+  const [expanded, setExpanded] = useState<boolean>(false);
 
   return (
-    <div
-      style={{
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        overflow: 'hidden',
-      }}
-    >
+    <div style={{ overflow: 'hidden' }}>
       <button
         onClick={() => setExpanded((v) => !v)}
         style={{
           width: '100%',
-          padding: '0.75rem 1rem',
-          background: 'var(--surface)',
+          padding: '0',
+          background: 'none',
           border: 'none',
           cursor: 'pointer',
           display: 'flex',
           alignItems: 'center',
-          gap: '0.5rem',
-          color: 'var(--text-secondary)',
-          fontSize: '0.75rem',
+          gap: '0.6rem',
+          color: 'rgba(255,255,255,0.2)',
+          fontSize: '0.65rem',
+          fontWeight: 700,
+          fontFamily: 'monospace',
+          textTransform: 'uppercase',
+          letterSpacing: '0.15em',
           textAlign: 'left',
         }}
       >
-        <span style={{ color: 'var(--accent)', fontSize: '0.7rem' }}>{expanded ? '▼' : '▶'}</span>
-        Governance Trace
+        <span style={{ color: '#00f2ff', opacity: 0.8 }}>{expanded ? '▼' : '▶'}</span>
+        <span style={{ color: '#00f2ff', opacity: 0.8 }}>Governance</span>
+        <span>// Trace</span>
         <span
           style={{
             marginLeft: 'auto',
-            background: 'var(--bg)',
-            border: '1px solid var(--border)',
+            background: 'rgba(0,242,255,0.05)',
+            border: '1px solid rgba(0,242,255,0.2)',
             borderRadius: '4px',
-            padding: '1px 6px',
-            fontSize: '0.65rem',
-            fontFamily: 'monospace',
+            padding: '1px 8px',
+            color: '#00f2ff',
+            opacity: 0.7,
+            fontSize: '0.6rem',
           }}
         >
           {entries.length} entries
@@ -73,61 +66,129 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
       </button>
 
       {expanded && (
-        <div style={{ maxHeight: '300px', overflowY: 'auto' }}>
+        <div style={{ marginTop: '1rem', maxHeight: '280px', overflowY: 'auto' }}>
           {entries.length === 0 ? (
             <p
               style={{
-                padding: '1rem',
-                color: 'var(--text-secondary)',
-                fontSize: '0.75rem',
+                color: 'rgba(255,255,255,0.2)',
+                fontSize: '0.7rem',
                 fontFamily: 'monospace',
               }}
             >
               No entries yet.
             </p>
           ) : (
-            entries.map((entry, i) => (
-              <div
-                key={i}
-                style={{
-                  borderLeft: '3px solid var(--accent)',
-                  padding: '0.6rem 1rem',
-                  borderBottom: '1px solid var(--border)',
-                  display: 'grid',
-                  gridTemplateColumns: '120px 80px 1fr 48px 80px',
-                  gap: '0.75rem',
-                  alignItems: 'center',
-                  fontSize: '0.75rem',
-                }}
-              >
-                <span style={{ color: 'var(--text-secondary)', fontFamily: 'monospace' }}>
-                  {new Date(entry.timestamp).toLocaleTimeString()}
-                </span>
-                <span style={{ color: AGENT_COLORS[entry.agent] ?? 'var(--text-primary)' }}>
-                  {entry.agent}
-                </span>
-                <span style={{ color: 'var(--text-primary)', fontFamily: 'monospace' }}>
-                  {entry.finding}
-                </span>
-                <span style={{ color: 'var(--text-secondary)', textAlign: 'right' }}>
-                  {entry.confidence}%
-                </span>
-                <span
+            <div
+              style={{
+                display: 'grid',
+                gridTemplateColumns: '90px 72px 1fr 44px 76px',
+                gap: '0',
+              }}
+            >
+              {/* Header */}
+              {(['Time', 'Agent', 'Finding', '%', 'NIST'] as const).map((h) => (
+                <div
+                  key={h}
                   style={{
-                    background: '#c8922a22',
-                    border: '1px solid var(--accent)',
-                    borderRadius: '4px',
-                    padding: '1px 6px',
-                    color: 'var(--accent)',
-                    fontSize: '0.65rem',
+                    padding: '0.3rem 0.5rem',
+                    fontSize: '0.55rem',
+                    color: 'rgba(255,255,255,0.2)',
                     fontFamily: 'monospace',
-                    textAlign: 'center',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.1em',
+                    borderBottom: '1px solid rgba(255,255,255,0.05)',
                   }}
                 >
-                  {entry.nistTag}
-                </span>
-              </div>
-            ))
+                  {h}
+                </div>
+              ))}
+
+              {entries.map((entry, i) => {
+                const agentColor = AGENT_COLORS[entry.agent] ?? '#fff';
+                const nistColor = NIST_COLORS[entry.nistTag] ?? '#00f2ff';
+                return (
+                  <>
+                    <div
+                      key={`${i}-ts`}
+                      style={{
+                        padding: '0.45rem 0.5rem',
+                        borderLeft: `2px solid ${agentColor}40`,
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        fontSize: '0.65rem',
+                        color: 'rgba(255,255,255,0.3)',
+                        fontFamily: 'monospace',
+                      }}
+                    >
+                      {new Date(entry.timestamp).toLocaleTimeString()}
+                    </div>
+                    <div
+                      key={`${i}-agent`}
+                      style={{
+                        padding: '0.45rem 0.5rem',
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        fontSize: '0.65rem',
+                        color: agentColor,
+                        fontFamily: 'monospace',
+                        textTransform: 'uppercase',
+                      }}
+                    >
+                      {entry.agent}
+                    </div>
+                    <div
+                      key={`${i}-finding`}
+                      style={{
+                        padding: '0.45rem 0.5rem',
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        fontSize: '0.65rem',
+                        color: '#e8e6df',
+                        fontFamily: 'monospace',
+                        lineHeight: 1.4,
+                      }}
+                    >
+                      {entry.finding}
+                    </div>
+                    <div
+                      key={`${i}-conf`}
+                      style={{
+                        padding: '0.45rem 0.5rem',
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        fontSize: '0.65rem',
+                        color: 'rgba(255,255,255,0.4)',
+                        fontFamily: 'monospace',
+                        textAlign: 'right',
+                      }}
+                    >
+                      {entry.confidence}%
+                    </div>
+                    <div
+                      key={`${i}-nist`}
+                      style={{
+                        padding: '0.45rem 0.5rem',
+                        borderBottom: '1px solid rgba(255,255,255,0.04)',
+                        display: 'flex',
+                        alignItems: 'center',
+                      }}
+                    >
+                      <span
+                        style={{
+                          background: `${nistColor}12`,
+                          border: `1px solid ${nistColor}40`,
+                          borderRadius: '3px',
+                          padding: '1px 5px',
+                          color: nistColor,
+                          fontSize: '0.55rem',
+                          fontFamily: 'monospace',
+                          fontWeight: 700,
+                          letterSpacing: '0.05em',
+                        }}
+                      >
+                        {entry.nistTag}
+                      </span>
+                    </div>
+                  </>
+                );
+              })}
+            </div>
           )}
         </div>
       )}

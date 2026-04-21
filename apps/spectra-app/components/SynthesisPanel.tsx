@@ -1,49 +1,111 @@
-/**
- * SynthesisPanel — streaming report panel with inline citation badges.
- *
- * Phase 3 implementation:
- *   - Receives a ReadableStream from the Vercel AI SDK and renders markdown progressively.
- *   - Parses citation tags from the stream using regex \[([DVA]\d+)\].
- *   - Citation badges: [D1] in teal, [V2] in sky blue, [A1] in coral — small monospace pills.
- *   - Renders ConfidenceBar above the report.
- *
- * Style: CSS modules or inline styles only — no Tailwind utility classes.
- */
-
 'use client';
 
+import { useState, useEffect } from 'react';
 import ConfidenceBar from './ConfidenceBar';
 import type { ConfidenceScores } from '@/lib/types';
 
 interface SynthesisPanelProps {
   stream?: ReadableStream;
+  reportText?: string;
   confidenceScores: ConfidenceScores;
 }
 
-// Phase 3: implement streaming markdown rendering with citation badge parsing
-export default function SynthesisPanel({ stream: _stream, confidenceScores }: SynthesisPanelProps) {
+const CITATION_COLORS: Record<string, string> = {
+  D: '#2dd4bf',
+  V: '#38bdf8',
+  A: '#f87171',
+};
+
+function renderWithCitations(text: string): React.ReactNode {
+  const parts = text.split(/(\[[DVA]\d+\])/);
+  return parts.map((part, i) => {
+    const match = part.match(/^\[([DVA])(\d+)\]$/);
+    if (match) {
+      const color = CITATION_COLORS[match[1]];
+      return (
+        <span
+          key={i}
+          style={{
+            display: 'inline-block',
+            background: `${color}18`,
+            border: `1px solid ${color}55`,
+            borderRadius: '3px',
+            padding: '0 4px',
+            color,
+            fontSize: '0.68rem',
+            fontFamily: 'monospace',
+            fontWeight: 700,
+            lineHeight: 1.5,
+            margin: '0 2px',
+            verticalAlign: 'middle',
+          }}
+        >
+          {part}
+        </span>
+      );
+    }
+    return <span key={i}>{part}</span>;
+  });
+}
+
+export default function SynthesisPanel({ stream, reportText, confidenceScores }: SynthesisPanelProps) {
+  const [text, setText] = useState<string>(reportText ?? '');
+
+  useEffect(() => {
+    if (!stream) return;
+    const reader = stream.getReader();
+    const decoder = new TextDecoder();
+    let cancelled = false;
+
+    async function pump() {
+      while (!cancelled) {
+        const { done, value } = await reader.read();
+        if (done) break;
+        setText((prev) => prev + decoder.decode(value));
+      }
+    }
+    void pump();
+    return () => {
+      cancelled = true;
+      void reader.cancel();
+    };
+  }, [stream]);
+
+  useEffect(() => {
+    if (reportText !== undefined) setText(reportText);
+  }, [reportText]);
+
+  const hasContent = text.trim().length > 0;
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', height: '100%' }}>
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: '100%' }}>
       <ConfidenceBar scores={confidenceScores} />
 
       <div
         style={{
           flex: 1,
           fontFamily: 'monospace',
-          fontSize: '0.85rem',
-          color: 'var(--text-primary)',
-          lineHeight: 1.7,
+          fontSize: '0.8rem',
+          color: '#e8e6df',
+          lineHeight: 1.85,
           overflowY: 'auto',
+          paddingRight: '0.25rem',
         }}
       >
-        <p style={{ color: 'var(--text-secondary)' }}>
-          Streaming synthesis report will appear here — Phase 3
-        </p>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', marginTop: '0.5rem' }}>
-          Citation badges: <span style={{ color: 'var(--modality-doc)' }}>[D1]</span>{' '}
-          <span style={{ color: 'var(--modality-vision)' }}>[V2]</span>{' '}
-          <span style={{ color: 'var(--modality-audio)' }}>[A1]</span>
-        </p>
+        {hasContent ? (
+          <div style={{ whiteSpace: 'pre-wrap' }}>{renderWithCitations(text)}</div>
+        ) : (
+          <div
+            style={{
+              color: 'rgba(255,255,255,0.18)',
+              fontFamily: 'monospace',
+              fontSize: '0.72rem',
+              paddingTop: '0.5rem',
+            }}
+          >
+            Awaiting synthesis output...
+          </div>
+        )}
       </div>
     </div>
   );
