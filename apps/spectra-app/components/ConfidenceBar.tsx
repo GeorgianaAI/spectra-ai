@@ -18,9 +18,9 @@ interface ConfidenceBarProps {
 }
 
 const BARS = [
-  { key: "doc" as const, label: "Document", color: "var(--modality-doc)" },
-  { key: "vision" as const, label: "Vision", color: "var(--modality-vision)" },
-  { key: "audio" as const, label: "Audio", color: "var(--modality-audio)" },
+  { key: "doc" as const, label: "Document", color: "#2dd4bf" },
+  { key: "vision" as const, label: "Vision", color: "#38bdf8" },
+  { key: "audio" as const, label: "Audio", color: "#f87171" },
 ];
 
 export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
@@ -30,7 +30,7 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
         <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <span
             style={{
-              color: "var(--text-secondary)",
+              color: "#6b6a63",
               fontSize: "0.7rem",
               width: "64px",
               flexShrink: 0,
@@ -47,7 +47,7 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
             style={{
               flex: 1,
               height: "3px",
-              background: "var(--border)",
+              background: "#1e1e26",
               borderRadius: "2px",
               overflow: "hidden",
             }}
