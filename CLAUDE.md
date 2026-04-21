@@ -245,6 +245,7 @@ Cards (`ModalityCard`, `GlassPanel`) repeat the same grid overlay internally via
 | `GlassPanel`   | Surface container — `rgba(255,255,255,0.03)` background, `backdropFilter: blur(25px)`, `border-radius: 24px`.                                                                  |
 | `ModalityCard` | Modality feature card — accepts `icon: LucideIcon`, `color`, `label`, `detail`, `sub`. Icon rendered inside a tinted badge (`color + '15'` background, `color + '30'` border). |
 | `SectionLabel` | Panel header label — monospace, `#00f2ff`, 0.8 opacity, uppercase, `letter-spacing: 0.15em`.                                                                                   |
+| `GhostButton`  | Secondary ghost/outline button — muted border and text, hover lightens both. Renders `<a>` when `href` passed, `<button>` otherwise. Use for back-navigation and secondary actions. |
 
 ### Component Style Rules
 
