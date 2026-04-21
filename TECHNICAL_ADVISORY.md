@@ -170,6 +170,67 @@ The `processJobFn` in `lib/inngest.ts` uses the v4 2-argument form with `trigger
 
 ---
 
+## 10. `withSentryConfig` Deprecated Options (Phase 4)
+
+### Context
+
+`@sentry/nextjs` wraps `next.config.ts` via `withSentryConfig(nextConfig, opts)`. The second argument is typed as `SentryBuildOptions`.
+
+### Challenge
+
+Several option names changed between SDK versions. `hideSourceMaps` (old) → `sourcemaps: { disable: boolean }` (new). `disableLogger` was removed entirely. `automaticVercelMonitors` moved from the top level into a `webpack` sub-key. TypeScript surfaces these as "Object literal may only specify known properties" — the error is clear but the correct target key is not obvious from the error message alone.
+
+### Solution
+
+Use `sourcemaps: { disable: process.env.NODE_ENV !== "production" }` to suppress source-map upload in non-production builds. Move `automaticVercelMonitors` under `webpack: { automaticVercelMonitors: true }`. Do not set `disableLogger` — the option no longer exists.
+
+**File:** `apps/spectra-app/next.config.ts`
+
+---
+
+## 11. Vitest Picking Up Playwright `.spec.ts` Files (Phase 4)
+
+### Context
+
+`apps/spectra-app` runs both Vitest (unit tests) and Playwright (E2E tests) from the same `tests/` directory tree.
+
+### Challenge
+
+The default Vitest glob `tests/**/*.{test,spec}.{ts,tsx}` matches Playwright `.spec.ts` files. When Vitest imports a `.spec.ts` file, it encounters Playwright's `test.describe` — which is not a Vitest global — and throws at collection time, causing the entire Vitest run to fail with a confusing "test.describe is not a function" error.
+
+### Solution
+
+Narrow the Vitest `include` pattern to `tests/**/*.test.{ts,tsx}` (no `spec` variant) and add `exclude: ["tests/e2e/**"]` as a belt-and-suspenders guard. Playwright files use `.spec.ts` exclusively; Vitest unit tests use `.test.ts` exclusively — the suffix convention is the isolation boundary.
+
+**File:** `apps/spectra-app/vitest.config.ts`
+
+---
+
+## 12. Vitest Constructor Mock — Arrow Function Cannot Be `new`'d (Phase 4)
+
+### Context
+
+`/api/upload/route.test.ts` mocks `S3Client` from `@aws-sdk/client-s3` and `Ratelimit` from `@upstash/ratelimit`. Both are used as constructors (`new S3Client(...)`, `new Ratelimit(...)`).
+
+### Challenge
+
+`vi.fn().mockImplementation(() => ({ send: mockSend }))` creates an arrow-function-based mock. Arrow functions cannot be called with `new` — attempting it throws "S3Client is not a constructor" at runtime even though the mock looks valid. A second issue: `Ratelimit.slidingWindow` is a static method called at module load time to configure the instance; the mock must expose it as a property on the constructor function itself, not on the returned instance.
+
+### Solution
+
+Use `function` keyword declarations (not arrow functions or `vi.fn()`) for constructor mocks:
+
+```ts
+const MockRatelimit = function Ratelimit() { return { limit: mockLimit }; };
+MockRatelimit.slidingWindow = vi.fn().mockReturnValue({});
+```
+
+Extract `mockSend` and `mockLimit` as module-level `vi.fn()` refs so individual tests can override return values without redefining the mock. Remove `vi.resetModules()` from `beforeEach` — it invalidates module-level mock refs and causes the constructor reference to diverge from the test's captured ref.
+
+**File:** `apps/spectra-app/tests/api/upload/route.test.ts`
+
+---
+
 ## Update Rules
 
 Update this document when a technical challenge is diagnosed and resolved that:

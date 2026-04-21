@@ -93,7 +93,7 @@ Email:    demo@spectra.app
 Password: spectra-demo
 ```
 
-The demo account is a regular user. No special permissions. Rate limit: 3 runs/day/IP. Sample files are pre-loaded so no upload is required to see the full pipeline.
+The demo account is a regular user. No special permissions. Rate limit: 3 runs/day/IP.
 
 ---
 
@@ -219,7 +219,7 @@ npm run dev
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | ✅ Complete    |
 | 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete    |
 | 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete    |
-| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | 🔄 In Progress |
+| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete    |
 | 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot, Resend)           | ⬜ Pending     |
 
 ---

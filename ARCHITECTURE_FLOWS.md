@@ -314,6 +314,43 @@ sequenceDiagram
 
 ---
 
+## 7) Phase 4 Observability + Test Architecture
+
+### Sentry Integration Points
+
+Two separate Sentry SDKs are in use — they cannot share config:
+
+| Location | SDK | Init file |
+| :--- | :--- | :--- |
+| Next.js client (browser) | `@sentry/nextjs` | `sentry.client.config.ts` |
+| Next.js server + edge | `@sentry/nextjs` | `sentry.server.config.ts`, `sentry.edge.config.ts` |
+| Lambda (`jobProcessor`, `ingestHandler`) | `@sentry/aws-serverless` | module-level `Sentry.init()` + `Sentry.wrapHandler()` |
+
+`withSentryConfig()` in `next.config.ts` handles source-map upload and build-time instrumentation. It wraps the exported `NextConfig` — the raw config is not exported.
+
+### Test Suite Layout
+
+```
+apps/spectra-app/tests/
+├── api/
+│   ├── upload/route.test.ts      # Rate limiting, S3 upload, JWT, 400/429 paths
+│   ├── job/route.test.ts         # Ownership enforcement, 401/403/200/404
+│   └── auth/route.test.ts        # Credential validation, JWT issuance
+└── e2e/
+    ├── landing.spec.ts           # Public landing page smoke
+    ├── login.spec.ts             # Auth flow
+    └── dashboard.spec.ts         # Gated — requires PLAYWRIGHT_RUN_E2E=true + live Supabase
+
+apps/spectra-api/src/__tests__/
+└── schemas.test.ts               # 23 tests — all 6 agent node schemas (Router → Auditor)
+```
+
+Vitest picks up `**/*.test.ts` only. Playwright `.spec.ts` files are excluded from Vitest via explicit `exclude: ["tests/e2e/**"]` in `vitest.config.ts`.
+
+Playwright `webServer` block starts the Next.js dev server and injects `NEXT_PUBLIC_SENTRY_DSN: ""` (prevents missing-DSN startup failure in CI) and a predictable `JWT_SECRET` so E2E helpers can issue valid tokens.
+
+---
+
 ## Update Rules
 
 Update this document whenever any of the following changes:

@@ -120,7 +120,7 @@ If a commit lands on the wrong branch: **stop, tell the Architect what happened,
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | ✅ Complete    |
 | 2     | LangGraph agent graph + Inngest + API surface                                                  | ✅ Complete    |
 | 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ✅ Complete    |
-| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | 🔄 In Progress |
+| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete    |
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
 
 ## 5. App Structure
