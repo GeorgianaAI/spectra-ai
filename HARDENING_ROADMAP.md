@@ -46,11 +46,15 @@ Each item is tagged with the AI Engineering skill it strengthens. See the [AI En
 
 ---
 
-## Data & Storage
+## Data, Storage & Retrieval
 
-| Item                                      | Why                                                                                                                                                                                                                                                                                                                             | Skill                     | Effort |
-| :---------------------------------------- | :------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ | :------------------------ | :----- |
-| **Upstash Vector Cleanup on Job Failure** | Document chunks are deleted from Upstash Vector on job completion. If a job fails mid-pipeline, vectors from a partial `documentNode` run may be orphaned, causing unbounded vector index growth. Add a cleanup step in `failJob()` that deletes any vectors under `{jobId}/{userId}/` regardless of pipeline completion state. | 3 · Retrieval Engineering | Low    |
+| Item | Why | Skill | Effort |
+| :--- | :--- | :--- | :--- |
+| **Upstash Vector Cleanup on Job Failure** | Document chunks are deleted from Upstash Vector on job completion. If a job fails mid-pipeline, vectors from a partial `documentNode` run may be orphaned, causing unbounded vector index growth. Add a cleanup step in `failJob()` that deletes any vectors under `{jobId}/{userId}/` regardless of pipeline completion state. | 3 · Retrieval Engineering | Low |
+| **Chunk Quality Filtering** | Currently all non-empty chunks are embedded, including short fragments (page headers, single-word lines) that add noise without contributing to retrieval quality. Filter chunks below a minimum token threshold before embedding, and optionally score retrieved chunks by combined semantic similarity and length signal. | 3 · Retrieval Engineering | Low |
+| **Cross-Document Deduplication** | Near-duplicate chunks (e.g. repeated boilerplate across sections) are embedded and stored multiple times, inflating the index and diluting retrieval scores. Before each `upsert()`, compare incoming chunk embeddings against already-stored vectors in the same namespace — skip chunks above a cosine similarity threshold (e.g. 0.97). | 3 · Retrieval Engineering | Medium — adds latency to the embedding loop |
+| **Hybrid Search (BM25 + Vector)** | Pure cosine-similarity retrieval misses exact-keyword matches — specific IDs, codes, and proper nouns that BM25 handles well. Implement Reciprocal Rank Fusion: run a keyword search (Supabase full-text search on a stored `chunks` table) in parallel with the Upstash vector query and merge the ranked results. Alternatively, switch to a vector DB with native hybrid support (Qdrant, Weaviate, Pinecone). This is the highest-impact retrieval improvement and the hardest to add without an architectural change. | 3 · Retrieval Engineering | High — new infrastructure or DB swap |
+| **Retrieval Evaluation Harness** | No way to measure whether the top-5 retrieved chunks actually contain the information Claude uses in citations. Create a small golden set of document + query + expected-chunk triples. Run retrieval against it before and after any chunking or embedding change to catch regressions. | 3 · Retrieval Engineering | Medium |
 
 ---
 
