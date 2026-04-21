@@ -83,7 +83,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 ### Modular Architecture
 
 1. Extract logic into separate files from the beginning, as below.
-2. Maintain thin entrypoints. No files above approx. 200–300 lines (**except** sequential functions that are 400–500 lines and cannot be split without losing cohesion).
+2. Maintain thin entrypoints. Files up to approx. 200–300 lines (**exception**: sequential functions up to 400–500 lines that cannot be split without losing cohesion).
 
 | File                     | Purpose                   |
 | :----------------------- | :------------------------ |
