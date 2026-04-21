@@ -4,7 +4,7 @@
 
 **Multimodal AI | Multi-Agent Graph | LangGraph Orchestration | LLM-as-Judge Auditor | NIST AI RMF Governance**
 
-**Spectra AI 🌐** is a multimodal intelligence agent that routes **documents, images, and audio** through a specialist multi-agent graph — processing all three modalities in parallel, merging findings into a single grounded cited report, and scoring the synthesis for faithfulness with an LLM-as-Judge Auditor.
+**Spectra AI** is a multimodal intelligence agent that routes **documents, images, and audio** through a specialist multi-agent graph — processing all three modalities in parallel, merging findings into a single grounded cited report, and scoring the synthesis for faithfulness with an LLM-as-Judge Auditor.
 
 The premise is that real-world intelligence problems are never single-modality. A security analyst gets a PDF report, a screenshot of an anomaly, and a voice memo from a colleague — and has to reason across all three simultaneously. Spectra ingests all three, routes each to a specialized agent, and a synthesis layer produces a single cited output with the reasoning process visible live in the UI.
 
@@ -170,6 +170,14 @@ Spectra deliberately matches model capability to task rather than defaulting to 
 
 ---
 
+## 🧭 Engineering Philosophy
+
+Spectra demonstrates that multi-agent architecture is a requirement when modalities genuinely differ — not a label applied for effect. Each specialist has its own tool set, failure modes, and output schema. The two-tier hierarchy (Router + Synthesis as orchestrators, specialists as executors) reflects how the problem actually decomposes.
+
+The infrastructure tradeoffs are deliberate: LangGraph over Step Functions (no point orchestrating an orchestrator), Inngest over SQS (job lifecycle management, not a raw queue), Upstash Vector over OpenSearch (portfolio-scale cost ceiling), Bedrock scoped to Nova Micro (cheapest correct model for classification, everything else via direct SDK).
+
+## The $20/month CloudWatch billing alarm is the real cost guard — not the rate limit.
+
 ## ⚙️ Getting Started
 
 ### Prerequisites
@@ -214,20 +222,10 @@ npm run dev
 
 ## 🚦 Build Phases
 
-| Phase | Area                                                                          | Status         |
-| :---- | :---------------------------------------------------------------------------- | :------------- |
-| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | ✅ Complete    |
-| 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete    |
-| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete    |
-| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete    |
-| 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot)                   | ✅ Complete    |
-
----
-
-## 🧭 Engineering Philosophy
-
-Spectra demonstrates that multi-agent architecture is a requirement when modalities genuinely differ — not a label applied for effect. Each specialist has its own tool set, failure modes, and output schema. The two-tier hierarchy (Router + Synthesis as orchestrators, specialists as executors) reflects how the problem actually decomposes.
-
-The infrastructure tradeoffs are deliberate: LangGraph over Step Functions (no point orchestrating an orchestrator), Inngest over SQS (job lifecycle management, not a raw queue), Upstash Vector over OpenSearch (portfolio-scale cost ceiling), Bedrock scoped to Nova Micro (cheapest correct model for classification, everything else via direct SDK).
-
-The $20/month CloudWatch billing alarm is the real cost guard — not the rate limit.
+| Phase | Area                                                                          | Status      |
+| :---- | :---------------------------------------------------------------------------- | :---------- |
+| 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | ✅ Complete |
+| 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete |
+| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete |
+| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete |
+| 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot)                   | ✅ Complete |
