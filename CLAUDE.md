@@ -79,18 +79,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 - **Build Order is Strict:** Follow the phase sequence in SPEC.md. Do not implement a later phase while an earlier one is incomplete.
 - **SPEC.md is immutable:** Never modify SPEC.md. It is kept out of version control (see `.gitignore`).
 - **Platform steps:** After each Phase, alert the Architect with a list of AWS Console / external platform steps required to support the changes (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
-
-### Modular Architecture
-
-1. Extract logic into separate files from the beginning, as below.
-2. Maintain thin entrypoints. Files up to approx. 200–300 lines (**exception**: sequential functions up to 400–500 lines that cannot be split without losing cohesion).
-
-| File                     | Purpose                   |
-| :----------------------- | :------------------------ |
-| `[feature].types.ts`     | Interfaces/Types          |
-| `[feature].hooks.ts`     | React hooks and state     |
-| `[feature].utils.ts`     | Pure helper functions     |
-| `[feature].constants.ts` | Static config and strings |
+- **Thin entrypoints:** Keep files to approx. 200–300 lines. Exception: sequential functions that cannot be split without losing cohesion may go up to 400–500 lines.
 
 ### Naming Conventions
 
