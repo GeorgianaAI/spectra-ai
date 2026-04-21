@@ -47,3 +47,9 @@ export async function failJob(jobId: string, errorMessage: string): Promise<void
     .eq("id", jobId);
   if (error) throw new Error(`Failed to mark job ${jobId} as failed: ${error.message}`);
 }
+
+export async function getUserEmail(userId: string): Promise<string | null> {
+  const { data, error } = await getSupabaseClient().auth.admin.getUserById(userId);
+  if (error || !data.user) return null;
+  return data.user.email ?? null;
+}
