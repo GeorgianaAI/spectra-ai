@@ -64,7 +64,19 @@ You are an LLM-as-Judge auditor evaluating this synthesis report for faithfulnes
 
 Score each active modality 0-100 for faithfulness to source findings. Score 0 if modality not used.
 Identify any hallucinations (claims not grounded in source findings).
-For each key finding in the report, create a governance trace entry with a NIST AI RMF tag.
+For each key finding in the report, create a governance trace entry with a NIST AI RMF function tag AND a specific control ID.
+
+NIST AI RMF control ID reference:
+- GOVERN 1.1: Policies and accountability structures for AI risk are established
+- GOVERN 1.2: Roles and responsibilities for AI risk management are defined
+- MAP 1.1: Context and purpose of the AI system are documented
+- MAP 2.1: Scientific and domain expertise informs AI development
+- MAP 3.5: Practices for identifying AI system risks are applied
+- MEASURE 1.1: Measurement and evaluation approaches are established
+- MEASURE 2.1: Grounding and factual accuracy of AI outputs is assessed
+- MEASURE 2.5: Hallucination and confabulation risks are tracked
+- MANAGE 1.1: Risk treatment decisions are made and documented
+- MANAGE 2.2: Residual risks and accepted uncertainties are tracked
 
 Respond with ONLY a JSON object:
 {
@@ -77,7 +89,8 @@ Respond with ONLY a JSON object:
       "agent": "document|vision|audio|synthesis",
       "finding": "brief finding description",
       "confidence": 0-100,
-      "nistTag": "GOVERN|MAP|MEASURE|MANAGE"
+      "nistTag": "GOVERN|MAP|MEASURE|MANAGE",
+      "nistControlId": "e.g. MEASURE 2.1"
     }
   ]
 }`,
@@ -102,6 +115,8 @@ Respond with ONLY a JSON object:
       nistTag: NIST_TAGS.includes(entry["nistTag"] as (typeof NIST_TAGS)[number])
         ? (entry["nistTag"] as (typeof NIST_TAGS)[number])
         : assignNistTag(String(entry["finding"])),
+      nistControlId:
+        typeof entry["nistControlId"] === "string" ? entry["nistControlId"] : undefined,
     }));
 
     parsedResult = AuditorOutputSchema.parse({ ...raw, governanceTrace: trace });

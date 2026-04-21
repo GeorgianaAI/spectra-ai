@@ -125,6 +125,7 @@ export const AuditorOutputSchema = z.object({
       finding: z.string(),
       confidence: z.number().min(0).max(100),
       nistTag: z.enum(["GOVERN", "MAP", "MEASURE", "MANAGE"]),
+      nistControlId: z.string().optional(),
     }),
   ),
   hallucinations: z.array(z.string()),

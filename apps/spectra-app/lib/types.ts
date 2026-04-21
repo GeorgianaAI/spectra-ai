@@ -24,6 +24,7 @@ export interface GovernanceEntry {
   finding: string;
   confidence: number;
   nistTag: "GOVERN" | "MAP" | "MEASURE" | "MANAGE";
+  nistControlId?: string;
 }
 
 export interface Citation {
