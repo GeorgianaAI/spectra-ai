@@ -7,3 +7,6 @@ cdk.out/
 *.js.map
 !jest.config.js
 .DS_Store
+
+# env files
+.env*
