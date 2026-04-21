@@ -1,4 +1,4 @@
-import { Annotation } from '@langchain/langgraph';
+import { Annotation } from "@langchain/langgraph";
 import type {
   DocumentOutput,
   RouterOutput,
@@ -6,13 +6,13 @@ import type {
   AudioOutput,
   SynthesisOutput,
   AuditorOutput,
-} from '../lib/schemas';
+} from "../lib/schemas";
 
 export const SpectraStateAnnotation = Annotation.Root({
   jobId: Annotation<string>(),
   userId: Annotation<string>(),
-  s3Keys: Annotation<RouterOutput['s3Keys']>(),
-  activeModalities: Annotation<Array<'document' | 'vision' | 'audio'>>(),
+  s3Keys: Annotation<RouterOutput["s3Keys"]>(),
+  activeModalities: Annotation<Array<"document" | "vision" | "audio">>(),
   documentOutput: Annotation<DocumentOutput | undefined>({
     default: () => undefined,
     reducer: (_, y) => y,

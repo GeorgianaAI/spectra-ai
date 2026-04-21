@@ -1,9 +1,9 @@
-import { GetObjectCommand, S3Client } from '@aws-sdk/client-s3';
+import { GetObjectCommand, S3Client } from "@aws-sdk/client-s3";
 
-const s3 = new S3Client({ region: process.env.AWS_REGION ?? 'eu-west-1' });
+const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
 export async function downloadFromS3(key: string): Promise<Buffer> {
-  const bucket = process.env.S3_BUCKET_NAME ?? 'spectra-uploads';
+  const bucket = process.env.S3_BUCKET_NAME ?? "spectra-uploads";
   const response = await s3.send(new GetObjectCommand({ Bucket: bucket, Key: key }));
 
   if (!response.Body) {

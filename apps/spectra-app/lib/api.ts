@@ -1,7 +1,7 @@
 // Fetch helpers for Spectra AI API routes
 
-import type { Job, GovernanceEntry, ApiErrorResponse } from './types';
-import { API_ROUTES } from './constants';
+import type { Job, GovernanceEntry, ApiErrorResponse } from "./types";
+import { API_ROUTES } from "./constants";
 
 function getAuthHeaders(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` };
@@ -31,8 +31,8 @@ export async function fetchJobTrace(id: string, token: string): Promise<Governan
 
 export async function issueToken(email: string, password: string): Promise<string> {
   const res = await fetch(API_ROUTES.authToken, {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ email, password }),
   });
   if (!res.ok) {
@@ -48,12 +48,12 @@ export async function uploadFiles(
   token: string,
 ): Promise<{ jobId: string }> {
   const form = new FormData();
-  if (files.document) form.append('document', files.document);
-  if (files.vision) form.append('vision', files.vision);
-  if (files.audio) form.append('audio', files.audio);
+  if (files.document) form.append("document", files.document);
+  if (files.vision) form.append("vision", files.vision);
+  if (files.audio) form.append("audio", files.audio);
 
   const res = await fetch(API_ROUTES.upload, {
-    method: 'POST',
+    method: "POST",
     headers: getAuthHeaders(token),
     body: form,
   });

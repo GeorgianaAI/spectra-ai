@@ -1,10 +1,10 @@
-'use client';
+"use client";
 
-import { useState, useRef, useCallback } from 'react';
-import { FileText, Aperture, AudioWaveform } from 'lucide-react';
-import type { LucideIcon } from 'lucide-react';
-import type { UploadedFiles, Modality } from '@/lib/types';
-import { ACCEPTED_FILE_TYPES } from '@/lib/constants';
+import { useState, useRef, useCallback } from "react";
+import { FileText, Aperture, AudioWaveform } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
+import type { UploadedFiles, Modality } from "@/lib/types";
+import { ACCEPTED_FILE_TYPES } from "@/lib/constants";
 
 interface UploadZoneProps {
   onUpload: (files: UploadedFiles) => void;
@@ -20,28 +20,28 @@ const TARGETS: {
   accept: string;
 }[] = [
   {
-    key: 'document',
-    label: 'Document',
-    sub: 'PDF · max 2 MB',
-    color: '#2dd4bf',
+    key: "document",
+    label: "Document",
+    sub: "PDF · max 2 MB",
+    color: "#2dd4bf",
     Icon: FileText,
-    accept: ACCEPTED_FILE_TYPES.document.join(','),
+    accept: ACCEPTED_FILE_TYPES.document.join(","),
   },
   {
-    key: 'vision',
-    label: 'Vision',
-    sub: 'JPG · PNG · WebP · max 1 MB',
-    color: '#38bdf8',
+    key: "vision",
+    label: "Vision",
+    sub: "JPG · PNG · WebP · max 1 MB",
+    color: "#38bdf8",
     Icon: Aperture,
-    accept: ACCEPTED_FILE_TYPES.vision.join(','),
+    accept: ACCEPTED_FILE_TYPES.vision.join(","),
   },
   {
-    key: 'audio',
-    label: 'Audio',
-    sub: 'MP3 · WAV · M4A · max 10 MB',
-    color: '#f87171',
+    key: "audio",
+    label: "Audio",
+    sub: "MP3 · WAV · M4A · max 10 MB",
+    color: "#f87171",
     Icon: AudioWaveform,
-    accept: ACCEPTED_FILE_TYPES.audio.join(','),
+    accept: ACCEPTED_FILE_TYPES.audio.join(","),
   },
 ];
 
@@ -89,13 +89,13 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
     (e: React.ChangeEvent<HTMLInputElement>, modality: Modality) => {
       const file = e.target.files?.[0] ?? null;
       if (file) setFile(modality, file);
-      e.target.value = '';
+      e.target.value = "";
     },
     [setFile],
   );
 
   return (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.65rem' }}>
+    <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr 1fr", gap: "0.65rem" }}>
       {TARGETS.map(({ key, label, sub, color, Icon, accept }) => {
         const loaded = !!files[key];
         const active = dragging === key;
@@ -110,45 +110,45 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
             onDragLeave={() => setDragging(null)}
             onDrop={(e) => handleDrop(e, key)}
             style={{
-              position: 'relative',
-              border: `1.5px dashed ${loaded || active ? color : 'rgba(255,255,255,0.1)'}`,
-              borderRadius: '14px',
-              padding: '1.25rem 0.75rem',
-              textAlign: 'center',
-              cursor: disabled ? 'not-allowed' : 'pointer',
-              background: loaded || active ? `${color}0d` : 'rgba(255,255,255,0.02)',
-              backdropFilter: 'blur(10px)',
-              transition: 'border-color 0.2s, background 0.2s',
+              position: "relative",
+              border: `1.5px dashed ${loaded || active ? color : "rgba(255,255,255,0.1)"}`,
+              borderRadius: "14px",
+              padding: "1.25rem 0.75rem",
+              textAlign: "center",
+              cursor: disabled ? "not-allowed" : "pointer",
+              background: loaded || active ? `${color}0d` : "rgba(255,255,255,0.02)",
+              backdropFilter: "blur(10px)",
+              transition: "border-color 0.2s, background 0.2s",
               opacity: disabled ? 0.5 : 1,
-              display: 'flex',
-              flexDirection: 'column',
-              alignItems: 'center',
-              gap: '0.55rem',
+              display: "flex",
+              flexDirection: "column",
+              alignItems: "center",
+              gap: "0.55rem",
             }}
           >
             <div
               style={{
-                width: '38px',
-                height: '38px',
-                borderRadius: '10px',
+                width: "38px",
+                height: "38px",
+                borderRadius: "10px",
                 background: `${color}15`,
                 border: `1px solid ${color}30`,
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
                 flexShrink: 0,
               }}
             >
               <Icon size={17} color={color} strokeWidth={1.5} />
             </div>
 
-            <div style={{ minWidth: 0, width: '100%' }}>
+            <div style={{ minWidth: 0, width: "100%" }}>
               <div
                 style={{
-                  color: '#fff',
-                  fontSize: '0.75rem',
+                  color: "#fff",
+                  fontSize: "0.75rem",
                   fontWeight: 600,
-                  marginBottom: '0.2rem',
+                  marginBottom: "0.2rem",
                 }}
               >
                 {label}
@@ -157,16 +157,18 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                 <div
                   style={{
                     color,
-                    fontSize: '0.6rem',
-                    fontFamily: 'monospace',
-                    wordBreak: 'break-all',
+                    fontSize: "0.6rem",
+                    fontFamily: "monospace",
+                    wordBreak: "break-all",
                     lineHeight: 1.3,
                   }}
                 >
                   {files[key]!.name}
                 </div>
               ) : (
-                <div style={{ color: 'rgba(255,255,255,0.25)', fontSize: '0.6rem', lineHeight: 1.3 }}>
+                <div
+                  style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.6rem", lineHeight: 1.3 }}
+                >
                   {sub}
                 </div>
               )}
@@ -179,16 +181,16 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   setFile(key, null);
                 }}
                 style={{
-                  position: 'absolute',
-                  top: '7px',
-                  right: '9px',
-                  background: 'none',
-                  border: 'none',
-                  color: 'rgba(255,255,255,0.25)',
-                  cursor: 'pointer',
-                  fontSize: '0.75rem',
+                  position: "absolute",
+                  top: "7px",
+                  right: "9px",
+                  background: "none",
+                  border: "none",
+                  color: "rgba(255,255,255,0.25)",
+                  cursor: "pointer",
+                  fontSize: "0.75rem",
                   lineHeight: 1,
-                  padding: '2px',
+                  padding: "2px",
                 }}
               >
                 ✕
@@ -199,7 +201,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
               ref={inputRefs[key]}
               type="file"
               accept={accept}
-              style={{ display: 'none' }}
+              style={{ display: "none" }}
               onChange={(e) => handleChange(e, key)}
             />
           </div>

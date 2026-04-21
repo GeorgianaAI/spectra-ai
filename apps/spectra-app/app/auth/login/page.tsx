@@ -78,8 +78,7 @@ export default function LoginPage() {
               textTransform: "uppercase",
             }}
           >
-            SPECTRA AI{" "}
-            <span style={{ fontWeight: 300, opacity: 0.5 }}>AUTH</span>
+            SPECTRA AI <span style={{ fontWeight: 300, opacity: 0.5 }}>AUTH</span>
           </h1>
           <p
             style={{
@@ -187,7 +186,11 @@ export default function LoginPage() {
             </div>
           )}
 
-          <AzureButton type="submit" disabled={loading} style={{ width: "100%", marginTop: "1rem", padding: "1.1rem 1rem" }}>
+          <AzureButton
+            type="submit"
+            disabled={loading}
+            style={{ width: "100%", marginTop: "1rem", padding: "1.1rem 1rem" }}
+          >
             {loading ? "Decrypting..." : "Initialize Session"}
           </AzureButton>
         </form>
@@ -204,9 +207,7 @@ export default function LoginPage() {
           }}
         >
           DEFAULT CREDENTIALS:{" "}
-          <span style={{ color: "#fff", fontFamily: "monospace" }}>
-            spectra-demo
-          </span>
+          <span style={{ color: "#fff", fontFamily: "monospace" }}>spectra-demo</span>
         </div>
       </div>
 

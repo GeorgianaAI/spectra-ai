@@ -1,10 +1,10 @@
 // Shared TypeScript interfaces for Spectra AI frontend
 
-export type JobStatus = 'pending' | 'processing' | 'completed' | 'failed';
+export type JobStatus = "pending" | "processing" | "completed" | "failed";
 
-export type Modality = 'document' | 'vision' | 'audio';
+export type Modality = "document" | "vision" | "audio";
 
-export type AgentStatus = 'idle' | 'processing' | 'complete';
+export type AgentStatus = "idle" | "processing" | "complete";
 
 export interface ConfidenceScores {
   doc: number;
@@ -20,10 +20,10 @@ export interface ModalitiesUsed {
 
 export interface GovernanceEntry {
   timestamp: string;
-  agent: Modality | 'synthesis';
+  agent: Modality | "synthesis";
   finding: string;
   confidence: number;
-  nistTag: 'GOVERN' | 'MAP' | 'MEASURE' | 'MANAGE';
+  nistTag: "GOVERN" | "MAP" | "MEASURE" | "MANAGE";
 }
 
 export interface Citation {

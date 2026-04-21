@@ -5,7 +5,7 @@ export function makeTestRequest(
   options?: { method?: string; headers?: Record<string, string> },
 ): Request {
   return new Request(`http://localhost:3000${path}`, {
-    method: options?.method ?? 'GET',
+    method: options?.method ?? "GET",
     headers: options?.headers ?? {},
   });
 }

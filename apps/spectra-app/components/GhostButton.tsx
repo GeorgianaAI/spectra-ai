@@ -1,7 +1,7 @@
-'use client';
+"use client";
 
-import { useState } from 'react';
-import type { CSSProperties, ReactNode } from 'react';
+import { useState } from "react";
+import type { CSSProperties, ReactNode } from "react";
 
 interface GhostButtonProps {
   children: ReactNode;
@@ -11,25 +11,31 @@ interface GhostButtonProps {
   style?: CSSProperties;
 }
 
-export default function GhostButton({ children, href, onClick, disabled = false, style }: GhostButtonProps) {
+export default function GhostButton({
+  children,
+  href,
+  onClick,
+  disabled = false,
+  style,
+}: GhostButtonProps) {
   const [hovered, setHovered] = useState<boolean>(false);
 
   const base: CSSProperties = {
-    fontSize: '0.65rem',
-    color: hovered ? 'rgba(255,255,255,0.7)' : 'rgba(255,255,255,0.3)',
+    fontSize: "0.65rem",
+    color: hovered ? "rgba(255,255,255,0.7)" : "rgba(255,255,255,0.3)",
     fontWeight: 700,
-    textTransform: 'uppercase',
-    letterSpacing: '0.15em',
-    padding: '4px 12px',
-    borderRadius: '50px',
-    border: hovered ? '1px solid rgba(255,255,255,0.2)' : '1px solid rgba(255,255,255,0.08)',
-    background: hovered ? 'rgba(255,255,255,0.05)' : 'rgba(255,255,255,0.02)',
-    textDecoration: 'none',
-    whiteSpace: 'nowrap' as const,
-    cursor: disabled ? 'not-allowed' : 'pointer',
+    textTransform: "uppercase",
+    letterSpacing: "0.15em",
+    padding: "4px 12px",
+    borderRadius: "50px",
+    border: hovered ? "1px solid rgba(255,255,255,0.2)" : "1px solid rgba(255,255,255,0.08)",
+    background: hovered ? "rgba(255,255,255,0.05)" : "rgba(255,255,255,0.02)",
+    textDecoration: "none",
+    whiteSpace: "nowrap" as const,
+    cursor: disabled ? "not-allowed" : "pointer",
     opacity: disabled ? 0.4 : 1,
-    transition: 'color 0.15s, border-color 0.15s, background 0.15s',
-    display: 'inline-block',
+    transition: "color 0.15s, border-color 0.15s, background 0.15s",
+    display: "inline-block",
     ...style,
   };
 

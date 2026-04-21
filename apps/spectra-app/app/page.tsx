@@ -60,8 +60,7 @@ export default function LandingPage() {
               letterSpacing: "-0.04em",
               lineHeight: 0.9,
               margin: 0,
-              background:
-                "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
+              background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
               WebkitBackgroundClip: "text",
               WebkitTextFillColor: "transparent",
             }}
@@ -81,8 +80,7 @@ export default function LandingPage() {
             textAlign: "center",
           }}
         >
-          Intelligence across{" "}
-          <span style={{ color: "#fff" }}>PDF, Vision, and Audio</span>.
+          Intelligence across <span style={{ color: "#fff" }}>PDF, Vision, and Audio</span>.
           <br />
           Unified into a single grounded report.
         </p>

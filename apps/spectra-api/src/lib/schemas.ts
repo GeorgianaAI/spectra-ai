@@ -1,4 +1,4 @@
-import { z } from 'zod';
+import { z } from "zod";
 
 // ─── Router ───────────────────────────────────────────────────────────────────
 
@@ -14,7 +14,7 @@ export const RouterInputSchema = z.object({
 
 export const RouterOutputSchema = z.object({
   jobId: z.string().uuid(),
-  activeModalities: z.array(z.enum(['document', 'vision', 'audio'])),
+  activeModalities: z.array(z.enum(["document", "vision", "audio"])),
   s3Keys: z.object({
     document: z.string().optional(),
     image: z.string().optional(),
@@ -82,7 +82,7 @@ export const SynthesisInputSchema = z.object({
   documentOutput: DocumentOutputSchema.optional(),
   visionOutput: VisionOutputSchema.optional(),
   audioOutput: AudioOutputSchema.optional(),
-  activeModalities: z.array(z.enum(['document', 'vision', 'audio'])),
+  activeModalities: z.array(z.enum(["document", "vision", "audio"])),
 });
 
 export const SynthesisOutputSchema = z.object({
@@ -90,7 +90,7 @@ export const SynthesisOutputSchema = z.object({
   citations: z.array(
     z.object({
       id: z.string(),
-      modality: z.enum(['document', 'vision', 'audio']),
+      modality: z.enum(["document", "vision", "audio"]),
       source: z.string(),
     }),
   ),
@@ -121,10 +121,10 @@ export const AuditorOutputSchema = z.object({
   governanceTrace: z.array(
     z.object({
       timestamp: z.string(),
-      agent: z.enum(['document', 'vision', 'audio', 'synthesis']),
+      agent: z.enum(["document", "vision", "audio", "synthesis"]),
       finding: z.string(),
       confidence: z.number().min(0).max(100),
-      nistTag: z.enum(['GOVERN', 'MAP', 'MEASURE', 'MANAGE']),
+      nistTag: z.enum(["GOVERN", "MAP", "MEASURE", "MANAGE"]),
     }),
   ),
   hallucinations: z.array(z.string()),

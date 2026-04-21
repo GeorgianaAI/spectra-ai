@@ -8,13 +8,7 @@ interface ModalityCardProps {
   sub: string;
 }
 
-export default function ModalityCard({
-  label,
-  icon: Icon,
-  color,
-  detail,
-  sub,
-}: ModalityCardProps) {
+export default function ModalityCard({ label, icon: Icon, color, detail, sub }: ModalityCardProps) {
   return (
     <div
       style={{
@@ -94,8 +88,7 @@ export default function ModalityCard({
             letterSpacing: "0.2em",
             paddingTop: "0.85rem",
             borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-            background:
-              "linear-gradient(to bottom, #fff 40%, rgba(255, 255, 255, 0.4))",
+            background: "linear-gradient(to bottom, #fff 40%, rgba(255, 255, 255, 0.4))",
             WebkitBackgroundClip: "text",
             WebkitTextFillColor: "transparent",
           }}

@@ -2,9 +2,7 @@
 export default function JobDetailPage() {
   return (
     <div style={{ padding: "2rem" }}>
-      <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>
-        Job detail — Phase 3
-      </p>
+      <p style={{ color: "var(--text-secondary)", fontSize: "0.85rem" }}>Job detail — Phase 3</p>
     </div>
   );
 }

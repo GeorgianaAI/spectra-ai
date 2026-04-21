@@ -1,6 +1,6 @@
-import OpenAI from 'openai';
-import { downloadFromS3 } from '../../lib/s3-client';
-import { VisionInputSchema, VisionOutputSchema, type VisionOutput } from '../../lib/schemas';
+import OpenAI from "openai";
+import { downloadFromS3 } from "../../lib/s3-client";
+import { VisionInputSchema, VisionOutputSchema, type VisionOutput } from "../../lib/schemas";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -10,32 +10,32 @@ export async function visionNode(
   const input = VisionInputSchema.parse(state);
 
   const imageBuffer = await downloadFromS3(input.s3Key);
-  const base64Image = imageBuffer.toString('base64');
+  const base64Image = imageBuffer.toString("base64");
 
   // Detect MIME type from key extension
-  const ext = input.s3Key.split('.').pop()?.toLowerCase() ?? 'jpeg';
+  const ext = input.s3Key.split(".").pop()?.toLowerCase() ?? "jpeg";
   const mimeMap: Record<string, string> = {
-    jpg: 'image/jpeg',
-    jpeg: 'image/jpeg',
-    png: 'image/png',
-    gif: 'image/gif',
-    webp: 'image/webp',
+    jpg: "image/jpeg",
+    jpeg: "image/jpeg",
+    png: "image/png",
+    gif: "image/gif",
+    webp: "image/webp",
   };
-  const mimeType = mimeMap[ext] ?? 'image/jpeg';
+  const mimeType = mimeMap[ext] ?? "image/jpeg";
 
   const response = await openai.chat.completions.create({
-    model: 'gpt-4o',
+    model: "gpt-4o",
     max_tokens: 2048,
     messages: [
       {
-        role: 'user',
+        role: "user",
         content: [
           {
-            type: 'image_url',
+            type: "image_url",
             image_url: { url: `data:${mimeType};base64,${base64Image}` },
           },
           {
-            type: 'text',
+            type: "text",
             text: `Analyse this image as part of a multimodal intelligence pipeline.
 
 Extract the following and respond with ONLY a JSON object:
@@ -54,15 +54,19 @@ Focus on: entities present, spatial relationships, anomalies, text visible in th
     ],
   });
 
-  let parsedResult: { rawDescription: string; findings: string[]; annotations: VisionOutput['annotations'] };
+  let parsedResult: {
+    rawDescription: string;
+    findings: string[];
+    annotations: VisionOutput["annotations"];
+  };
   try {
-    const text = response.choices[0]?.message?.content ?? '';
-    const cleaned = text.trim().replace(/^```json\n?|```$/g, '');
+    const text = response.choices[0]?.message?.content ?? "";
+    const cleaned = text.trim().replace(/^```json\n?|```$/g, "");
     parsedResult = JSON.parse(cleaned);
   } catch {
     parsedResult = {
-      rawDescription: response.choices[0]?.message?.content ?? 'Image processed',
-      findings: ['Visual analysis complete — structured extraction unavailable'],
+      rawDescription: response.choices[0]?.message?.content ?? "Image processed",
+      findings: ["Visual analysis complete — structured extraction unavailable"],
       annotations: [],
     };
   }

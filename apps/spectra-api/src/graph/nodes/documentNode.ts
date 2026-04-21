@@ -1,43 +1,39 @@
-import Anthropic from '@anthropic-ai/sdk';
-import { Index } from '@upstash/vector';
-import OpenAI from 'openai';
-import PDFParser from 'pdf2json';
-import { downloadFromS3 } from '../../lib/s3-client';
-import { redactPii } from '../../lib/pii-redaction';
-import {
-  DocumentInputSchema,
-  DocumentOutputSchema,
-  type DocumentOutput,
-} from '../../lib/schemas';
+import Anthropic from "@anthropic-ai/sdk";
+import { Index } from "@upstash/vector";
+import OpenAI from "openai";
+import PDFParser from "pdf2json";
+import { downloadFromS3 } from "../../lib/s3-client";
+import { redactPii } from "../../lib/pii-redaction";
+import { DocumentInputSchema, DocumentOutputSchema, type DocumentOutput } from "../../lib/schemas";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function getVectorIndex(): Index {
   return new Index({
-    url: process.env.UPSTASH_VECTOR_URL ?? '',
-    token: process.env.UPSTASH_VECTOR_TOKEN ?? '',
+    url: process.env.UPSTASH_VECTOR_URL ?? "",
+    token: process.env.UPSTASH_VECTOR_TOKEN ?? "",
   });
 }
 
 async function parsePdf(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     const parser = new PDFParser(null, true);
-    parser.on('pdfParser_dataReady', (data) => {
+    parser.on("pdfParser_dataReady", (data) => {
       const dataUnknown = data as unknown as Record<string, unknown>;
       try {
-        const pages = dataUnknown['Pages'] as Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
+        const pages = dataUnknown["Pages"] as Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
         const text = pages
           .flatMap((page) => page.Texts)
           .flatMap((t) => t.R)
           .map((r) => decodeURIComponent(r.T))
-          .join(' ');
+          .join(" ");
         resolve(text);
       } catch (err) {
         reject(err);
       }
     });
-    parser.on('pdfParser_dataError', (err: unknown) => reject(err));
+    parser.on("pdfParser_dataError", (err: unknown) => reject(err));
     parser.parseBuffer(buffer);
   });
 }
@@ -47,7 +43,7 @@ function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
   const chunks: string[] = [];
   let i = 0;
   while (i < words.length) {
-    chunks.push(words.slice(i, i + chunkSize).join(' '));
+    chunks.push(words.slice(i, i + chunkSize).join(" "));
     i += chunkSize - overlap;
   }
   return chunks.filter((c) => c.trim().length > 0);
@@ -55,7 +51,7 @@ function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
 
 async function embedText(text: string): Promise<number[]> {
   const response = await openai.embeddings.create({
-    model: 'text-embedding-3-small',
+    model: "text-embedding-3-small",
     input: text,
   });
   return response.data[0].embedding;
@@ -102,16 +98,14 @@ export async function documentNode(
   }));
 
   // Claude Sonnet extracts structured findings and citations
-  const citationContext = topChunks
-    .map((c) => `[${c.id}] ${c.chunk}`)
-    .join('\n\n');
+  const citationContext = topChunks.map((c) => `[${c.id}] ${c.chunk}`).join("\n\n");
 
   const message = await anthropic.messages.create({
-    model: 'claude-sonnet-4-5',
+    model: "claude-sonnet-4-5",
     max_tokens: 2048,
     messages: [
       {
-        role: 'user',
+        role: "user",
         content: `<document_chunks>
 ${citationContext}
 </document_chunks>
@@ -129,15 +123,18 @@ Respond with ONLY a JSON object matching this shape:
     ],
   });
 
-  let parsedResult: { findings: string[]; citations: Array<{ id: string; chunk: string; relevanceScore: number }> };
+  let parsedResult: {
+    findings: string[];
+    citations: Array<{ id: string; chunk: string; relevanceScore: number }>;
+  };
   try {
     const content = message.content[0];
-    if (content.type !== 'text') throw new Error('Unexpected content type');
-    const cleaned = content.text.trim().replace(/^```json\n?|```$/g, '');
+    if (content.type !== "text") throw new Error("Unexpected content type");
+    const cleaned = content.text.trim().replace(/^```json\n?|```$/g, "");
     parsedResult = JSON.parse(cleaned);
   } catch {
     parsedResult = {
-      findings: ['Document processed — structured extraction unavailable'],
+      findings: ["Document processed — structured extraction unavailable"],
       citations: topChunks,
     };
   }

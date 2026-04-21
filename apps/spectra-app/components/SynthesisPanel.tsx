@@ -1,8 +1,8 @@
-'use client';
+"use client";
 
-import { useState, useEffect } from 'react';
-import ConfidenceBar from './ConfidenceBar';
-import type { ConfidenceScores } from '@/lib/types';
+import { useState, useEffect } from "react";
+import ConfidenceBar from "./ConfidenceBar";
+import type { ConfidenceScores } from "@/lib/types";
 
 interface SynthesisPanelProps {
   stream?: ReadableStream;
@@ -11,9 +11,9 @@ interface SynthesisPanelProps {
 }
 
 const CITATION_COLORS: Record<string, string> = {
-  D: '#2dd4bf',
-  V: '#38bdf8',
-  A: '#f87171',
+  D: "#2dd4bf",
+  V: "#38bdf8",
+  A: "#f87171",
 };
 
 function renderWithCitations(text: string): React.ReactNode {
@@ -26,18 +26,18 @@ function renderWithCitations(text: string): React.ReactNode {
         <span
           key={i}
           style={{
-            display: 'inline-block',
+            display: "inline-block",
             background: `${color}18`,
             border: `1px solid ${color}55`,
-            borderRadius: '3px',
-            padding: '0 4px',
+            borderRadius: "3px",
+            padding: "0 4px",
             color,
-            fontSize: '0.68rem',
-            fontFamily: 'monospace',
+            fontSize: "0.68rem",
+            fontFamily: "monospace",
             fontWeight: 700,
             lineHeight: 1.5,
-            margin: '0 2px',
-            verticalAlign: 'middle',
+            margin: "0 2px",
+            verticalAlign: "middle",
           }}
         >
           {part}
@@ -48,8 +48,12 @@ function renderWithCitations(text: string): React.ReactNode {
   });
 }
 
-export default function SynthesisPanel({ stream, reportText, confidenceScores }: SynthesisPanelProps) {
-  const [text, setText] = useState<string>(reportText ?? '');
+export default function SynthesisPanel({
+  stream,
+  reportText,
+  confidenceScores,
+}: SynthesisPanelProps) {
+  const [text, setText] = useState<string>(reportText ?? "");
 
   useEffect(() => {
     if (!stream) return;
@@ -71,33 +75,33 @@ export default function SynthesisPanel({ stream, reportText, confidenceScores }:
     };
   }, [stream]);
 
-  const displayText = stream ? text : (reportText ?? '');
+  const displayText = stream ? text : (reportText ?? "");
   const hasContent = displayText.trim().length > 0;
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', height: '100%' }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: "1.25rem", height: "100%" }}>
       <ConfidenceBar scores={confidenceScores} />
 
       <div
         style={{
           flex: 1,
-          fontFamily: 'monospace',
-          fontSize: '0.8rem',
-          color: '#e8e6df',
+          fontFamily: "monospace",
+          fontSize: "0.8rem",
+          color: "#e8e6df",
           lineHeight: 1.85,
-          overflowY: 'auto',
-          paddingRight: '0.25rem',
+          overflowY: "auto",
+          paddingRight: "0.25rem",
         }}
       >
         {hasContent ? (
-          <div style={{ whiteSpace: 'pre-wrap' }}>{renderWithCitations(displayText)}</div>
+          <div style={{ whiteSpace: "pre-wrap" }}>{renderWithCitations(displayText)}</div>
         ) : (
           <div
             style={{
-              color: 'rgba(255,255,255,0.18)',
-              fontFamily: 'monospace',
-              fontSize: '0.72rem',
-              paddingTop: '0.5rem',
+              color: "rgba(255,255,255,0.18)",
+              fontFamily: "monospace",
+              fontSize: "0.72rem",
+              paddingTop: "0.5rem",
             }}
           >
             Awaiting synthesis output...
