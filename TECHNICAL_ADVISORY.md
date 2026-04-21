@@ -233,6 +233,42 @@ Extract `mockSend` and `mockLimit` as module-level `vi.fn()` refs so individual 
 
 ---
 
+## 15. Synthesis Guardrail Runs Post-Parse, Pre-Auditor (Phase 6)
+
+### Context
+
+`synthesisNode` produces a JSON-wrapped report from GPT-4o. The report is parsed and validated by `SynthesisOutputSchema.parse()`. A content safety guardrail runs on the parsed `report` string after schema validation.
+
+### Challenge
+
+Running the guardrail before `JSON.parse()` would block on the raw LLM output, which includes JSON boilerplate and escape characters — legitimate citation tags like `[D1]` would be obscured by JSON encoding and fail the regex. Running after `parse()` means the report is already a clean string.
+
+### Solution
+
+`validateSynthesisReport()` is called immediately after `SynthesisOutputSchema.parse()` succeeds. It checks report length, injection patterns on the final markdown text, and citation tag presence. The citation check is a warn (not throw) — some fallback synthesis paths may not tag every claim.
+
+**File:** `apps/spectra-api/src/graph/nodes/synthesisNode.ts`
+
+---
+
+## 16. Prompt Injection — Vision Node Exempt (Phase 6)
+
+### Context
+
+`documentNode` and `audioNode` both run `detectPromptInjection()` on extracted text. `visionNode` does not.
+
+### Challenge
+
+An attacker could embed injection text in a screenshot or image. Should `visionNode` check something?
+
+### Solution
+
+`visionNode` sends raw image bytes (base64-encoded) directly to GPT-4o's vision API — there is no intermediate text extraction step before the model call. GPT-4o's system prompt constrains the output format; the model receives the image, not text derived from it. Adding a vision OCR step solely to run the injection check would add latency and cost with marginal benefit — GPT-4o's own safety guardrails handle injected image text. The injection surface in this pipeline is user-supplied text (PDFs, audio), not images.
+
+**File:** `apps/spectra-api/src/graph/nodes/visionNode.ts`
+
+---
+
 ## Update Rules
 
 Update this document when a technical challenge is diagnosed and resolved that:

@@ -122,6 +122,7 @@ If a commit lands on the wrong branch: **stop, tell the Architect what happened,
 | 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ✅ Complete    |
 | 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete    |
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot)                         | ✅ Complete    |
+| 6     | Prompt injection detection, NIST control IDs, LangSmith evaluators, citation deep-linking, synthesis guardrails, accessibility | ✅ Complete |
 
 ## 5. App Structure
 

@@ -388,6 +388,54 @@ CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app 
 
 ---
 
+## 9) Phase 6 Hardening Architecture
+
+### Prompt Injection Detection
+
+`detectPromptInjection()` in `src/lib/prompt-injection.ts` is called on extracted text content before any LLM call in `documentNode` (PDF raw text) and `audioNode` (Whisper transcript). Matches against 14 regex patterns covering common injection techniques. Returns `{ safe: false, reason }` — the node throws immediately, failing the job with a structured error message rather than forwarding attacker-controlled text to Claude or GPT-4o.
+
+Vision node is exempt — raw image bytes carry no injection surface before the model call.
+
+### Synthesis Guardrails
+
+`validateSynthesisReport()` in `synthesisNode.ts` runs post-parse, pre-auditor:
+- Minimum 100-character report length (catches silent LLM failures)
+- Injection pattern scan on LLM output (prevents prompt injection in synthesis response from propagating)
+- Citation tag presence check `[DVA]\d+` — warns to CloudWatch if no inline citations found despite active modalities
+
+### LangSmith Evaluators
+
+Two named evaluators computed after every successful graph run in `jobProcessor.ts`:
+
+| Evaluator | Score derivation |
+| :--- | :--- |
+| `faithfulness` | `overallFaithfulness / 100` from auditorNode |
+| `citation_accuracy` | high-confidence findings (≥70%) / total governance trace entries |
+
+Results logged as structured JSON to CloudWatch (`[langsmith-evaluators]` prefix). Future: push as LangSmith `createFeedback` calls once per-run trace IDs are captured.
+
+### NIST AI RMF Control IDs
+
+`AuditorOutputSchema.governanceTrace` entries carry an optional `nistControlId` field (e.g. `"MEASURE 2.1"`) alongside the existing `nistTag` function. The auditor prompt includes a 10-entry NIST AI RMF control reference table. The GovernanceTrace UI displays the full control ID when present, falling back to the function tag.
+
+### Accessibility (Phase 6)
+
+All interactive and structural components hardened to WCAG 2.1 AA:
+
+| Component | Change |
+| :--- | :--- |
+| `AgentGraph` | `role="img"` on container, `aria-label` per node with status |
+| `ConfidenceBar` | `role="progressbar"` with `aria-valuenow/min/max` |
+| `UploadZone` | `role="button"` + `tabIndex` + `Enter`/`Space` keyboard handlers + `aria-label` on drop targets and remove buttons |
+| `GovernanceTrace` | `aria-expanded`, `role="table/row/cell/columnheader"`, `aria-controls` |
+| `SynthesisPanel` | `aria-live="polite"` on report region; citation badges are keyboard-focusable `<button>` elements |
+| `GlassPanel` | Optional `role` and `aria-label` props |
+| `SectionLabel` | `role="heading"` `aria-level={3}` |
+| `ModalityCard` | `role="article"` with `aria-label` |
+| `AzureButton`, `GhostButton` | `aria-disabled` on link (`<a>`) variants |
+
+---
+
 ## Update Rules
 
 Update this document whenever any of the following changes:
