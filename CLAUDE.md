@@ -79,8 +79,8 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 | :---- | :--------------------------------------------------------------------------------------------- | :------------- |
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                                               | ✅ Complete    |
 | 2     | LangGraph agent graph + Inngest + API surface                                                  | ✅ Complete    |
-| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | 🔄 In Progress |
-| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
+| 3     | UploadZone + AgentGraph components + SynthesisPanel + GovernanceTrace                          | ✅ Complete    |
+| 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | 🔄 In Progress |
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
 
 ## 4. Modular Architecture

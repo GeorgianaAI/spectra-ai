@@ -255,6 +255,65 @@ H -- no --> J["200 ok"]
 
 ---
 
+## 6) Dashboard UI State Machine (Phase 3)
+
+The dashboard manages a client-side state machine that drives all four output panels.
+
+### State Variables
+
+| State              | Type               | Description                                          |
+| :----------------- | :----------------- | :--------------------------------------------------- |
+| `files`            | `UploadedFiles`    | Files loaded into each drop target                   |
+| `jobId`            | `string \| null`   | Supabase job UUID once upload succeeds               |
+| `jobStatus`        | `JobStatus \| null`| `pending → processing → completed \| failed`         |
+| `agentStatuses`    | `AgentStatuses`    | Per-node status derived from jobStatus (see below)   |
+| `confidenceScores` | `ConfidenceScores` | `{ doc, vision, audio }` from Auditor node           |
+| `governanceEntries`| `GovernanceEntry[]`| Full trace fetched on job completion                 |
+| `reportText`       | `string`           | Synthesis report text from `job.result_url`          |
+
+### Job Status → Agent Status Mapping
+
+```
+jobStatus = 'pending'    → router: processing, others: idle
+jobStatus = 'processing' → router: complete, doc/vision/audio: processing, synthesis: idle
+jobStatus = 'completed'  → all nodes: complete
+jobStatus = 'failed'     → statuses frozen at last known state
+```
+
+### Flow Diagram
+
+```mermaid
+sequenceDiagram
+    actor U as User
+    participant UZ as UploadZone
+    participant DB as Dashboard State
+    participant API as /api/upload
+    participant POLL as /api/job/[id]
+    participant TRACE as /api/job/[id]/trace
+    participant AG as AgentGraph
+    participant SP as SynthesisPanel
+    participant GT as GovernanceTrace
+
+    U->>UZ: drop/select files
+    UZ->>DB: onUpload(files)
+    U->>DB: click RUN ANALYSIS
+    DB->>API: POST multipart form + JWT
+    API-->>DB: { jobId }
+    DB->>DB: setAgentStatuses(pending → router: processing)
+    loop every 2s
+        DB->>POLL: GET /api/job/[id]
+        POLL-->>DB: { status, confidence_scores, result_url }
+        DB->>AG: agentStatuses (derived)
+    end
+    Note over DB,AG: status = completed
+    DB->>TRACE: GET /api/job/[id]/trace
+    TRACE-->>DB: GovernanceEntry[]
+    DB->>SP: reportText + confidenceScores
+    DB->>GT: entries
+```
+
+---
+
 ## Update Rules
 
 Update this document whenever any of the following changes:

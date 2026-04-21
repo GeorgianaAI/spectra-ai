@@ -34,7 +34,7 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ## 🖼️ Product Snapshot
 
-> _(Screenshots added after Phase 3 UI implementation)_
+> _(Screenshots added after Phase 5 deployment)_
 
 ---
 
@@ -218,8 +218,8 @@ npm run dev
 | :---- | :---------------------------------------------------------------------------- | :------------- |
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | ✅ Complete    |
 | 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete    |
-| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | 🔄 In Progress |
-| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ⬜ Pending     |
+| 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete    |
+| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | 🔄 In Progress |
 | 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot, Resend)           | ⬜ Pending     |
 
 ---
