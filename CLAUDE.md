@@ -352,6 +352,22 @@ npm run test         # Vitest unit tests on schemas + routing logic
 
 `CLAUDE.md`, `README.md`, `ARCHITECTURE_FLOWS.md`, and any other papers (e.g. `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`) must be reviewed and updated after each implemented Phase. `SPEC.md` is **never** modified by Claude.
 
+## 13. Destructive Git Actions — Absolute Prohibition
+
+**Never run any of the following without explicit written instruction from the Architect:**
+
+- `git reset --hard`
+- `git reset --soft` or `git reset` on shared branches
+- `git push --force` or `git push --force-with-lease`
+- `git clean -f` / `git clean -fd`
+- `git checkout -- .` or `git restore .`
+- Deleting branches with `-D` (force delete)
+- Any command that discards commits or working tree changes
+
+If a commit lands on the wrong branch: **stop, tell the Architect what happened, and ask how to proceed.** Do not attempt to self-correct with destructive commands. The Architect decides.
+
+---
+
 ## 12. Branch & Merge Hygiene
 
 1. Run `git branch --merged` and delete any merged local branches. If you see genuinely unmerged branches, alert the Architect so they can merge it. **Never** create new branch or merge recent changes until older branches have been merged and the Architect confirms the CI is green.
