@@ -246,6 +246,30 @@ If a code change resolves one of these challenges differently, update the releva
 
 ---
 
+## 14. Vercel Framework Detection Fails in Monorepo Subdirectory (Phase 5)
+
+### Context
+
+`spectra-app` is deployed from `apps/spectra-app/` inside the `spectra-ai` monorepo. Vercel's root directory setting is configured to `apps/spectra-app`.
+
+### Challenge
+
+Vercel's automatic framework detection did not recognise the project as Next.js when the root directory was set to a subdirectory. The "Application Preset" field on the import screen appeared blank even after manually selecting Next.js — it reset once the subdirectory was chosen. The build completed successfully in ~38s (correct Next.js build time) and deployments showed "Ready", but all routes returned Vercel's own `404: NOT_FOUND` infrastructure error rather than the Next.js app. Nothing appeared in build logs because the build itself succeeded — the failure was in Vercel's routing layer, which did not apply Next.js-specific route handling without framework detection.
+
+### Solution
+
+Add `vercel.json` at `apps/spectra-app/` (the configured root) with explicit framework declaration:
+
+```json
+{ "framework": "nextjs" }
+```
+
+This tells Vercel's build infrastructure to apply Next.js-specific output handling regardless of auto-detection. The file must live in the root directory Vercel is configured to build from — not the monorepo root.
+
+**File:** `apps/spectra-app/vercel.json`
+
+---
+
 ## 13. S3 → Lambda Event Notification — Cross-Stack CDK Wiring (Phase 5)
 
 ### Context
