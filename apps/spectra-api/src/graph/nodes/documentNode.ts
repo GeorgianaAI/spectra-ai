@@ -4,6 +4,7 @@ import OpenAI from "openai";
 import PDFParser from "pdf2json";
 import { downloadFromS3 } from "../../lib/s3-client";
 import { redactPii } from "../../lib/pii-redaction";
+import { detectPromptInjection } from "../../lib/prompt-injection";
 import { DocumentInputSchema, DocumentOutputSchema, type DocumentOutput } from "../../lib/schemas";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
@@ -66,6 +67,12 @@ export async function documentNode(
 
   const rawBuffer = await downloadFromS3(input.s3Key);
   const rawText = await parsePdf(rawBuffer);
+
+  const injectionCheck = detectPromptInjection(rawText);
+  if (!injectionCheck.safe) {
+    throw new Error(`Document rejected: ${injectionCheck.reason}`);
+  }
+
   const { text: redactedText, redactedFields } = redactPii(rawText);
 
   const chunks = chunkText(redactedText);

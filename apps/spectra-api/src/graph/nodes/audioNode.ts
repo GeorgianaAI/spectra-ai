@@ -1,6 +1,7 @@
 import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { downloadFromS3 } from "../../lib/s3-client";
+import { detectPromptInjection } from "../../lib/prompt-injection";
 import { AudioInputSchema, AudioOutputSchema, type AudioOutput } from "../../lib/schemas";
 
 const openai = new OpenAI({
@@ -28,6 +29,11 @@ export async function audioNode(
 
   const transcript = transcription.text;
   const durationSeconds = (transcription as unknown as { duration?: number }).duration ?? 0;
+
+  const injectionCheck = detectPromptInjection(transcript);
+  if (!injectionCheck.safe) {
+    throw new Error(`Audio transcript rejected: ${injectionCheck.reason}`);
+  }
 
   // Claude Sonnet extracts structured findings from the transcript
   const message = await anthropic.messages.create({
