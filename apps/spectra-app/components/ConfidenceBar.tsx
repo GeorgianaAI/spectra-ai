@@ -39,6 +39,11 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
             {label}
           </span>
           <div
+            role="progressbar"
+            aria-valuenow={scores[key]}
+            aria-valuemin={0}
+            aria-valuemax={100}
+            aria-label={`${label} confidence: ${scores[key]}%`}
             style={{
               flex: 1,
               height: "3px",

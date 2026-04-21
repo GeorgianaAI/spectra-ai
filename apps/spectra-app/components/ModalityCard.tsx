@@ -11,6 +11,8 @@ interface ModalityCardProps {
 export default function ModalityCard({ label, icon: Icon, color, detail, sub }: ModalityCardProps) {
   return (
     <div
+      role="article"
+      aria-label={label}
       style={{
         position: "relative",
         overflow: "hidden",

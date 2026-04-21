@@ -1,13 +1,17 @@
-import type { CSSProperties, ReactNode } from "react";
+import type { CSSProperties, ReactNode, AriaRole } from "react";
 
 interface GlassPanelProps {
   children: ReactNode;
   style?: CSSProperties;
+  role?: AriaRole;
+  "aria-label"?: string;
 }
 
-export default function GlassPanel({ children, style }: GlassPanelProps) {
+export default function GlassPanel({ children, style, role, "aria-label": ariaLabel }: GlassPanelProps) {
   return (
     <div
+      role={role}
+      aria-label={ariaLabel}
       style={{
         background: "rgba(255, 255, 255, 0.03)",
         backdropFilter: "blur(25px)",

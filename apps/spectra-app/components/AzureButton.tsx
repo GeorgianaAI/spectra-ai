@@ -46,7 +46,7 @@ export default function AzureButton({
 
   if (href) {
     return (
-      <a href={href} style={merged}>
+      <a href={href} aria-disabled={disabled} style={merged}>
         {children}
       </a>
     );

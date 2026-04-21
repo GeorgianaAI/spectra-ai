@@ -46,7 +46,7 @@ export default function GhostButton({
 
   if (href) {
     return (
-      <a href={href} style={base} {...handlers}>
+      <a href={href} aria-disabled={disabled} style={base} {...handlers}>
         {children}
       </a>
     );

@@ -41,11 +41,16 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
         }
       `}</style>
 
-      <div style={{ position: "relative", height: "250px", width: "100%" }}>
+      <div
+        role="img"
+        aria-label="Agent pipeline graph showing node statuses"
+        style={{ position: "relative", height: "250px", width: "100%" }}
+      >
         {/* SVG edge layer */}
         <svg
           viewBox="0 0 100 100"
           preserveAspectRatio="none"
+          aria-hidden="true"
           style={{
             position: "absolute",
             inset: 0,
@@ -82,6 +87,7 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
           return (
             <div
               key={id}
+              aria-label={`${label} agent: ${status}`}
               style={{
                 position: "absolute",
                 left: `${x}%`,

@@ -102,7 +102,17 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
         return (
           <div
             key={key}
+            role="button"
+            tabIndex={disabled ? -1 : 0}
+            aria-label={`Upload ${label} file. ${files[key] ? `Selected: ${files[key]!.name}` : sub}`}
+            aria-disabled={disabled}
             onClick={() => !disabled && inputRefs[key].current?.click()}
+            onKeyDown={(e) => {
+              if (!disabled && (e.key === "Enter" || e.key === " ")) {
+                e.preventDefault();
+                inputRefs[key].current?.click();
+              }
+            }}
             onDragOver={(e) => {
               e.preventDefault();
               if (!disabled) setDragging(key);
@@ -176,6 +186,8 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
 
             {files[key] && (
               <button
+                type="button"
+                aria-label={`Remove ${label} file`}
                 onClick={(e) => {
                   e.stopPropagation();
                   setFile(key, null);
@@ -201,6 +213,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
               ref={inputRefs[key]}
               type="file"
               accept={accept}
+              aria-label={`Select ${label} file`}
               style={{ display: "none" }}
               onChange={(e) => handleChange(e, key)}
             />
