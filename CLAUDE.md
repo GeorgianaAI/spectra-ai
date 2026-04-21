@@ -68,6 +68,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
   5. Config / Env / CI
 - **Commit Metadata:** Never include "Co-authored-by: Claude", "Co-Authored-By:", or any AI attribution tags in commit messages.
 - **Lock file rule:** Always stage `package-lock.json` alongside `package.json`. Every `npm install` updates both — committing one without the other leaves a dirty working tree.
+- **Prettier config:** Every new repo or sub-app must include a `.prettierrc` at its root on day one. Config: `singleQuote: false` (double quotes), `semi: true`, `tabWidth: 2`, `trailingComma: "all"`, `printWidth: 100`. Run `prettier --write "**/*.{ts,tsx}"` after adding the config to normalize existing files.
 - **No Merges:** Pushing to remote is encouraged, but merging is restricted to the Architect (User).
 - **Branch Hygiene Gate:** Before creating any new branch, run `git branch` and check for unmerged feature branches. If any exist, stop and alert the Architect.
 - **Build Order is Strict:** Follow the phase sequence in SPEC.md. Do not implement a later phase while an earlier one is incomplete.
