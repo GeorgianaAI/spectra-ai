@@ -56,10 +56,17 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 - Do not use React 19-specific APIs unless already present in the scaffold.
 - If an "upgrade available" notice appears, ignore it.
 
-## 3. Development Workflow (The Sprint Protocol)
+## 3. Development Workflow Hygiene (The Sprint Protocol)
+
+### Branching & Structure
 
 - **Repo Layout:** `spectra/` is the root container. `apps/spectra-app/` and `apps/spectra-api/` are independently deployable sub-projects, each with their own `package.json`.
 - **Feature Branches:** `feat/`, `fix/`, `refactor/` — **always required** for any UI change, refactor, or code change. Only documentation updates (`.md` files) may be committed directly to `main`.
+- **No Merges:** Pushing to remote is encouraged, but merging is restricted to the Architect (User).
+- **Branch Hygiene Gate:** Before creating any new branch, run `git branch --merged` and delete any merged local branches. If genuinely unmerged branches exist, stop and alert the Architect — never create a new branch or merge until older branches are resolved and the Architect confirms CI is green.
+
+### Commits & Code Quality
+
 - **Atomic Commits:** Group changed files meaningfully. Separate concerns across multiple commits (not just 1-2) where applicable:
   1. Infrastructure / IaC
   2. API Routes / Lambda handlers
@@ -69,13 +76,52 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 - **Commit Metadata:** Never include "Co-authored-by: Claude", "Co-Authored-By:", or any AI attribution tags in commit messages.
 - **Lock file rule:** Always stage `package-lock.json` alongside `package.json`. Every `npm install` updates both — committing one without the other leaves a dirty working tree.
 - **Prettier config:** Every new repo or sub-app must include a `.prettierrc` at its root on day one. Config: `singleQuote: false` (double quotes), `semi: true`, `tabWidth: 2`, `trailingComma: "all"`, `printWidth: 100`. Run `prettier --write "**/*.{ts,tsx}"` after adding the config to normalize existing files.
-- **No Merges:** Pushing to remote is encouraged, but merging is restricted to the Architect (User).
-- **Branch Hygiene Gate:** Before creating any new branch, run `git branch --merged` and delete any merged local branches. If genuinely unmerged branches exist, stop and alert the Architect — never create a new branch or merge until older branches are resolved and the Architect confirms CI is green.
 - **Build Order is Strict:** Follow the phase sequence in SPEC.md. Do not implement a later phase while an earlier one is incomplete.
 - **SPEC.md is immutable:** Never modify SPEC.md. It is kept out of version control (see `.gitignore`).
 - **Platform steps:** After each Phase, alert the Architect with a list of AWS Console / external platform steps required to support the changes (e.g., enabling Bedrock model access, creating Supabase project, adding Inngest app, setting Upstash env vars).
 
-### Build Phases
+### Modular Architecture
+
+1. Extract logic into separate files from the beginning, as below.
+2. Maintain thin entrypoints. No files above approx. 200–300 lines (**except** sequential functions that are 400–500 lines and cannot be split without losing cohesion).
+
+| File                     | Purpose                   |
+| :----------------------- | :------------------------ |
+| `[feature].types.ts`     | Interfaces/Types          |
+| `[feature].hooks.ts`     | React hooks and state     |
+| `[feature].utils.ts`     | Pure helper functions     |
+| `[feature].constants.ts` | Static config and strings |
+
+### Naming Conventions
+
+- **Markdown files:** ALL_CAPS names (e.g. `CLAUDE.md`, `README.md`). Extension lowercase.
+- **React hooks:** camelCase filenames (e.g. `useJobStatus.ts`).
+- **Components:** PascalCase filenames (e.g. `UploadZone.tsx`).
+- **CDK stacks:** PascalCase with `Stack` suffix (e.g. `StorageStack`).
+- **Lambda handlers:** camelCase (e.g. `ingestHandler.ts`).
+
+### TypeScript Strictness
+
+- **No `any` types.** Use `unknown` with a type guard, explicit interfaces, or `Record<string, unknown>`.
+- **Explicit `useState` generics:** `useState<boolean>(false)`, `useState<Job | null>(null)`.
+- **Explicit `useRef` generics:** `useRef<HTMLInputElement>(null)`.
+- **Strict null checks:** No non-null assertions (`!`) unless provably safe.
+
+### Destructive Git Actions — Absolute Prohibition
+
+**Never run any of the following without explicit written instruction from the Architect:**
+
+- `git reset --hard`
+- `git reset --soft` or `git reset` on shared branches
+- `git push --force` or `git push --force-with-lease`
+- `git clean -f` / `git clean -fd`
+- `git checkout -- .` or `git restore .`
+- Deleting branches with `-D` (force delete)
+- Any command that discards commits or working tree changes
+
+If a commit lands on the wrong branch: **stop, tell the Architect what happened, and ask how to proceed.** Do not attempt to self-correct with destructive commands. The Architect decides.
+
+## 4. Build Phases
 
 | Phase | Area                                                                                           | Status         |
 | :---- | :--------------------------------------------------------------------------------------------- | :------------- |
@@ -85,18 +131,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 | 4     | Integration + hardening (Inngest wire-up, JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | 🔄 In Progress |
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot, Resend)                 | ⬜ Pending     |
 
-## 4. Modular Architecture
-
-Maintain thin entrypoints. Extract logic once a file exceeds approximately 200–300 lines (**except** sequential functions that are 400–500 lines and cannot be split without losing cohesion).
-
-### Extraction Pattern
-
-| File                     | Purpose                   |
-| :----------------------- | :------------------------ |
-| `[feature].types.ts`     | Interfaces/Types          |
-| `[feature].hooks.ts`     | React hooks and state     |
-| `[feature].utils.ts`     | Pure helper functions     |
-| `[feature].constants.ts` | Static config and strings |
+## 5. App Structure
 
 ### spectra-app Directory Mapping
 
@@ -125,22 +160,7 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 | `src/lib/schemas.ts` | **Single source of truth** — all Zod schemas for node I/O, exported for reuse.                                                      |
 | `migrations/`        | Supabase SQL migration files.                                                                                                       |
 
-### Naming Conventions
-
-- **Markdown files:** ALL_CAPS names (e.g. `CLAUDE.md`, `README.md`). Extension lowercase.
-- **React hooks:** camelCase filenames (e.g. `useJobStatus.ts`).
-- **Components:** PascalCase filenames (e.g. `UploadZone.tsx`).
-- **CDK stacks:** PascalCase with `Stack` suffix (e.g. `StorageStack`).
-- **Lambda handlers:** camelCase (e.g. `ingestHandler.ts`).
-
-## 4.1 TypeScript Strictness
-
-- **No `any` types.** Use `unknown` with a type guard, explicit interfaces, or `Record<string, unknown>`.
-- **Explicit `useState` generics:** `useState<boolean>(false)`, `useState<Job | null>(null)`.
-- **Explicit `useRef` generics:** `useRef<HTMLInputElement>(null)`.
-- **Strict null checks:** No non-null assertions (`!`) unless provably safe.
-
-## 4.2 Architectural Rules
+## 5.1 Architectural Rules
 
 - **No Magic Strings:** All status values, modality names, NIST tags, and model IDs live in constants files.
 - **Server-First:** No direct Supabase or AI API calls from client components. Use API routes or Server Actions.
@@ -152,7 +172,7 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 - **Lambda triggered by S3 directly:** `ingestHandler` fires on S3 `ObjectCreated`. No SQS queue between S3 and Lambda.
 - **Bedrock scope:** Nova Micro only. No other Bedrock models. All other model calls go through Anthropic SDK or OpenAI SDK directly.
 
-## 4.3 Agent Graph Rules
+## 5.2 Agent Graph Rules
 
 - **Parallel execution:** `documentNode`, `visionNode`, `audioNode` run in parallel via LangGraph branching, conditional on `activeModalities`.
 - **Always sequential:** `synthesisNode` runs after all specialist nodes; `auditorNode` always runs last.
@@ -161,7 +181,7 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 - **PII redaction:** Applied in `documentNode` before vectorization. Reuse the Sentinel Docs pattern.
 - **Session-namespaced vectors:** Upstash Vector keys prefixed with `{jobId}/{userId}/` to isolate retrieval.
 
-## 5. Database Schema
+## 6. Database Schema
 
 ### `jobs` table (Supabase PostgreSQL)
 
@@ -183,7 +203,7 @@ Maintain thin entrypoints. Extract logic once a file exceeds approximately 200�
 - Migration file: `apps/spectra-api/migrations/001_jobs.sql`
 - Demo seed: `apps/spectra-api/migrations/002_demo_seed.sql`
 
-## 6. Auth & Demo Access
+## 7. Auth & Demo Access
 
 Auth is implemented (JWT/RBAC middleware, Supabase Auth) but the demo account has publicly visible credentials so recruiters can use the app without friction:
 
@@ -200,7 +220,7 @@ Demo account constraints (same as all users):
 
 The real cost guard is the CloudWatch billing alarm at **$15/month** — not the rate limit.
 
-## 7. UI Theme
+## 8. UI Theme
 
 Dark, precise, analyst-grade. Not a generic SaaS dashboard — closer to an intelligence workstation.
 
@@ -241,12 +261,12 @@ Cards (`ModalityCard`, `GlassPanel`) repeat the same grid overlay internally via
 
 ### Shared Primitive Components
 
-| Component      | Purpose                                                                                                                                                                        |
-| :------------- | :----------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `AzureButton`  | CTA button — cyan `#00f2ff`, pill shape (`border-radius: 50px`), weight 800. Renders `<a>` when `href` is passed, `<button>` otherwise.                                        |
-| `GlassPanel`   | Surface container — `rgba(255,255,255,0.03)` background, `backdropFilter: blur(25px)`, `border-radius: 24px`.                                                                  |
-| `ModalityCard` | Modality feature card — accepts `icon: LucideIcon`, `color`, `label`, `detail`, `sub`. Icon rendered inside a tinted badge (`color + '15'` background, `color + '30'` border). |
-| `SectionLabel` | Panel header label — monospace, `#00f2ff`, 0.8 opacity, uppercase, `letter-spacing: 0.15em`.                                                                                   |
+| Component      | Purpose                                                                                                                                                                             |
+| :------------- | :---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `AzureButton`  | CTA button — cyan `#00f2ff`, pill shape (`border-radius: 50px`), weight 800. Renders `<a>` when `href` is passed, `<button>` otherwise.                                             |
+| `GlassPanel`   | Surface container — `rgba(255,255,255,0.03)` background, `backdropFilter: blur(25px)`, `border-radius: 24px`.                                                                       |
+| `ModalityCard` | Modality feature card — accepts `icon: LucideIcon`, `color`, `label`, `detail`, `sub`. Icon rendered inside a tinted badge (`color + '15'` background, `color + '30'` border).      |
+| `SectionLabel` | Panel header label — monospace, `#00f2ff`, 0.8 opacity, uppercase, `letter-spacing: 0.15em`.                                                                                        |
 | `GhostButton`  | Secondary ghost/outline button — muted border and text, hover lightens both. Renders `<a>` when `href` passed, `<button>` otherwise. Use for back-navigation and secondary actions. |
 
 ### Component Style Rules
@@ -257,7 +277,7 @@ Cards (`ModalityCard`, `GlassPanel`) repeat the same grid overlay internally via
 - Processing nodes show a soft cyan pulsing ring via CSS animation (not JS).
 - Citation badges styled as terminal tags: `[D1]` teal, `[V2]` sky blue, `[A1]` coral.
 
-## 8. LLM Integration Rules
+## 9. LLM Integration Rules
 
 ### Model-to-Task Mapping (enforced — do not deviate)
 
@@ -278,7 +298,7 @@ All user-supplied file content is treated as untrusted input. Apply PII redactio
 
 `LANGCHAIN_TRACING_V2=true` and `LANGSMITH_PROJECT=spectra` in all environments. Wrap the LangGraph graph with a LangSmith tracer before export.
 
-## 9. Environment Variables
+## 10. Environment Variables
 
 ### spectra-app (`.env.local`)
 
@@ -324,7 +344,7 @@ INNGEST_SIGNING_KEY=your_inngest_signing_key_here
 SENTRY_DSN=your_sentry_dsn_here
 ```
 
-## 10. Operational Commands
+## 11. Operational Commands
 
 ### spectra-app
 
@@ -350,21 +370,6 @@ npm run cdk:deploy   # Deploy all CDK stacks
 npm run test         # Vitest unit tests on schemas + routing logic
 ```
 
-## 11. Update Papers
+## 12. Update Papers
 
 `CLAUDE.md`, `README.md`, `ARCHITECTURE_FLOWS.md`, and any other papers (e.g. `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`) must be reviewed and updated after each implemented Phase. `SPEC.md` is **never** modified by Claude.
-
-## 13. Destructive Git Actions — Absolute Prohibition
-
-**Never run any of the following without explicit written instruction from the Architect:**
-
-- `git reset --hard`
-- `git reset --soft` or `git reset` on shared branches
-- `git push --force` or `git push --force-with-lease`
-- `git clean -f` / `git clean -fd`
-- `git checkout -- .` or `git restore .`
-- Deleting branches with `-D` (force delete)
-- Any command that discards commits or working tree changes
-
-If a commit lands on the wrong branch: **stop, tell the Architect what happened, and ask how to proceed.** Do not attempt to self-correct with destructive commands. The Architect decides.
-
