@@ -340,7 +340,8 @@ apps/spectra-app/tests/
     └── dashboard.spec.ts         # Gated — requires PLAYWRIGHT_RUN_E2E=true + live Supabase
 
 apps/spectra-api/src/__tests__/
-└── schemas.test.ts               # 23 tests — all 6 agent node schemas (Router → Auditor)
+├── schemas.test.ts               # 23 tests — all 6 agent node schemas (Router → Auditor)
+└── red-team.test.ts              # 48 adversarial tests — injection patterns, PII redaction, synthesis guardrails
 ```
 
 Vitest picks up `**/*.test.ts` only. Playwright `.spec.ts` files are excluded from Vitest via explicit `exclude: ["tests/e2e/**"]` in `vitest.config.ts`.

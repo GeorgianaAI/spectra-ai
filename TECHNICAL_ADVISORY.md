@@ -233,6 +233,24 @@ Extract `mockSend` and `mockLimit` as module-level `vi.fn()` refs so individual 
 
 ---
 
+## 17. Red Team Tests Cannot Import synthesisNode Directly (Phase 7)
+
+### Context
+
+`red-team.test.ts` needs to test `validateSynthesisReport()` in isolation — no LLM calls, no network.
+
+### Challenge
+
+`synthesisNode.ts` initialises `new OpenAI(...)` at module scope. Importing anything from that file in a test environment throws `Missing credentials` immediately at import time, before any test runs.
+
+### Solution
+
+`validateSynthesisReport` was extracted to `src/lib/synthesis-guardrails.ts`, which imports only `detectPromptInjection`. `synthesisNode.ts` now imports the function from there. The test imports directly from the lib — no OpenAI client is ever instantiated.
+
+**Files:** `apps/spectra-api/src/lib/synthesis-guardrails.ts`, `apps/spectra-api/src/graph/nodes/synthesisNode.ts`
+
+---
+
 ## 15. Synthesis Guardrail Runs Post-Parse, Pre-Auditor (Phase 6)
 
 ### Context
