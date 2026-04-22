@@ -44,5 +44,11 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
 }
 
 export const config = {
-  matcher: ["/dashboard/:path*", "/api/upload", "/api/job/:path*"],
+  matcher: [
+    "/dashboard/:path*",
+    "/api/upload",
+    "/api/upload/presign",
+    "/api/upload/confirm",
+    "/api/job/:path*",
+  ],
 };
