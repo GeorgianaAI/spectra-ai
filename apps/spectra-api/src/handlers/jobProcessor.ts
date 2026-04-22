@@ -26,6 +26,12 @@ const JobPayloadSchema = z.object({
 });
 
 const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProxyResult> => {
+  const rawEvent = event as unknown as Record<string, unknown>;
+  if (rawEvent["source"] === "aws.events") {
+    console.log("[jobProcessor] warmup ping — staying warm");
+    return { statusCode: 200, body: JSON.stringify({ status: "warm" }) };
+  }
+
   let jobId: string | undefined;
 
   try {

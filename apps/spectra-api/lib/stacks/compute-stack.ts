@@ -1,4 +1,6 @@
 import * as cdk from "aws-cdk-lib";
+import * as events from "aws-cdk-lib/aws-events";
+import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
 import * as logs from "aws-cdk-lib/aws-logs";
@@ -68,6 +70,11 @@ export class ComputeStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(300),
       memorySize: 1024,
       logGroup: jobProcessorLogGroup,
+      // Restore concurrency cap after AWS Service Quotas increase is approved.
+      // Enable by setting LAMBDA_RESERVATION_ENABLED=true in CDK deploy env.
+      ...(process.env.LAMBDA_RESERVATION_ENABLED === "true"
+        ? { reservedConcurrentExecutions: 1 }
+        : {}),
       environment: {
         NODE_ENV: "production",
         AWS_REGION_OVERRIDE: props.env?.region ?? "eu-west-1",
@@ -97,6 +104,14 @@ export class ComputeStack extends cdk.Stack {
         resources: [bucketArn, `${bucketArn}/*`],
       }),
     );
+
+    // Scheduled ping every 5 minutes keeps jobProcessor warm and avoids cold-start latency.
+    const warmupRule = new events.Rule(this, "JobProcessorWarmup", {
+      ruleName: "spectra-jobprocessor-warmup",
+      description: "Keeps jobProcessor warm to avoid cold-start latency on first invocation",
+      schedule: events.Schedule.rate(cdk.Duration.minutes(5)),
+    });
+    warmupRule.addTarget(new targets.LambdaFunction(this.jobProcessor));
 
     // Grant jobProcessor permission to call Bedrock (Nova Micro for Router Agent)
     this.jobProcessor.addToRolePolicy(
