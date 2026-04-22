@@ -32,6 +32,25 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ---
 
+> [!TIP]
+> **Architecture & Security Context:** For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./ARCHITECTURE_FLOWS.md).
+> For prompt injection detection, synthesis guardrails, PII redaction coverage, and adversarial red team test outcomes, see [HARDENING_ROADMAP.md](./HARDENING_ROADMAP.md).
+> For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see [TECHNICAL_ADVISORY.md](./TECHNICAL_ADVISORY.md).
+> For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./SECURITY_ADVISORY.md).
+> For health semantics, Lambda failure modes, CDK deployment steps, and rollback guidance, see [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md).
+
+## ⚡ Red-Team Validation
+
+Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 48 tests) covering three security-critical controls:
+
+- **Prompt injection detection** — 14 regex patterns, case-insensitive, tested against known attack variants (override instructions, jailbreak tokens, model-specific delimiters) buried in otherwise legitimate document text.
+- **PII redaction coverage** — five pattern types (email, US phone, SSN, credit card, UK NINO), verified against false positives, duplicate labelling, and clean-text passthrough.
+- **Synthesis output guardrails** — length floor, injection re-check on LLM output, and citation tag presence validated before the auditor receives the report.
+
+See [`SECURITY_ADVISORY.md`](./SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence.
+
+---
+
 ## 🖼️ Product Snapshot
 
 > _(Screenshots added after Phase 5 deployment)_
@@ -167,6 +186,13 @@ Spectra deliberately matches model capability to task rather than defaulting to 
 | Audio     | Whisper → Claude Sonnet | Transcription (Whisper) + structured extraction (Sonnet)                |
 | Synthesis | GPT-4o                  | Multi-source merging and conflict resolution                            |
 | Auditor   | Claude Sonnet           | Faithfulness + hallucination detection — Anthropic's core strength      |
+
+---
+
+> [!TIP]
+> Architecture & Security Context: For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see ARCHITECTURE_FLOWS.md.
+> For prompt injection detection, synthesis guardrails, PII redaction coverage, and adversarial red team test outcomes, see HARDENING_ROADMAP.md.
+> For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see TECHNICAL_ADVISORY.md.
 
 ---
 
