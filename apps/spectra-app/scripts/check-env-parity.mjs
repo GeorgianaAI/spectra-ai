@@ -27,8 +27,8 @@ if (!hasValue(env.NEXT_PUBLIC_SUPABASE_ANON_KEY)) missing.push("NEXT_PUBLIC_SUPA
 if (!hasValue(env.SUPABASE_SERVICE_KEY))          missing.push("SUPABASE_SERVICE_KEY");
 
 // ── Upstash Redis (rate limiting) ─────────────────────────────────────────────
-if (!hasValue(env.UPSTASH_REDIS_URL))   missing.push("UPSTASH_REDIS_URL");
-if (!hasValue(env.UPSTASH_REDIS_TOKEN)) missing.push("UPSTASH_REDIS_TOKEN");
+if (!hasValue(env.UPSTASH_REDIS_REST_URL))   missing.push("UPSTASH_REDIS_REST_URL");
+if (!hasValue(env.UPSTASH_REDIS_REST_TOKEN)) missing.push("UPSTASH_REDIS_REST_TOKEN");
 
 // ── AWS ───────────────────────────────────────────────────────────────────────
 if (!hasValue(env.AWS_REGION))           missing.push("AWS_REGION");

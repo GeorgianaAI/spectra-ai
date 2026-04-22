@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEnvTestHarness } from "@/tests/utils/envTestHarness";
+import { TEST_JWT_SECRET, VALID_INFRA_ENVS, TEST_USER_ID, TEST_USER_EMAIL } from "@/tests/utils/constants";
 
 const mockSend = vi.fn().mockResolvedValue({});
 const mockLimit = vi.fn().mockResolvedValue({ success: true });
@@ -34,8 +35,6 @@ vi.mock("@/lib/inngest", () => ({
   inngest: { send: vi.fn().mockResolvedValue({}) },
 }));
 
-const TEST_JWT_SECRET = "test-secret-32-chars-long-enough!!";
-
 describe("POST /api/upload", () => {
   const { setEnv, restoreEnv } = useEnvTestHarness();
 
@@ -47,8 +46,7 @@ describe("POST /api/upload", () => {
       JWT_SECRET: TEST_JWT_SECRET,
       AWS_REGION: "eu-west-1",
       S3_BUCKET_NAME: "spectra-uploads",
-      UPSTASH_REDIS_URL: "https://redis.example",
-      UPSTASH_REDIS_TOKEN: "token",
+      ...VALID_INFRA_ENVS,
     });
   });
 
@@ -87,7 +85,7 @@ describe("POST /api/upload", () => {
 
   it("returns 400 when no valid files are provided", async () => {
     const { issueJwt } = await import("@/lib/jwt");
-    const token = await issueJwt("user-uuid-1234", "test@example.com");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
     const { POST } = await import("@/app/api/upload/route");
     const form = new FormData();
     const req = new Request("http://localhost:3000/api/upload", {

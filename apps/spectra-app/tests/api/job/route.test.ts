@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEnvTestHarness } from "@/tests/utils/envTestHarness";
+import { TEST_JWT_SECRET, TEST_USER_ID, TEST_USER_EMAIL } from "@/tests/utils/constants";
 
 const OWNER_ID = "owner-uuid-0000-0000-000000000001";
 const OTHER_ID = "other-uuid-0000-0000-000000000002";
@@ -9,11 +10,9 @@ vi.mock("@/lib/supabase", () => ({
   getSupabaseClient: vi.fn(),
 }));
 
-const TEST_JWT_SECRET = "test-secret-32-chars-long-enough!!";
-
 async function makeToken(sub: string) {
   const { issueJwt } = await import("@/lib/jwt");
-  return issueJwt(sub, "test@example.com");
+  return issueJwt(sub, TEST_USER_EMAIL);
 }
 
 describe("GET /api/job/[id]", () => {
@@ -54,7 +53,7 @@ describe("GET /api/job/[id]", () => {
         select: vi.fn().mockReturnThis(),
         eq: vi.fn().mockReturnThis(),
         single: vi.fn().mockResolvedValue({
-          data: { id: JOB_ID, user_id: OWNER_ID, status: "completed" },
+          data: { id: JOB_ID, user_id: TEST_USER_ID, status: "completed" },
           error: null,
         }),
       }),
@@ -72,7 +71,7 @@ describe("GET /api/job/[id]", () => {
   });
 
   it("returns 200 when job belongs to the requesting user", async () => {
-    const jobData = { id: JOB_ID, user_id: OWNER_ID, status: "completed" };
+    const jobData = { id: JOB_ID, user_id: TEST_USER_ID, status: "completed" };
     const { getSupabaseClient } = await import("@/lib/supabase");
     vi.mocked(getSupabaseClient).mockReturnValue({
       from: vi.fn().mockReturnValue({
@@ -82,7 +81,7 @@ describe("GET /api/job/[id]", () => {
       }),
     } as never);
 
-    const token = await makeToken(OWNER_ID);
+    const token = await makeToken(TEST_USER_ID);
     const { GET } = await import("@/app/api/job/[id]/route");
     const req = new Request(`http://localhost:3000/api/job/${JOB_ID}`, {
       headers: { Authorization: `Bearer ${token}` },
@@ -101,7 +100,7 @@ describe("GET /api/job/[id]", () => {
       }),
     } as never);
 
-    const token = await makeToken(OWNER_ID);
+    const token = await makeToken(TEST_USER_ID);
     const { GET } = await import("@/app/api/job/[id]/route");
     const req = new Request(`http://localhost:3000/api/job/${JOB_ID}`, {
       headers: { Authorization: `Bearer ${token}` },

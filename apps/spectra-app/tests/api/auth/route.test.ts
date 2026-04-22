@@ -1,5 +1,6 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEnvTestHarness } from "@/tests/utils/envTestHarness";
+import { TEST_JWT_SECRET, TEST_USER_ID, TEST_USER_EMAIL } from "@/tests/utils/constants";
 
 const mockLimit = vi.fn().mockResolvedValue({ success: true });
 
@@ -14,8 +15,6 @@ vi.mock("@upstash/redis", () => ({ Redis: function Redis() {} }));
 vi.mock("@/lib/supabase", () => ({
   getSupabaseClient: vi.fn(),
 }));
-
-const TEST_JWT_SECRET = "test-secret-32-chars-long-enough!!";
 
 describe("POST /api/auth/token", () => {
   const { setEnv, restoreEnv } = useEnvTestHarness();
@@ -83,7 +82,7 @@ describe("POST /api/auth/token", () => {
     vi.mocked(getSupabaseClient).mockReturnValue({
       auth: {
         signInWithPassword: vi.fn().mockResolvedValue({
-          data: { user: { id: "user-uuid-001", email: "demo@spectra.app" } },
+          data: { user: { id: TEST_USER_ID, email: TEST_USER_EMAIL } },
           error: null,
         }),
       },
@@ -92,7 +91,7 @@ describe("POST /api/auth/token", () => {
     const { POST } = await import("@/app/api/auth/token/route");
     const req = new Request("http://localhost:3000/api/auth/token", {
       method: "POST",
-      body: JSON.stringify({ email: "demo@spectra.app", password: "spectra-demo" }),
+      body: JSON.stringify({ email: TEST_USER_EMAIL, password: "spectra-demo" }),
       headers: { "Content-Type": "application/json" },
     });
     const res = await POST(req as never);

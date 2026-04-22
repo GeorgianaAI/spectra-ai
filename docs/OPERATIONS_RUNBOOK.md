@@ -56,7 +56,7 @@ Two Lambda functions in `eu-west-1`:
 | Symptom                                   | Likely cause                                                   | Remediation                                                                                   |
 | :---------------------------------------- | :------------------------------------------------------------- | :-------------------------------------------------------------------------------------------- |
 | `429` on all requests despite low traffic | Upstash free-tier daily command limit reached                  | Check Upstash dashboard → usage; upgrade plan or wait for reset                               |
-| Health probe returns `redis: error`       | `UPSTASH_REDIS_URL` / `UPSTASH_REDIS_TOKEN` missing or rotated | Update env vars in Vercel and Lambda (CDK deploy)                                             |
+| Health probe returns `redis: error`       | `UPSTASH_REDIS_REST_URL` / `UPSTASH_REDIS_REST_TOKEN` missing or rotated | Update env vars in Vercel and Lambda (CDK deploy)                                             |
 | LangGraph checkpointing failing           | Redis connection error mid-pipeline                            | Lambda will retry via Inngest; check CloudWatch logs for `[ERROR]` in `spectra-job-processor` |
 
 ### Upstash Vector

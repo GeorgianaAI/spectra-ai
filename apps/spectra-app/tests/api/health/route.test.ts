@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEnvTestHarness } from "@/tests/utils/envTestHarness";
 import { makeTestRequest } from "@/tests/utils/httpTestRequest";
+import { VALID_INFRA_ENVS } from "@/tests/utils/constants";
 
 vi.mock("@/lib/health-probes", () => ({
   probeSupabase: vi.fn(),
@@ -27,10 +28,7 @@ describe("GET /api/health", () => {
   it("returns 200 with ok deps when both probes succeed", async () => {
     setEnv({
       NODE_ENV: "test",
-      NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
-      UPSTASH_REDIS_URL: "https://redis.example",
-      UPSTASH_REDIS_TOKEN: "redis-token",
+      ...VALID_INFRA_ENVS,
     });
 
     const probes = await loadProbes();
@@ -50,12 +48,7 @@ describe("GET /api/health", () => {
 
   it("returns 200 in non-production even when probes are missing", async () => {
     setEnv({ NODE_ENV: "test" });
-    unsetEnv(
-      "NEXT_PUBLIC_SUPABASE_URL",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "UPSTASH_REDIS_URL",
-      "UPSTASH_REDIS_TOKEN",
-    );
+    unsetEnv(...Object.keys(VALID_INFRA_ENVS));
 
     const { GET } = await import("@/app/api/health/route");
     const res = await GET(makeTestRequest("/api/health"));
@@ -70,10 +63,7 @@ describe("GET /api/health", () => {
   it("returns 503 in production when redis probe errors", async () => {
     setEnv({
       NODE_ENV: "production",
-      NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
-      UPSTASH_REDIS_URL: "https://redis.example",
-      UPSTASH_REDIS_TOKEN: "redis-token",
+      ...VALID_INFRA_ENVS,
     });
 
     const probes = await loadProbes();
@@ -98,10 +88,7 @@ describe("GET /api/health", () => {
   it("returns 503 in production when supabase probe errors", async () => {
     setEnv({
       NODE_ENV: "production",
-      NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
-      UPSTASH_REDIS_URL: "https://redis.example",
-      UPSTASH_REDIS_TOKEN: "redis-token",
+      ...VALID_INFRA_ENVS,
     });
 
     const probes = await loadProbes();
@@ -120,12 +107,7 @@ describe("GET /api/health", () => {
 
   it("returns 503 in production when critical env vars are missing", async () => {
     setEnv({ NODE_ENV: "production" });
-    unsetEnv(
-      "NEXT_PUBLIC_SUPABASE_URL",
-      "NEXT_PUBLIC_SUPABASE_ANON_KEY",
-      "UPSTASH_REDIS_URL",
-      "UPSTASH_REDIS_TOKEN",
-    );
+    unsetEnv(...Object.keys(VALID_INFRA_ENVS));
 
     const { GET } = await import("@/app/api/health/route");
     const res = await GET(makeTestRequest("/api/health"));
@@ -140,11 +122,10 @@ describe("GET /api/health", () => {
   it("does not leak secret values in the response body", async () => {
     setEnv({
       NODE_ENV: "production",
-      NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example",
+      ...VALID_ENVS,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "super-secret-anon-key",
       SUPABASE_SERVICE_KEY: "super-secret-service-key",
-      UPSTASH_REDIS_URL: "https://redis.example",
-      UPSTASH_REDIS_TOKEN: "super-secret-redis-token",
+      UPSTASH_REDIS_REST_TOKEN: "super-secret-redis-token",
     });
 
     const probes = await loadProbes();
@@ -165,8 +146,8 @@ describe("GET /api/health", () => {
       NODE_ENV: "test",
       NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-xyz",
-      UPSTASH_REDIS_URL: "https://redis.upstash.io",
-      UPSTASH_REDIS_TOKEN: "token-xyz",
+      UPSTASH_REDIS_REST_URL: "https://redis.upstash.io",
+      UPSTASH_REDIS_REST_TOKEN: "token-xyz",
     });
 
     const probes = await loadProbes();
