@@ -11,20 +11,24 @@ Findings are grounded in reproducible test executions (`red-team.test.ts`) and a
 ## Scope
 
 **Test coverage:**
+
 - `apps/spectra-api/src/__tests__/red-team.test.ts` — 48 adversarial tests across three suites
 
 **Security surface under test:**
+
 - `src/lib/prompt-injection.ts` — 14-pattern injection detection, case-insensitive, all text-derived inputs
 - `src/lib/pii-redaction.ts` — regex-based PII redaction before vectorization and synthesis
 - `src/lib/synthesis-guardrails.ts` — post-parse output integrity validation before auditor execution
 
 **Governed pipeline paths:**
+
 - `documentNode` — PDF text extracted and checked before any LLM call
 - `audioNode` — Whisper transcript checked before any LLM call
 - `synthesisNode` — LLM output re-checked before passing to auditor and Supabase write
 - Vision node is intentionally exempt — raw image bytes carry no text injection surface
 
 **Evidence surface:**
+
 - Structured runtime logs (CloudWatch)
 - LangSmith end-to-end traces per job run
 - Sentry error capture on Lambda and Next.js boundary
@@ -99,14 +103,14 @@ The LLM synthesis output itself contains injection fragments, is malformed/empty
 
 Spectra security control paths are mapped to deterministic HTTP status codes:
 
-| Status | Meaning |
-| :----- | :------ |
-| `400`  | Malformed request payload, unsupported file type, schema parse failure |
-| `401`  | Missing or invalid JWT — all `/dashboard` and `/api` routes |
-| `404`  | Job not found or does not belong to the requesting user |
-| `409`  | Upload confirm attempted on a job already in progress or completed |
+| Status | Meaning                                                                   |
+| :----- | :------------------------------------------------------------------------ |
+| `400`  | Malformed request payload, unsupported file type, schema parse failure    |
+| `401`  | Missing or invalid JWT — all `/dashboard` and `/api` routes               |
+| `404`  | Job not found or does not belong to the requesting user                   |
+| `409`  | Upload confirm attempted on a job already in progress or completed        |
 | `429`  | Rate limit exceeded — upload (3 req/day/IP) or auth (10 attempts/hour/IP) |
-| `500`  | Pipeline error with structured error message and Sentry capture |
+| `500`  | Pipeline error with structured error message and Sentry capture           |
 
 Injection detection and PII redaction failures surface as `500` job errors with structured log output — they are not user-facing HTTP status codes since they occur inside the Lambda pipeline, not at the API boundary.
 

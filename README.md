@@ -72,7 +72,7 @@ For the full runtime flows, sequence diagrams, and infrastructure decisions see 
 
 ## 🔒 Model-to-Task Mapping
 
-Spectra deliberately matches model capability to task rather than defaulting to a single provider:
+Spectra AI deliberately matches model capability to task rather than defaulting to a single provider:
 
 | Agent     | Model                   | Rationale                                                               |
 | :-------- | :---------------------- | :---------------------------------------------------------------------- |
@@ -120,7 +120,7 @@ See [`SECURITY_ADVISORY.md`](./SECURITY_ADVISORY.md) for adversarial test scenar
 
 ## 🧭 Engineering Philosophy
 
-Spectra demonstrates that multi-agent architecture is a requirement when modalities genuinely differ — not a label applied for effect. Each specialist has its own tool set, failure modes, and output schema. The two-tier hierarchy (Router + Synthesis as orchestrators, specialists as executors) reflects how the problem actually decomposes.
+Spectra AI demonstrates that multi-agent architecture is a requirement when modalities genuinely differ — not a label applied for effect. Each specialist has its own tool set, failure modes, and output schema. The two-tier hierarchy (Router + Synthesis as orchestrators, specialists as executors) reflects how the problem actually decomposes.
 
 The infrastructure tradeoffs are deliberate: LangGraph over Step Functions (no point orchestrating an orchestrator), Inngest over SQS (job lifecycle management, not a raw queue), Upstash Vector over OpenSearch (portfolio-scale cost ceiling), Bedrock scoped to Nova Micro (cheapest correct model for classification, everything else via direct SDK).
 
@@ -128,7 +128,7 @@ The infrastructure tradeoffs are deliberate: LangGraph over Step Functions (no p
 
 ---
 
-## 🧐 What Makes Spectra Genuinely Multi-Agent
+## 🧐 What Makes Spectra AI Genuinely Multi-Agent
 
 Spectra is not multi-agent by label — the architecture requires it by design. Each modality has meaningfully different processing logic, tool use, and failure modes. A single agent handling all three would be a bloated prompt with no separation of concerns.
 

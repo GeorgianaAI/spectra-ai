@@ -1,6 +1,6 @@
 # 🌐 Spectra AI — Architecture Flows
 
-This document captures the core runtime flows that define Spectra's current behavior.
+This document captures the core runtime flows that define Spectra AI's current behavior.
 Updated as each Phase ships — if a code change alters runtime behavior without updating this doc, treat that as an incomplete PR.
 
 Use this file as the engineering source of truth for flow-level behavior.
@@ -162,7 +162,7 @@ UI->>UI: Render SynthesisPanel + AgentGraph + GovernanceTrace when completed
 
 ### Why this exists
 
-Spectra separates unauthenticated public routes (landing, login) from protected dashboard and API routes. The middleware layer enforces this boundary before any page or handler executes.
+Spectra AI separates unauthenticated public routes (landing, login) from protected dashboard and API routes. The middleware layer enforces this boundary before any page or handler executes.
 
 ### What this flow guarantees
 
@@ -226,7 +226,7 @@ D -- no --> F["Continue to JWT validation\n→ file validation\n→ S3 upload\n�
 
 ### Why this exists
 
-Spectra must remain developer-friendly in non-production (missing env vars are tolerated) while being strict and predictable in production (missing or errored deps fail closed with `503`).
+Spectra AI must remain developer-friendly in non-production (missing env vars are tolerated) while being strict and predictable in production (missing or errored deps fail closed with `503`).
 
 ### What this flow guarantees
 
