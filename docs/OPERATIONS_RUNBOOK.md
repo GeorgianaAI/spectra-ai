@@ -36,7 +36,7 @@ Two Lambda functions in `eu-west-1`:
 
 `spectra-job-processor` is kept warm by a CloudWatch Events rule (`spectra-jobprocessor-warmup`) firing every 5 minutes. Cold start latency is 3–5s without it.
 
-**Lambda error alarms** — CloudWatch MetricFilters watch both log groups for `[ERROR]`/`ERROR`/`Unhandled` patterns and alarm to the `spectra-billing-alerts` SNS topic (email notification).
+**Lambda error alarms** — CloudWatch MetricFilters watch both log groups for `[ERROR]`/`ERROR`/`Unhandled` patterns and alarm to the `spectra-lambda-errors` SNS topic (`eu-west-1`, email notification). Billing alarms fire from `spectra-billing-alerts` (`us-east-1`, separate SNS topic in `BillingAlarmStack`).
 
 ---
 
@@ -102,14 +102,18 @@ Two Lambda functions in `eu-west-1`:
 ```bash
 cd apps/spectra-api
 
+# 0. Bootstrap us-east-1 on first deploy (required for BillingAlarmStack)
+#    eu-west-1 bootstrap was already done at project init.
+npx cdk bootstrap aws://ACCOUNT_ID/us-east-1
+
 # 1. Review changes before applying
 npm run cdk:diff
 
-# 2. Deploy all stacks (StorageStack → ComputeStack → ObservabilityStack)
+# 2. Deploy all stacks (StorageStack → ComputeStack → ObservabilityStack → BillingAlarmStack)
 npm run cdk:deploy
 ```
 
-CDK resolves stack dependency order automatically. All three stacks deploy in a single command.
+CDK resolves stack dependency order automatically. All four stacks deploy in a single command.
 
 **Environment variables read at deploy time** (export before running `cdk:deploy`):
 
@@ -121,7 +125,9 @@ export BILLING_ALERT_EMAIL=gchiriac2012@gmail.com           # SNS alarm recipien
 
 **After first deploy or stack recreation:**
 
-- Confirm SNS email subscription (AWS sends a confirmation email to `BILLING_ALERT_EMAIL`)
+- Confirm **two** SNS email subscriptions (AWS sends one per topic/region):
+  - `spectra-lambda-errors` (eu-west-1) — Lambda error alerts
+  - `spectra-billing-alerts` (us-east-1) — $15 monthly billing alarm
 - Verify CloudWatch dashboard at `eu-west-1` → CloudWatch → Dashboards → `spectra-operations`
 
 ---

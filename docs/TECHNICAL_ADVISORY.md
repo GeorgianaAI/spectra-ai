@@ -377,3 +377,44 @@ Before each chunk upsert, query the index for the chunk's nearest neighbour. Ski
 The threshold of 0.97 was chosen conservatively: text-embedding-3-small rarely scores above 0.95 for semantically similar but distinct passages. 0.97 catches only near-verbatim copies.
 
 **File:** `apps/spectra-api/src/graph/nodes/documentNode.ts`
+
+---
+
+## 20. CDK CloudWatch Alarm — Cross-Region Constraint (Phase 8 Deploy)
+
+### Context
+
+`ObservabilityStack` was written as a single stack intended to own both the billing alarm (CloudWatch `EstimatedCharges`) and the Lambda MetricFilter error alarms. The billing alarm referenced `us-east-1` via `region: "us-east-1"` on the `Metric` object; the stack itself was originally deployed to `us-east-1` to keep them together.
+
+### Challenge — Two compounding bugs
+
+**Bug 1 — Wrong region for MetricFilters.**
+When the stack was in `us-east-1`, `LogGroup.fromLogGroupName()` performed a live CloudFormation lookup for the Lambda log groups — which live in `eu-west-1`. CloudFormation found nothing and returned `400 NotFound`, causing `SpectraObservabilityStack` to roll back with `UPDATE_ROLLBACK_COMPLETE`.
+
+Correcting the stack region to `eu-west-1` (so MetricFilters could reach the log groups) then surfaced the second bug:
+
+**Bug 2 — CDK AlarmRegionMismatch.**
+CDK enforces that `cloudwatch.Alarm` must live in the **same region as its metric**. `AWS/Billing EstimatedCharges` metrics only exist in `us-east-1`. Deploying the stack to `eu-west-1` and referencing the billing metric threw `AlarmRegionMismatch` at synthesis time — before CloudFormation was even reached.
+
+Setting `region: "us-east-1"` on the `Metric` object is only a read-side reference; it does not move the Alarm resource. A single CDK stack cannot satisfy both constraints simultaneously.
+
+### Solution
+
+Split into two separate stacks:
+
+| Stack | Region | Contains |
+| :---- | :----- | :------- |
+| `SpectraObservabilityStack` | `eu-west-1` | MetricFilters, Lambda error alarms, CloudWatch dashboard, SNS error topic (`spectra-lambda-errors`) |
+| `SpectraBillingAlarmStack` *(new)* | `us-east-1` | Billing alarm, SNS billing topic (`spectra-billing-alerts`) |
+
+Additional fix in `ComputeStack`: the two `logs.LogGroup` constructs were changed from local `const` variables to `public readonly` fields (`ingestHandlerLogGroup`, `jobProcessorLogGroup`). `ObservabilityStack` now receives them via props as `ILogGroup` references instead of calling `LogGroup.fromLogGroupName()`. This eliminates the live lookup entirely — CDK knows the construct exists because it was just created in the same synthesis pass.
+
+**Bootstrap note:** Before deploying for the first time (or after deleting stacks), `us-east-1` must be bootstrapped separately:
+
+```bash
+cdk bootstrap aws://ACCOUNT_ID/us-east-1
+```
+
+The `eu-west-1` bootstrap (already done at project init) does not cover `us-east-1`.
+
+**Files:** `apps/spectra-api/lib/stacks/observability-stack.ts`, `apps/spectra-api/lib/stacks/compute-stack.ts`, `apps/spectra-api/lib/stacks/billing-alarm-stack.ts`, `apps/spectra-api/bin/spectra-api.ts`

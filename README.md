@@ -45,7 +45,7 @@ Supabase client (polling)                LangGraph (inside jobProcessor)
                                          CloudWatch (billing alarm + dashboard)
 ```
 
-For the full runtime flows, sequence diagrams, and infrastructure decisions see [ARCHITECTURE_FLOWS.md](./ARCHITECTURE_FLOWS.md).
+For the full runtime flows, sequence diagrams, and infrastructure decisions see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
 
 ---
 
@@ -105,16 +105,16 @@ Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` �
 - **PII redaction coverage** — five pattern types (email, US phone, SSN, credit card, UK NINO), verified against false positives, duplicate labelling, and clean-text passthrough.
 - **Synthesis output guardrails** — length floor, injection re-check on LLM output, and citation tag presence validated before the auditor receives the report.
 
-See [`SECURITY_ADVISORY.md`](./SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence.
+See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence.
 
 ---
 
 > [!TIP]
-> **Architecture & Security Context:** For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./ARCHITECTURE_FLOWS.md).
-> For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see [TECHNICAL_ADVISORY.md](./TECHNICAL_ADVISORY.md).
-> For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./SECURITY_ADVISORY.md).
-> For the AI engineering hardening roadmap — security controls, observability improvements, retrieval quality, and maturity grades across 7 AI engineering skills — see [HARDENING_ROADMAP.md](./HARDENING_ROADMAP.md).
-> For health semantics, Lambda failure modes, CDK deployment steps, and rollback guidance, see [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md).
+> **Architecture & Security Context:** For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
+> For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see [TECHNICAL_ADVISORY.md](./docs/TECHNICAL_ADVISORY.md).
+> For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./docs/SECURITY_ADVISORY.md).
+> For the AI engineering hardening roadmap — security controls, observability improvements, retrieval quality, and maturity grades across 7 AI engineering skills — see [HARDENING_ROADMAP.md](./docs/HARDENING_ROADMAP.md).
+> For health semantics, Lambda failure modes, CDK deployment steps, and rollback guidance, see [OPERATIONS_RUNBOOK.md](./docs/OPERATIONS_RUNBOOK.md).
 
 ---
 

@@ -355,13 +355,16 @@ Playwright `webServer` block starts the Next.js dev server and injects `NEXT_PUB
 
 ### CDK Stack Deployment Order
 
-Three stacks deploy in dependency order — CDK resolves this automatically via cross-stack exports:
+Four stacks deploy in dependency order — CDK resolves this automatically via cross-stack exports:
 
 ```
-SpectraStorageStack   → S3 bucket + lifecycle + CORS
-SpectraComputeStack   → ingestHandler + jobProcessor Lambdas + IAM + Bedrock policy
-SpectraObservabilityStack (us-east-1) → billing alarm + SNS + CloudWatch dashboard
+SpectraStorageStack        (eu-west-1) → S3 bucket + lifecycle + CORS
+SpectraComputeStack        (eu-west-1) → ingestHandler + jobProcessor Lambdas + IAM + Bedrock policy
+SpectraObservabilityStack  (eu-west-1) → MetricFilters + Lambda error alarms + CloudWatch dashboard
+SpectraBillingAlarmStack   (us-east-1) → billing alarm ($15) + SNS billing topic
 ```
+
+`ObservabilityStack` and `BillingAlarmStack` are intentionally separate stacks in different regions. CDK (and CloudFormation) enforce that a `cloudwatch.Alarm` must live in the same region as its metric. `AWS/Billing EstimatedCharges` metrics only exist in `us-east-1`; Lambda log groups and MetricFilters must be in `eu-west-1` alongside the Lambdas. A single stack cannot satisfy both constraints — see `TECHNICAL_ADVISORY.md §20`.
 
 The S3 → `ingestHandler` event notification is wired at app level (`bin/spectra-api.ts`) after both stacks are instantiated, avoiding a circular dependency between StorageStack and ComputeStack:
 
@@ -375,18 +378,26 @@ storageStack.uploadsBucket.addEventNotification(
 
 CDK exports the Lambda ARN from ComputeStack and imports it into the bucket notification in StorageStack. Deploy order: ComputeStack before StorageStack update.
 
+**Bootstrap requirement:** `us-east-1` must be bootstrapped separately before first deploy:
+
+```bash
+cdk bootstrap aws://ACCOUNT_ID/us-east-1
+```
+
 ### Lambda Configuration at Deployment
 
 | Function                 | Memory  | Timeout | Concurrency                       |
 | :----------------------- | :------ | :------ | :-------------------------------- |
 | `spectra-ingest-handler` | 256 MB  | 30s     | unreserved                        |
-| `spectra-job-processor`  | 1024 MB | 300s    | `reservedConcurrentExecutions: 1` |
+| `spectra-job-processor`  | 1024 MB | 300s    | unreserved (cap pending quota)    |
 
-`jobProcessor` concurrency is capped at 1 deliberately — prevents parallel runs stacking Bedrock + OpenAI + Anthropic costs during the demo period. A throttled second invocation is retried by Inngest with exponential backoff.
+`jobProcessor` concurrency cap (`reservedConcurrentExecutions: 1`) is gated behind `LAMBDA_RESERVATION_ENABLED=true` and requires an AWS Service Quotas increase before it can be activated.
 
 ### Billing Alarm
 
-CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app region. `ObservabilityStack` deploys to `us-east-1` specifically for this reason. The SNS topic (`spectra-billing-alerts`) sends an email alert when estimated monthly charges hit $15.
+CloudWatch `EstimatedCharges` metric only exists in `us-east-1`. `BillingAlarmStack` is therefore deployed exclusively to `us-east-1`. It has its own SNS topic (`spectra-billing-alerts`) and email subscription. Lambda error alarms live in `ObservabilityStack` (`eu-west-1`) with a separate SNS topic (`spectra-lambda-errors`).
+
+After first deploy, two SNS confirmation emails are sent — one per topic, one per region. Both must be confirmed or alarms will not deliver email.
 
 ---
 
@@ -467,7 +478,7 @@ A CloudWatch Events scheduled rule (`spectra-jobprocessor-warmup`) fires every 5
 
 ### CloudWatch Error Alarms
 
-`ObservabilityStack` now includes `MetricFilter` constructs that watch `/aws/lambda/spectra-ingest-handler` and `/aws/lambda/spectra-job-processor` for `[ERROR]`/`ERROR`/`Unhandled` log patterns. Each filter increments a custom `Spectra/Lambda` metric; alarms threshold at 1 occurrence per 5-minute window and fire to the existing `billingAlertTopic` SNS topic.
+`ObservabilityStack` includes `MetricFilter` constructs that watch `/aws/lambda/spectra-ingest-handler` and `/aws/lambda/spectra-job-processor` for `[ERROR]`/`ERROR`/`Unhandled` log patterns. Each filter increments a custom `Spectra/Lambda` metric; alarms threshold at 1 occurrence per 5-minute window and fire to the `spectra-lambda-errors` SNS topic (eu-west-1). Lambda log groups are passed as construct references from `ComputeStack` props — not by name — to avoid a CloudFormation lookup failure on fresh deploys.
 
 ### Vector Lifecycle
 
@@ -504,5 +515,7 @@ Update this document whenever any of the following changes:
 ## Suggested Companion Docs
 
 - `CLAUDE.md` — development governance, build phases, TypeScript rules
-- `TECHNICAL_ADVISORY.md` — architecture tradeoffs and cost decisions _(created after Phase 5)_
-- `HARDENING_ROADMAP.md` — post-launch hardening checklist _(created after Phase 5)_
+- `docs/TECHNICAL_ADVISORY.md` — architecture tradeoffs and cost decisions
+- `docs/HARDENING_ROADMAP.md` — post-launch hardening checklist
+- `docs/OPERATIONS_RUNBOOK.md` — operational reference, CDK deploy steps, rollback guidance
+- `docs/SECURITY_ADVISORY.md` — red team adversarial resilience advisory
