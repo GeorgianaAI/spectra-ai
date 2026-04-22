@@ -23,7 +23,7 @@ vi.mock("@upstash/ratelimit", () => ({
 
 vi.mock("@upstash/redis", () => {
   const MockRedis = function Redis() {};
-  (MockRedis as { fromEnv: () => object }).fromEnv = () => ({});
+  (MockRedis as unknown as { fromEnv: () => object }).fromEnv = () => ({});
   return { Redis: MockRedis };
 });
 
