@@ -52,7 +52,7 @@ flowchart TD
         S3["S3: spectra-uploads\nversioning · lifecycle · CORS"]
         INGEST["ingestHandler Lambda\nValidate file type/size\nFire Inngest event"]
         JOBPROC["jobProcessor Lambda\n1024MB · 300s timeout\nRuns LangGraph graph"]
-        OBS["ObservabilityStack\nBilling alarm $20 · CloudWatch dashboard"]
+        OBS["ObservabilityStack\nBilling alarm $15 · CloudWatch dashboard"]
     end
 
     subgraph GRAPH ["LangGraph Agent Graph — LangSmith tracing"]
@@ -207,7 +207,7 @@ M -- match --> O[Return job data]
 - 3 requests per day per IP, sliding window (Upstash Redis).
 - Demo account subject to the same limit — no exceptions.
 - Limit hit returns `429` immediately, no backend cost incurred.
-- Real cost guard is the CloudWatch $20 billing alarm — rate limit is the first line of defence.
+- Real cost guard is the CloudWatch $15 billing alarm — rate limit is the first line of defence.
 
 ### Diagram
 
@@ -259,15 +259,15 @@ The dashboard manages a client-side state machine that drives all four output pa
 
 ### State Variables
 
-| State              | Type               | Description                                          |
-| :----------------- | :----------------- | :--------------------------------------------------- |
-| `files`            | `UploadedFiles`    | Files loaded into each drop target                   |
-| `jobId`            | `string \| null`   | Supabase job UUID once upload succeeds               |
-| `jobStatus`        | `JobStatus \| null`| `pending → processing → completed \| failed`         |
-| `agentStatuses`    | `AgentStatuses`    | Per-node status derived from jobStatus (see below)   |
-| `confidenceScores` | `ConfidenceScores` | `{ doc, vision, audio }` from Auditor node           |
-| `governanceEntries`| `GovernanceEntry[]`| Full trace fetched on job completion                 |
-| `reportText`       | `string`           | Synthesis report text from `job.result_url`          |
+| State               | Type                | Description                                        |
+| :------------------ | :------------------ | :------------------------------------------------- |
+| `files`             | `UploadedFiles`     | Files loaded into each drop target                 |
+| `jobId`             | `string \| null`    | Supabase job UUID once upload succeeds             |
+| `jobStatus`         | `JobStatus \| null` | `pending → processing → completed \| failed`       |
+| `agentStatuses`     | `AgentStatuses`     | Per-node status derived from jobStatus (see below) |
+| `confidenceScores`  | `ConfidenceScores`  | `{ doc, vision, audio }` from Auditor node         |
+| `governanceEntries` | `GovernanceEntry[]` | Full trace fetched on job completion               |
+| `reportText`        | `string`            | Synthesis report text from `job.result_url`        |
 
 ### Job Status → Agent Status Mapping
 
@@ -318,10 +318,10 @@ sequenceDiagram
 
 Two separate Sentry SDKs are in use — they cannot share config:
 
-| Location | SDK | Init file |
-| :--- | :--- | :--- |
-| Next.js client (browser) | `@sentry/nextjs` | `sentry.client.config.ts` |
-| Next.js server + edge | `@sentry/nextjs` | `sentry.server.config.ts`, `sentry.edge.config.ts` |
+| Location                                 | SDK                      | Init file                                             |
+| :--------------------------------------- | :----------------------- | :---------------------------------------------------- |
+| Next.js client (browser)                 | `@sentry/nextjs`         | `sentry.client.config.ts`                             |
+| Next.js server + edge                    | `@sentry/nextjs`         | `sentry.server.config.ts`, `sentry.edge.config.ts`    |
 | Lambda (`jobProcessor`, `ingestHandler`) | `@sentry/aws-serverless` | module-level `Sentry.init()` + `Sentry.wrapHandler()` |
 
 `withSentryConfig()` in `next.config.ts` handles source-map upload and build-time instrumentation. It wraps the exported `NextConfig` — the raw config is not exported.
@@ -377,16 +377,16 @@ CDK exports the Lambda ARN from ComputeStack and imports it into the bucket noti
 
 ### Lambda Configuration at Deployment
 
-| Function | Memory | Timeout | Concurrency |
-| :--- | :--- | :--- | :--- |
-| `spectra-ingest-handler` | 256 MB | 30s | unreserved |
-| `spectra-job-processor` | 1024 MB | 300s | `reservedConcurrentExecutions: 1` |
+| Function                 | Memory  | Timeout | Concurrency                       |
+| :----------------------- | :------ | :------ | :-------------------------------- |
+| `spectra-ingest-handler` | 256 MB  | 30s     | unreserved                        |
+| `spectra-job-processor`  | 1024 MB | 300s    | `reservedConcurrentExecutions: 1` |
 
 `jobProcessor` concurrency is capped at 1 deliberately — prevents parallel runs stacking Bedrock + OpenAI + Anthropic costs during the demo period. A throttled second invocation is retried by Inngest with exponential backoff.
 
 ### Billing Alarm
 
-CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app region. `ObservabilityStack` deploys to `us-east-1` specifically for this reason. The SNS topic (`spectra-billing-alerts`) sends an email alert when estimated monthly charges hit $20.
+CloudWatch `EstimatedCharges` metric lives in `us-east-1` regardless of the app region. `ObservabilityStack` deploys to `us-east-1` specifically for this reason. The SNS topic (`spectra-billing-alerts`) sends an email alert when estimated monthly charges hit $15.
 
 ---
 
@@ -401,6 +401,7 @@ Vision node is exempt — raw image bytes carry no injection surface before the 
 ### Synthesis Guardrails
 
 `validateSynthesisReport()` in `synthesisNode.ts` runs post-parse, pre-auditor:
+
 - Minimum 100-character report length (catches silent LLM failures)
 - Injection pattern scan on LLM output (prevents prompt injection in synthesis response from propagating)
 - Citation tag presence check `[DVA]\d+` — warns to CloudWatch if no inline citations found despite active modalities
@@ -409,9 +410,9 @@ Vision node is exempt — raw image bytes carry no injection surface before the 
 
 Two named evaluators computed after every successful graph run in `jobProcessor.ts`:
 
-| Evaluator | Score derivation |
-| :--- | :--- |
-| `faithfulness` | `overallFaithfulness / 100` from auditorNode |
+| Evaluator           | Score derivation                                                 |
+| :------------------ | :--------------------------------------------------------------- |
+| `faithfulness`      | `overallFaithfulness / 100` from auditorNode                     |
 | `citation_accuracy` | high-confidence findings (≥70%) / total governance trace entries |
 
 Results logged as structured JSON to CloudWatch (`[langsmith-evaluators]` prefix). Future: push as LangSmith `createFeedback` calls once per-run trace IDs are captured.
@@ -424,17 +425,17 @@ Results logged as structured JSON to CloudWatch (`[langsmith-evaluators]` prefix
 
 All interactive and structural components hardened to WCAG 2.1 AA:
 
-| Component | Change |
-| :--- | :--- |
-| `AgentGraph` | `role="img"` on container, `aria-label` per node with status |
-| `ConfidenceBar` | `role="progressbar"` with `aria-valuenow/min/max` |
-| `UploadZone` | `role="button"` + `tabIndex` + `Enter`/`Space` keyboard handlers + `aria-label` on drop targets and remove buttons |
-| `GovernanceTrace` | `aria-expanded`, `role="table/row/cell/columnheader"`, `aria-controls` |
-| `SynthesisPanel` | `aria-live="polite"` on report region; citation badges are keyboard-focusable `<button>` elements |
-| `GlassPanel` | Optional `role` and `aria-label` props |
-| `SectionLabel` | `role="heading"` `aria-level={3}` |
-| `ModalityCard` | `role="article"` with `aria-label` |
-| `AzureButton`, `GhostButton` | `aria-disabled` on link (`<a>`) variants |
+| Component                    | Change                                                                                                             |
+| :--------------------------- | :----------------------------------------------------------------------------------------------------------------- |
+| `AgentGraph`                 | `role="img"` on container, `aria-label` per node with status                                                       |
+| `ConfidenceBar`              | `role="progressbar"` with `aria-valuenow/min/max`                                                                  |
+| `UploadZone`                 | `role="button"` + `tabIndex` + `Enter`/`Space` keyboard handlers + `aria-label` on drop targets and remove buttons |
+| `GovernanceTrace`            | `aria-expanded`, `role="table/row/cell/columnheader"`, `aria-controls`                                             |
+| `SynthesisPanel`             | `aria-live="polite"` on report region; citation badges are keyboard-focusable `<button>` elements                  |
+| `GlassPanel`                 | Optional `role` and `aria-label` props                                                                             |
+| `SectionLabel`               | `role="heading"` `aria-level={3}`                                                                                  |
+| `ModalityCard`               | `role="article"` with `aria-label`                                                                                 |
+| `AzureButton`, `GhostButton` | `aria-disabled` on link (`<a>`) variants                                                                           |
 
 ---
 
@@ -471,6 +472,7 @@ A CloudWatch Events scheduled rule (`spectra-jobprocessor-warmup`) fires every 5
 ### Vector Lifecycle
 
 `vector-cleanup.ts` deletes all `{jobId}/{userId}/` vectors from Upstash regardless of pipeline state:
+
 - Called after `completeJob()` on success
 - Called in the catch block on failure (errors swallowed — cleanup never blocks job status)
 
@@ -480,9 +482,9 @@ This prevents orphaned chunks from accumulating when a job fails mid-pipeline.
 
 Two improvements to the embedding pipeline in `documentNode.ts`:
 
-| Improvement | Implementation |
-| :--- | :--- |
-| Chunk quality filtering | Chunks below 20 words (headers, fragments) filtered before embedding |
+| Improvement                  | Implementation                                                                               |
+| :--------------------------- | :------------------------------------------------------------------------------------------- |
+| Chunk quality filtering      | Chunks below 20 words (headers, fragments) filtered before embedding                         |
 | Near-duplicate deduplication | Before each upsert, nearest-neighbour query; chunks scoring ≥ 0.97 cosine similarity skipped |
 
 ---
@@ -502,5 +504,5 @@ Update this document whenever any of the following changes:
 ## Suggested Companion Docs
 
 - `CLAUDE.md` — development governance, build phases, TypeScript rules
-- `TECHNICAL_ADVISORY.md` — architecture tradeoffs and cost decisions *(created after Phase 5)*
-- `HARDENING_ROADMAP.md` — post-launch hardening checklist *(created after Phase 5)*
+- `TECHNICAL_ADVISORY.md` — architecture tradeoffs and cost decisions _(created after Phase 5)_
+- `HARDENING_ROADMAP.md` — post-launch hardening checklist _(created after Phase 5)_

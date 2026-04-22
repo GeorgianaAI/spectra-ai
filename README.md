@@ -124,7 +124,7 @@ Spectra demonstrates that multi-agent architecture is a requirement when modalit
 
 The infrastructure tradeoffs are deliberate: LangGraph over Step Functions (no point orchestrating an orchestrator), Inngest over SQS (job lifecycle management, not a raw queue), Upstash Vector over OpenSearch (portfolio-scale cost ceiling), Bedrock scoped to Nova Micro (cheapest correct model for classification, everything else via direct SDK).
 
-## The $20/month CloudWatch billing alarm is the real cost guard — not the rate limit.
+## The $15/month CloudWatch billing alarm is the real cost guard — not the rate limit.
 
 ---
 

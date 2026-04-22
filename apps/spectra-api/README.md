@@ -13,11 +13,11 @@ AWS CDK + Lambda backend for Spectra AI. Independently deployable — no shared 
 
 ## CDK Stacks
 
-| Stack                  | Resources                                                          |
-| :--------------------- | :----------------------------------------------------------------- |
-| `SpectraStorageStack`  | S3 bucket, versioning, lifecycle, CORS, ObjectCreated notification |
-| `SpectraComputeStack`  | `ingestHandler` Lambda, `jobProcessor` Lambda, CloudWatch log groups |
-| `SpectraObservabilityStack` | CloudWatch billing alarm ($20), Lambda dashboard              |
+| Stack                       | Resources                                                            |
+| :-------------------------- | :------------------------------------------------------------------- |
+| `SpectraStorageStack`       | S3 bucket, versioning, lifecycle, CORS, ObjectCreated notification   |
+| `SpectraComputeStack`       | `ingestHandler` Lambda, `jobProcessor` Lambda, CloudWatch log groups |
+| `SpectraObservabilityStack` | CloudWatch billing alarm ($15), Lambda dashboard                     |
 
 ## Prerequisites
 

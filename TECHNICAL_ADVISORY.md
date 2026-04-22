@@ -110,7 +110,7 @@ Without a concurrency limit, a burst of upload requests (e.g. a recruiter sharin
 
 `reservedConcurrentExecutions: 1` was the intended CDK configuration. At deploy time, AWS rejected it: new accounts have a default regional concurrency limit of 10, and reserving 1 would drop the unreserved pool below AWS's enforced minimum of 10.
 
-The setting was removed. Cost protection at portfolio scale is provided by two other mechanisms already in place: the Upstash rate limiter (3 req/day/IP on `/api/upload`) and the CloudWatch billing alarm ($20/month). The concurrency cap was belt-and-suspenders — not the primary guard.
+The setting was removed. Cost protection at portfolio scale is provided by two other mechanisms already in place: the Upstash rate limiter (3 req/day/IP on `/api/upload`) and the CloudWatch billing alarm ($15/month). The concurrency cap was belt-and-suspenders — not the primary guard.
 
 To re-enable it: request a Lambda concurrency limit increase via AWS Support (Service Quotas → Lambda → Concurrent executions), then restore `reservedConcurrentExecutions: 1` in `compute-stack.ts` and redeploy.
 
@@ -223,7 +223,9 @@ Narrow the Vitest `include` pattern to `tests/**/*.test.{ts,tsx}` (no `spec` var
 Use `function` keyword declarations (not arrow functions or `vi.fn()`) for constructor mocks:
 
 ```ts
-const MockRatelimit = function Ratelimit() { return { limit: mockLimit }; };
+const MockRatelimit = function Ratelimit() {
+  return { limit: mockLimit };
+};
 MockRatelimit.slidingWindow = vi.fn().mockReturnValue({});
 ```
 
