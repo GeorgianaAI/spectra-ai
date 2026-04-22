@@ -124,6 +124,7 @@ If a commit lands on the wrong branch: **stop, tell the Architect what happened,
 | 5     | AWS deployment (cdk deploy, Lambda concurrency, env vars, UptimeRobot)                         | ✅ Complete    |
 | 6     | Prompt injection detection, NIST control IDs, LangSmith evaluators, citation deep-linking, synthesis guardrails, accessibility | ✅ Complete |
 | 7     | Red team test suite — adversarial injection, PII redaction coverage, synthesis guardrail validation                            | ✅ Complete |
+| 8     | Hardening — Lambda warmup + concurrency cap, CORS locking, auth rate limiting, JWT refresh, S3 pre-signed URLs, CloudWatch error alarms, vector cleanup, chunk quality filtering, deduplication, retrieval eval harness | ✅ Complete |
 
 ## 5. App Structure
 

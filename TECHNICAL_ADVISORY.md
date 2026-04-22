@@ -339,3 +339,39 @@ Calling `bucket.addEventNotification(EventType.OBJECT_CREATED, new LambdaDestina
 Wire the notification at app level in `bin/spectra-api.ts`, after both stacks are instantiated but before `app.synth()`. The concrete `Bucket` object from `StorageStack` is passed directly; CDK exports the Lambda ARN from `ComputeStack` and imports it into the bucket notification configuration in `StorageStack`. No circular dependency — `StorageStack` and `ComputeStack` remain independent of each other. CDK resolves deployment order automatically from the cross-stack export/import.
 
 **File:** `apps/spectra-api/bin/spectra-api.ts`
+
+---
+
+## 18. S3 Pre-Signed URL Upload Flow — Architecture Decision (Phase 8)
+
+### Context
+
+The original upload route (`/api/upload`) received file bytes as `multipart/form-data`, loaded them into the Vercel function's memory, and forwarded them to S3 via `PutObjectCommand`. This works at demo scale but has three problems at production scale: Vercel function memory ceiling (1GB), Vercel egress billing for file transfer, and a single synchronous upload path that blocks the response.
+
+### Decision
+
+Split the upload into three steps:
+
+1. `POST /api/upload/presign` — validates file metadata (no bytes), creates the job in Supabase, generates per-file S3 pre-signed PUT URLs (5-min TTL via `@aws-sdk/s3-request-presigner`). Rate limiting and JWT validation happen here.
+2. Browser PUTs each file directly to S3 using the signed URL — Vercel is not in the file transfer path.
+3. `POST /api/upload/confirm` — verifies the job belongs to the requesting user, fires Inngest to start the pipeline.
+
+The old `/api/upload` route is retained. The `uploadFiles()` helper in `api.ts` is the sole entry point — it orchestrates the three steps transparently, so the dashboard page required no changes.
+
+**Files:** `apps/spectra-app/app/api/upload/presign/route.ts`, `apps/spectra-app/app/api/upload/confirm/route.ts`, `apps/spectra-app/lib/api.ts`
+
+---
+
+## 19. Upstash Vector Deduplication — Latency vs. Index Purity Tradeoff (Phase 8)
+
+### Context
+
+Repeated boilerplate sections (headers, standard clauses, footers) were being embedded multiple times per document, inflating the Upstash index and diluting cosine similarity scores for unique content.
+
+### Decision
+
+Before each chunk upsert, query the index for the chunk's nearest neighbour. Skip the chunk if similarity ≥ 0.97. This adds one Upstash query per chunk (sequential, not parallel, because the deduplication check must precede the upsert). For a 50-chunk document this is at most 50 extra queries — acceptable at demo scale and on Upstash's free tier. At higher document throughput, batch the deduplication queries.
+
+The threshold of 0.97 was chosen conservatively: text-embedding-3-small rarely scores above 0.95 for semantically similar but distinct passages. 0.97 catches only near-verbatim copies.
+
+**File:** `apps/spectra-api/src/graph/nodes/documentNode.ts`

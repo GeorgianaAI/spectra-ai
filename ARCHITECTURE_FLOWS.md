@@ -341,7 +341,8 @@ apps/spectra-app/tests/
 
 apps/spectra-api/src/__tests__/
 ├── schemas.test.ts               # 23 tests — all 6 agent node schemas (Router → Auditor)
-└── red-team.test.ts              # 48 adversarial tests — injection patterns, PII redaction, synthesis guardrails
+├── red-team.test.ts              # 48 adversarial tests — injection patterns, PII redaction, synthesis guardrails
+└── retrieval-eval.test.ts        # 13 tests — chunk quality filter, cosine deduplication, golden-set pipeline
 ```
 
 Vitest picks up `**/*.test.ts` only. Playwright `.spec.ts` files are excluded from Vitest via explicit `exclude: ["tests/e2e/**"]` in `vitest.config.ts`.
@@ -434,6 +435,55 @@ All interactive and structural components hardened to WCAG 2.1 AA:
 | `SectionLabel` | `role="heading"` `aria-level={3}` |
 | `ModalityCard` | `role="article"` with `aria-label` |
 | `AzureButton`, `GhostButton` | `aria-disabled` on link (`<a>`) variants |
+
+---
+
+## 10) Phase 8 Hardening Architecture
+
+### Upload Flow — Presign → Direct S3 PUT → Confirm
+
+The upload pipeline was refactored from server-side `PutObjectCommand` to a three-step presigned-URL flow:
+
+```
+Browser → /api/upload/presign  — validates file metadata, creates job (pending), returns signed PUT URLs (5-min TTL)
+Browser → S3 (PUT)             — uploads each file directly; Vercel function never receives file bytes
+Browser → /api/upload/confirm  — verifies job ownership, fires Inngest pipeline
+```
+
+This eliminates Vercel function memory pressure and egress cost. The old `/api/upload` route is retained for backwards compatibility. Rate limiting (3 req/day/IP, `rl:upload` prefix) is enforced at the presign step.
+
+### Auth Rate Limiting
+
+`/api/auth/token` now carries a separate Upstash sliding-window limit (10 attempts/hour/IP, `rl:auth` prefix), independent from the upload limiter. Prevents credential stuffing against the demo account.
+
+### JWT Refresh
+
+`/api/auth/refresh` accepts a valid Bearer token and re-issues a new 8h JWT. Bypassed in middleware (no auth check needed on the refresh route itself). Clients should call this before the current token's expiry window.
+
+### Lambda Warmup
+
+A CloudWatch Events scheduled rule (`spectra-jobprocessor-warmup`) fires every 5 minutes and invokes `jobProcessor`. The handler detects the `source: "aws.events"` field and returns immediately — no pipeline work is done. Eliminates 3–5s cold-start latency on the first post-idle invocation.
+
+### CloudWatch Error Alarms
+
+`ObservabilityStack` now includes `MetricFilter` constructs that watch `/aws/lambda/spectra-ingest-handler` and `/aws/lambda/spectra-job-processor` for `[ERROR]`/`ERROR`/`Unhandled` log patterns. Each filter increments a custom `Spectra/Lambda` metric; alarms threshold at 1 occurrence per 5-minute window and fire to the existing `billingAlertTopic` SNS topic.
+
+### Vector Lifecycle
+
+`vector-cleanup.ts` deletes all `{jobId}/{userId}/` vectors from Upstash regardless of pipeline state:
+- Called after `completeJob()` on success
+- Called in the catch block on failure (errors swallowed — cleanup never blocks job status)
+
+This prevents orphaned chunks from accumulating when a job fails mid-pipeline.
+
+### Retrieval Quality
+
+Two improvements to the embedding pipeline in `documentNode.ts`:
+
+| Improvement | Implementation |
+| :--- | :--- |
+| Chunk quality filtering | Chunks below 20 words (headers, fragments) filtered before embedding |
+| Near-duplicate deduplication | Before each upsert, nearest-neighbour query; chunks scoring ≥ 0.97 cosine similarity skipped |
 
 ---
 
