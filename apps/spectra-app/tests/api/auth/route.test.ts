@@ -1,6 +1,16 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { useEnvTestHarness } from "@/tests/utils/envTestHarness";
 
+const mockLimit = vi.fn().mockResolvedValue({ success: true });
+
+const MockRatelimit = function Ratelimit() {
+  return { limit: mockLimit };
+};
+MockRatelimit.slidingWindow = vi.fn().mockReturnValue({});
+
+vi.mock("@upstash/ratelimit", () => ({ Ratelimit: MockRatelimit }));
+vi.mock("@upstash/redis", () => ({ Redis: function Redis() {} }));
+
 vi.mock("@/lib/supabase", () => ({
   getSupabaseClient: vi.fn(),
 }));
@@ -13,6 +23,7 @@ describe("POST /api/auth/token", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    mockLimit.mockResolvedValue({ success: true });
     setEnv({ JWT_SECRET: TEST_JWT_SECRET });
   });
 
