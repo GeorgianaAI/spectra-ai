@@ -29,7 +29,12 @@ export class StorageStack extends cdk.Stack {
       cors: [
         {
           allowedMethods: [s3.HttpMethods.PUT],
-          allowedOrigins: ["https://*.vercel.app", "http://localhost:3000"],
+          // Locked to the production domain — remove the wildcard *.vercel.app entry.
+          // Update PRODUCTION_ORIGIN env var when a custom domain is assigned.
+          allowedOrigins: [
+            process.env.PRODUCTION_ORIGIN ?? "https://spectra-ai-app.vercel.app",
+            "http://localhost:3000",
+          ],
           allowedHeaders: ["*"],
           maxAge: 3000,
         },
