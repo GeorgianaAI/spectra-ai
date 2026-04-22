@@ -3,6 +3,7 @@ import type { APIGatewayProxyHandler, APIGatewayProxyResult } from "aws-lambda";
 import { z } from "zod";
 import { spectraGraph } from "../graph/graph";
 import { updateJobStatus, completeJob, failJob } from "../lib/supabase-client";
+import { cleanupJobVectors } from "../lib/vector-cleanup";
 import {
   faithfulnessEvaluator,
   citationAccuracyEvaluator,
@@ -33,19 +34,21 @@ const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProx
   }
 
   let jobId: string | undefined;
+  let userId: string | undefined;
 
   try {
     const body = typeof event.body === "string" ? JSON.parse(event.body) : event.body;
     const payload = JobPayloadSchema.parse(body);
     jobId = payload.jobId;
+    userId = payload.userId;
 
     await updateJobStatus(jobId, "processing");
 
-    const threadId = `${payload.userId}/${jobId}`;
+    const threadId = `${userId}/${jobId}`;
     const result = await spectraGraph.invoke(
       {
-        jobId: payload.jobId,
-        userId: payload.userId,
+        jobId,
+        userId,
         s3Keys: payload.s3Keys,
         activeModalities: [],
         documentOutput: undefined,
@@ -74,6 +77,8 @@ const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProx
       result.synthesisOutput.report,
     );
 
+    await cleanupJobVectors(jobId, userId);
+
     return {
       statusCode: 200,
       body: JSON.stringify({ status: "completed", jobId }),
@@ -84,6 +89,7 @@ const rawHandler: APIGatewayProxyHandler = async (event): Promise<APIGatewayProx
     console.error("[jobProcessor] error", message, err);
 
     if (jobId) {
+      if (userId) await cleanupJobVectors(jobId, userId).catch(() => {});
       await failJob(jobId, message).catch(() => {});
     }
 
