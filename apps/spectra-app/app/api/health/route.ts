@@ -26,8 +26,8 @@ export async function GET(req: Request) {
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
   const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
-  const redisUrl = process.env.UPSTASH_REDIS_URL;
-  const redisToken = process.env.UPSTASH_REDIS_TOKEN;
+  const redisUrl = process.env.UPSTASH_REDIS_REST_URL ?? process.env.UPSTASH_REDIS_URL;
+  const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.UPSTASH_REDIS_TOKEN;
 
   const [supabase, redis] = await Promise.all<{ state: HealthState; detail?: string }>([
     supabaseUrl && supabaseKey
