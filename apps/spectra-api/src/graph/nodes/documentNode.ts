@@ -81,18 +81,36 @@ export async function documentNode(
 
   const chunks = chunkText(redactedText);
 
-  // Embed and store chunks in Upstash Vector under session namespace
-  const upsertPayload = await Promise.all(
-    chunks.slice(0, 50).map(async (chunk, i) => {
-      const embedding = await embedText(chunk);
-      return {
-        id: `${namespace}/${i}`,
+  // Embed chunks and deduplicate against already-stored vectors in this namespace.
+  // Chunks whose nearest neighbour exceeds the similarity threshold are near-
+  // duplicate boilerplate and are skipped to keep the index clean.
+  const DEDUP_THRESHOLD = 0.97;
+  const upsertPayload: Array<{ id: string; vector: number[]; metadata: Record<string, unknown> }> = [];
+
+  for (let i = 0; i < Math.min(chunks.length, 50); i++) {
+    const embedding = await embedText(chunks[i]);
+
+    if (upsertPayload.length > 0) {
+      const nearest = await index.query({
         vector: embedding,
-        metadata: { chunk, jobId: input.jobId, index: i },
-      };
-    }),
-  );
-  await index.upsert(upsertPayload);
+        topK: 1,
+        includeMetadata: false,
+      });
+      if (nearest[0]?.score != null && nearest[0].score >= DEDUP_THRESHOLD) {
+        continue;
+      }
+    }
+
+    upsertPayload.push({
+      id: `${namespace}/${i}`,
+      vector: embedding,
+      metadata: { chunk: chunks[i], jobId: input.jobId, index: i },
+    });
+  }
+
+  if (upsertPayload.length > 0) {
+    await index.upsert(upsertPayload);
+  }
 
   // Retrieve top-5 relevant chunks using the full document as query
   const queryEmbedding = await embedText(redactedText.slice(0, 1000));
