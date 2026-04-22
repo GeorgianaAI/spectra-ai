@@ -43,6 +43,19 @@ export async function issueToken(email: string, password: string): Promise<strin
   return token;
 }
 
+export async function refreshToken(currentToken: string): Promise<string> {
+  const res = await fetch(API_ROUTES.authRefresh, {
+    method: "POST",
+    headers: getAuthHeaders(currentToken),
+  });
+  if (!res.ok) {
+    const err = (await res.json()) as ApiErrorResponse;
+    throw new Error(`[${err.code}] ${err.error}`);
+  }
+  const { token } = (await res.json()) as { token: string };
+  return token;
+}
+
 export async function uploadFiles(
   files: { document?: File; vision?: File; audio?: File },
   token: string,

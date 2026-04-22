@@ -47,9 +47,12 @@ export const CITATION_PREFIXES = {
 
 export const API_ROUTES = {
   upload: "/api/upload",
+  uploadPresign: "/api/upload/presign",
+  uploadConfirm: "/api/upload/confirm",
   job: (id: string) => `/api/job/${id}`,
   jobTrace: (id: string) => `/api/job/${id}/trace`,
   authToken: "/api/auth/token",
+  authRefresh: "/api/auth/refresh",
   inngest: "/api/inngest",
 } as const;
 

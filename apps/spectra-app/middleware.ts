@@ -18,6 +18,7 @@ export async function middleware(request: NextRequest): Promise<NextResponse> {
     pathname === "/" ||
     pathname.startsWith("/auth") ||
     pathname === "/api/auth/token" ||
+    pathname === "/api/auth/refresh" ||
     pathname.startsWith("/api/inngest")
   ) {
     return NextResponse.next();
