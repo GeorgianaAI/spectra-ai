@@ -15,12 +15,14 @@ interface ComputeStackProps extends cdk.StackProps {
 export class ComputeStack extends cdk.Stack {
   readonly ingestHandler: lambda.Function;
   readonly jobProcessor: lambda.Function;
+  readonly ingestHandlerLogGroup: logs.LogGroup;
+  readonly jobProcessorLogGroup: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: ComputeStackProps) {
     super(scope, id, props);
 
     // ingestHandler: triggered by S3 ObjectCreated, validates upload, fires Inngest event
-    const ingestLogGroup = new logs.LogGroup(this, "IngestHandlerLogs", {
+    this.ingestHandlerLogGroup = new logs.LogGroup(this, "IngestHandlerLogs", {
       logGroupName: "/aws/lambda/spectra-ingest-handler",
       retention: logs.RetentionDays.TWO_WEEKS,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -33,7 +35,7 @@ export class ComputeStack extends cdk.Stack {
       code: lambda.Code.fromAsset("dist/src/handlers"),
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
-      logGroup: ingestLogGroup,
+      logGroup: this.ingestHandlerLogGroup,
       environment: {
         NODE_ENV: "production",
         INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ?? "",
@@ -55,7 +57,7 @@ export class ComputeStack extends cdk.Stack {
     // S3 ObjectCreated → ingestHandler notification wired in Phase 2.
 
     // jobProcessor: triggered by Inngest HTTP, runs LangGraph, writes to Supabase
-    const jobProcessorLogGroup = new logs.LogGroup(this, "JobProcessorLogs", {
+    this.jobProcessorLogGroup = new logs.LogGroup(this, "JobProcessorLogs", {
       logGroupName: "/aws/lambda/spectra-job-processor",
       retention: logs.RetentionDays.TWO_WEEKS,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
@@ -69,7 +71,7 @@ export class ComputeStack extends cdk.Stack {
       // Agent graph needs time: 300s timeout, 1024MB for embedding/model calls
       timeout: cdk.Duration.seconds(300),
       memorySize: 1024,
-      logGroup: jobProcessorLogGroup,
+      logGroup: this.jobProcessorLogGroup,
       // Restore concurrency cap after AWS Service Quotas increase is approved.
       // Enable by setting LAMBDA_RESERVATION_ENABLED=true in CDK deploy env.
       ...(process.env.LAMBDA_RESERVATION_ENABLED === "true"

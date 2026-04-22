@@ -10,6 +10,10 @@ import { Construct } from "constructs";
 interface ObservabilityStackProps extends cdk.StackProps {
   ingestHandler: lambda.Function;
   jobProcessor: lambda.Function;
+  /** Pre-created LogGroup for ingestHandler — passed from ComputeStack to avoid cross-region lookup. */
+  ingestHandlerLogGroup: logs.ILogGroup;
+  /** Pre-created LogGroup for jobProcessor — passed from ComputeStack to avoid cross-region lookup. */
+  jobProcessorLogGroup: logs.ILogGroup;
   lambdaRegion: string;
 }
 
@@ -103,14 +107,20 @@ export class ObservabilityStack extends cdk.Stack {
     // MetricFilters watch each Lambda log group for [ERROR] lines and increment
     // a custom metric. Alarms on those metrics fire to the billing SNS topic so
     // any Lambda error in production triggers an email notification.
+    //
+    // The LogGroup constructs are passed from ComputeStack via props. Using
+    // LogGroup.fromLogGroupName() caused a "log group does not exist" error
+    // because that API performs a live CloudFormation lookup — if the stack is
+    // fresh (or was deleted and re-created) the group hasn't been created yet.
+    // Passing the construct reference directly resolves the dependency correctly.
     const makeErrorFilter = (
       fn: lambda.Function,
-      logGroupName: string,
+      logGroup: logs.ILogGroup,
       id: string,
     ) => {
       const metricName = `${id}ErrorCount`;
       new logs.MetricFilter(this, `${id}ErrorFilter`, {
-        logGroup: logs.LogGroup.fromLogGroupName(this, `${id}LogGroup`, logGroupName),
+        logGroup,
         metricNamespace: "Spectra/Lambda",
         metricName,
         filterPattern: logs.FilterPattern.anyTerm("[ERROR]", "ERROR", "Unhandled"),
@@ -135,16 +145,8 @@ export class ObservabilityStack extends cdk.Stack {
       alarm.addAlarmAction(new cw_actions.SnsAction(billingAlertTopic));
     };
 
-    makeErrorFilter(
-      props.ingestHandler,
-      "/aws/lambda/spectra-ingest-handler",
-      "IngestHandler",
-    );
-    makeErrorFilter(
-      props.jobProcessor,
-      "/aws/lambda/spectra-job-processor",
-      "JobProcessor",
-    );
+    makeErrorFilter(props.ingestHandler, props.ingestHandlerLogGroup, "IngestHandler");
+    makeErrorFilter(props.jobProcessor, props.jobProcessorLogGroup, "JobProcessor");
 
     new cdk.CfnOutput(this, "DashboardUrl", {
       value: `https://${props.env?.region ?? "eu-west-1"}.console.aws.amazon.com/cloudwatch/home#dashboards:name=spectra-operations`,

@@ -31,11 +31,16 @@ storageStack.uploadsBucket.addEventNotification(
   { prefix: "uploads/" },
 );
 
-// Billing metrics (EstimatedCharges) only exist in us-east-1 — alarm must live there.
+// The ObservabilityStack must live in the same region as the Lambdas (eu-west-1) so
+// CloudWatch MetricFilters can reference the Lambda log groups that exist there.
+// The billing alarm already cross-references us-east-1 via the Metric's `region` property —
+// the stack itself does not need to be deployed to us-east-1.
 new ObservabilityStack(app, "SpectraObservabilityStack", {
-  env: { account: process.env.AWS_ACCOUNT_ID, region: "us-east-1" },
+  env,
   ingestHandler: computeStack.ingestHandler,
   jobProcessor: computeStack.jobProcessor,
+  ingestHandlerLogGroup: computeStack.ingestHandlerLogGroup,
+  jobProcessorLogGroup: computeStack.jobProcessorLogGroup,
   lambdaRegion: env.region ?? "eu-west-1",
 });
 
