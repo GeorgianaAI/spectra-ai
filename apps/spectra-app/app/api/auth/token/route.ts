@@ -1,7 +1,18 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { getSupabaseClient } from "@/lib/supabase";
 import { issueJwt } from "@/lib/jwt";
+
+const ratelimit = new Ratelimit({
+  redis: new Redis({
+    url: process.env.UPSTASH_REDIS_URL ?? "",
+    token: process.env.UPSTASH_REDIS_TOKEN ?? "",
+  }),
+  limiter: Ratelimit.slidingWindow(10, "1 h"),
+  prefix: "rl:auth",
+});
 
 const BodySchema = z.object({
   email: z.string().email(),
@@ -9,6 +20,15 @@ const BodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const { success } = await ratelimit.limit(ip);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many sign-in attempts — try again in an hour", code: "RATE_LIMITED" },
+      { status: 429 },
+    );
+  }
+
   let body: unknown;
   try {
     body = await request.json();
