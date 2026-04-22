@@ -10,7 +10,11 @@ const MockRatelimit = function Ratelimit() {
 MockRatelimit.slidingWindow = vi.fn().mockReturnValue({});
 
 vi.mock("@upstash/ratelimit", () => ({ Ratelimit: MockRatelimit }));
-vi.mock("@upstash/redis", () => ({ Redis: function Redis() {} }));
+vi.mock("@upstash/redis", () => {
+  const MockRedis = function Redis() {};
+  (MockRedis as { fromEnv: () => object }).fromEnv = () => ({});
+  return { Redis: MockRedis };
+});
 
 vi.mock("@/lib/supabase", () => ({
   getSupabaseClient: vi.fn(),
