@@ -34,64 +34,60 @@ Status code conventions used across flows:
 ### Diagram
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#f8fafc', 'primaryBorderColor': '#94a3b8', 'lineColor': '#64748b', 'fontSize': '14px'}}}%%
 flowchart TD
-    A["User — Next.js 16 (Vercel)\nPDF · Image · Audio upload\nJWT/RBAC · Sentry · Rate limiting"]
+    classDef ui     fill:#ede9fe,stroke:#7c3aed,color:#2e1065
+    classDef job    fill:#d1fae5,stroke:#059669,color:#064e3b
+    classDef aws    fill:#dbeafe,stroke:#3b82f6,color:#1e3a5f
+    classDef agent  fill:#fce7f3,stroke:#db2777,color:#500724
+    classDef para   fill:#fff1f2,stroke:#f43f5e,color:#4c0519
+    classDef data   fill:#fef9c3,stroke:#d97706,color:#422006
+    classDef out    fill:#dcfce7,stroke:#16a34a,color:#166534
 
-    subgraph FE ["spectra-app — Vercel"]
-        FE1["POST /api/upload\nJWT validate · rate limit · presigned S3 PUT"]
-        FE2["Inngest serve handler\n/api/inngest"]
-        FE3["GET /api/job/[id]\nPoll status · ownership check"]
-        FE4["Dashboard UI\nUploadZone · AgentGraph · SynthesisPanel\nConfidenceBar · GovernanceTrace"]
+    USER["User Input — Next.js 16 · Vercel\nPDF · Image · Audio · JWT/RBAC · Rate limiting · Sentry"]:::ui
+
+    subgraph JOBS ["Inngest — Job Lifecycle"]
+        INN["spectra/job.process\nretries · deduplication · exponential backoff"]:::job
     end
 
-    subgraph INNGEST ["Inngest — Job Lifecycle"]
-        INN1["spectra/job.process\nretries · exponential backoff\nSupabase job record management"]
+    subgraph INFRA ["AWS — CDK · eu-west-1"]
+        S3["S3: spectra-uploads\nversioning · lifecycle · CORS"]:::aws
+        LMB["ingestHandler λ (256MB · 30s)\njobProcessor λ (1024MB · 300s)"]:::aws
+        MON["ObservabilityStack + BillingAlarmStack\nMetricFilters · error alarms · $15 billing guard"]:::aws
     end
 
-    subgraph AWS ["AWS — CDK · CloudWatch"]
-        S3["S3: spectra-uploads\nversioning · lifecycle · CORS"]
-        INGEST["ingestHandler Lambda\nValidate file type/size\nFire Inngest event"]
-        JOBPROC["jobProcessor Lambda\n1024MB · 300s timeout\nRuns LangGraph graph"]
-        OBS["ObservabilityStack\nBilling alarm $15 · CloudWatch dashboard"]
-    end
-
-    subgraph GRAPH ["LangGraph Agent Graph — LangSmith tracing"]
-        ROUTER["routerNode\nNova Micro (Bedrock)\nClassify active modalities"]
-        DOC["documentNode\nClaude Sonnet\nPDF · PII redact · RAG · citations"]
-        VIS["visionNode\nGPT-4o\nImage analysis · annotations"]
-        AUD["audioNode\nWhisper → Claude Sonnet\nTranscription · extraction"]
-        SYN["synthesisNode\nGPT-4o\nMerge · conflict resolve · cited report"]
-        AUDIT["auditorNode\nClaude Sonnet (LLM-as-Judge)\nFaithfulness · governance trace"]
+    subgraph GRAPH ["LangGraph Agent Graph · LangSmith tracing"]
+        ROUTER["Router · Nova Micro / Bedrock\nclassifies active modalities"]:::agent
+        subgraph PAR ["Parallel — conditional on active modalities"]
+            DOC["Document · Claude Sonnet\nPDF · PII redact · RAG · citations"]:::para
+            VIS["Vision · GPT-4o\nimage analysis · annotations"]:::para
+            AUD["Audio · Whisper → Sonnet\ntranscribe · structured extract"]:::para
+        end
+        SYN["Synthesis · GPT-4o\nmerge · conflict resolve · cited report"]:::agent
+        AUDIT["Auditor · Claude Sonnet — LLM-as-Judge\nfaithfulness · hallucination · NIST governance trace"]:::agent
     end
 
     subgraph DATA ["Data Layer"]
-        SUP["Supabase PostgreSQL\njobs · auth · RLS"]
-        VEC["Upstash Vector\nSession-namespaced embeddings"]
-        REDIS["Upstash Redis\nRate limiting · LangGraph checkpointing"]
+        DB["Supabase PostgreSQL\njobs · Auth · RLS"]:::data
+        VEC["Upstash Vector\nsession-namespaced {jobId/userId/}"]:::data
+        RDB["Upstash Redis\nrate limiting · LangGraph checkpointing"]:::data
     end
 
-    A --> FE1
-    FE1 --> S3
-    S3 -->|ObjectCreated| INGEST
-    INGEST --> INN1
-    INN1 --> JOBPROC
-    FE2 <-->|events| INN1
-    FE3 --> SUP
+    DASH["Dashboard Output — live agent graph · cited synthesis report\nconfidence scores · governance trace · NIST AI RMF"]:::out
 
-    JOBPROC --> ROUTER
+    USER -->|"upload + JWT"| S3
+    USER -->|"POST /api/upload"| INN
+    S3 -->|ObjectCreated| LMB
+    LMB --> INN
+    INN -->|"HTTP invoke"| LMB
+    LMB --> ROUTER
     ROUTER --> DOC & VIS & AUD
     DOC --> VEC
-    DOC --> SYN
-    VIS --> SYN
-    AUD --> SYN
+    DOC & VIS & AUD --> SYN
     SYN --> AUDIT
-    AUDIT --> SUP
-
-    INN1 --> SUP
-    AUDIT --> REDIS
-    OBS -.->|monitors| JOBPROC
-    SUP --> FE3
-    FE3 --> FE4
+    AUDIT --> DB
+    MON -.-|monitors| LMB
+    DB -.->|"job status poll"| DASH
 ```
 
 ---
@@ -116,44 +112,36 @@ The upload path spans four systems (Next.js → S3 → Lambda → LangGraph → 
 ```mermaid
 sequenceDiagram
 autonumber
-participant UI as Dashboard UI
-participant MW as middleware.ts
-participant API as /api/upload
-participant S3 as S3: spectra-uploads
-participant INGEST as ingestHandler Lambda
+participant B as Browser
+participant APP as spectra-app
+participant S3 as S3
 participant INN as Inngest
-participant PROC as jobProcessor Lambda
-participant LG as LangGraph
-participant SUP as Supabase
+participant PROC as jobProcessor λ
+participant DB as Supabase
 
-UI->>MW: POST /api/upload (Bearer token + multipart files)
-MW->>API: Forward + validated JWT claims
-API->>API: Rate limit check — Upstash Redis (3/day/IP)
-API-->>UI: 429 { error, code: RATE_LIMITED } if exceeded
-API->>API: Validate file types + sizes (Zod)
-API-->>UI: 400 { error, code: INVALID_FILES } if invalid
-API->>S3: PutObjectCommand — upload each file server-side (PDF · image · audio)
-API->>SUP: INSERT job { status: pending, modalities_used, user_id }
-API->>INN: Fire event spectra/job.process { jobId, userId, s3Keys }
-API-->>UI: 200 { jobId }
+B->>APP: POST /api/upload (Bearer JWT + files)
+APP-->>B: 429 rate limit · 401 invalid JWT · 400 bad files
+APP->>S3: PUT each file via presigned URL
+APP->>DB: INSERT job { status: pending }
+APP->>INN: Fire spectra/job.process { jobId, s3Keys }
+APP-->>B: 200 { jobId }
 
-S3-->>INGEST: ObjectCreated event
-INGEST->>INGEST: Validate file type + size
-INGEST->>INN: Fire Inngest event (redundant safety trigger)
+S3-->>APP: ObjectCreated (S3 safety trigger)
+APP->>INN: Fire spectra/job.process (idempotencyKey: jobId — deduplicated)
 
-INN->>PROC: HTTP invoke jobProcessor { jobId, userId, s3Keys }
-PROC->>SUP: UPDATE job { status: processing }
-PROC->>LG: Execute StateGraph
-LG->>LG: routerNode → [documentNode ‖ visionNode ‖ audioNode] → synthesisNode → auditorNode
-LG-->>PROC: { confidenceScores, governanceTrace, report }
-PROC->>SUP: UPDATE job { status: completed, confidence_scores, governance_trace }
+INN->>PROC: HTTP invoke { jobId, userId, s3Keys }
+PROC->>DB: UPDATE job { status: processing }
+Note over PROC: LangGraph: Router → [Document ‖ Vision ‖ Audio] → Synthesis → Auditor
+PROC->>DB: UPDATE job { status: completed, confidence_scores, governance_trace }
 PROC-->>INN: 200 OK
 
-UI->>API: GET /api/job/[id] (poll every 2s)
-API->>SUP: SELECT job WHERE id = jobId AND user_id = userId
-SUP-->>API: job row
-API-->>UI: { status, confidence_scores, governance_trace }
-UI->>UI: Render SynthesisPanel + AgentGraph + GovernanceTrace when completed
+loop poll every 2s
+    B->>APP: GET /api/job/[id]
+    APP->>DB: SELECT WHERE id = jobId AND user_id matches
+    DB-->>APP: job row
+    APP-->>B: { status, confidence_scores }
+end
+B->>B: Render SynthesisPanel + GovernanceTrace
 ```
 
 ---
