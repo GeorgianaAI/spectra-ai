@@ -27,11 +27,11 @@ export class ObservabilityStack extends cdk.Stack {
     const alertEmail = process.env.BILLING_ALERT_EMAIL ?? "gchiriac2012@gmail.com";
     billingAlertTopic.addSubscription(new sns_subscriptions.EmailSubscription(alertEmail));
 
-    // CloudWatch billing alarm — triggers at $20 estimated monthly charges
+    // CloudWatch billing alarm — triggers at $15 estimated monthly charges
     // Note: billing metrics are only available in us-east-1
     const billingAlarm = new cloudwatch.Alarm(this, "BillingAlarm", {
-      alarmName: "spectra-monthly-billing-20usd",
-      alarmDescription: "Estimated monthly AWS charges exceeded $20",
+      alarmName: "spectra-monthly-billing-15usd",
+      alarmDescription: "Estimated monthly AWS charges exceeded $15",
       metric: new cloudwatch.Metric({
         namespace: "AWS/Billing",
         metricName: "EstimatedCharges",
@@ -40,7 +40,7 @@ export class ObservabilityStack extends cdk.Stack {
         period: cdk.Duration.hours(6),
         region: "us-east-1",
       }),
-      threshold: 20,
+      threshold: 15,
       evaluationPeriods: 1,
       comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
       treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
