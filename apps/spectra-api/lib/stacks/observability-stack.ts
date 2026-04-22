@@ -21,35 +21,17 @@ export class ObservabilityStack extends cdk.Stack {
   constructor(scope: Construct, id: string, props: ObservabilityStackProps) {
     super(scope, id, props);
 
-    // SNS topic for billing alerts — subscribe your email after deploy
-    const billingAlertTopic = new sns.Topic(this, "BillingAlertTopic", {
-      topicName: "spectra-billing-alerts",
-      displayName: "Spectra Billing Alerts",
+    // SNS topic for Lambda error alerts — email subscribed after deploy.
+    // This stack is deployed to eu-west-1 alongside the Lambdas.
+    // Billing alerts ($15 threshold) live in BillingAlarmStack (us-east-1)
+    // because EstimatedCharges metrics only exist in us-east-1.
+    const errorAlertTopic = new sns.Topic(this, "LambdaErrorAlertTopic", {
+      topicName: "spectra-lambda-errors",
+      displayName: "Spectra Lambda Error Alerts",
     });
 
-    // Add email subscription — replace with actual address after CDK bootstrap
     const alertEmail = process.env.BILLING_ALERT_EMAIL ?? "gchiriac2012@gmail.com";
-    billingAlertTopic.addSubscription(new sns_subscriptions.EmailSubscription(alertEmail));
-
-    // CloudWatch billing alarm — triggers at $15 estimated monthly charges
-    // Note: billing metrics are only available in us-east-1
-    const billingAlarm = new cloudwatch.Alarm(this, "BillingAlarm", {
-      alarmName: "spectra-monthly-billing-15usd",
-      alarmDescription: "Estimated monthly AWS charges exceeded $15",
-      metric: new cloudwatch.Metric({
-        namespace: "AWS/Billing",
-        metricName: "EstimatedCharges",
-        dimensionsMap: { Currency: "USD" },
-        statistic: "Maximum",
-        period: cdk.Duration.hours(6),
-        region: "us-east-1",
-      }),
-      threshold: 15,
-      evaluationPeriods: 1,
-      comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
-      treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
-    });
-    billingAlarm.addAlarmAction(new cw_actions.SnsAction(billingAlertTopic));
+    errorAlertTopic.addSubscription(new sns_subscriptions.EmailSubscription(alertEmail));
 
     // CloudWatch dashboard for Lambda observability
     const dashboard = new cloudwatch.Dashboard(this, "SpectraDashboard", {
@@ -105,7 +87,7 @@ export class ObservabilityStack extends cdk.Stack {
     );
 
     // MetricFilters watch each Lambda log group for [ERROR] lines and increment
-    // a custom metric. Alarms on those metrics fire to the billing SNS topic so
+    // a custom metric. Alarms on those metrics fire to the error SNS topic so
     // any Lambda error in production triggers an email notification.
     //
     // The LogGroup constructs are passed from ComputeStack via props. Using
@@ -142,7 +124,7 @@ export class ObservabilityStack extends cdk.Stack {
         comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
         treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
       });
-      alarm.addAlarmAction(new cw_actions.SnsAction(billingAlertTopic));
+      alarm.addAlarmAction(new cw_actions.SnsAction(errorAlertTopic));
     };
 
     makeErrorFilter(props.ingestHandler, props.ingestHandlerLogGroup, "IngestHandler");

@@ -6,6 +6,7 @@ import * as s3n from "aws-cdk-lib/aws-s3-notifications";
 import { StorageStack } from "../lib/stacks/storage-stack";
 import { ComputeStack } from "../lib/stacks/compute-stack";
 import { ObservabilityStack } from "../lib/stacks/observability-stack";
+import { BillingAlarmStack } from "../lib/stacks/billing-alarm-stack";
 
 const app = new cdk.App();
 
@@ -31,10 +32,10 @@ storageStack.uploadsBucket.addEventNotification(
   { prefix: "uploads/" },
 );
 
-// The ObservabilityStack must live in the same region as the Lambdas (eu-west-1) so
-// CloudWatch MetricFilters can reference the Lambda log groups that exist there.
-// The billing alarm already cross-references us-east-1 via the Metric's `region` property —
-// the stack itself does not need to be deployed to us-east-1.
+// ObservabilityStack — eu-west-1 (same region as Lambdas).
+// Contains: MetricFilters, Lambda error alarms, CloudWatch dashboard.
+// CDK enforces that a cloudwatch.Alarm must live in the same region as its metric.
+// Lambda log groups are in eu-west-1, so MetricFilters must be too.
 new ObservabilityStack(app, "SpectraObservabilityStack", {
   env,
   ingestHandler: computeStack.ingestHandler,
@@ -42,6 +43,14 @@ new ObservabilityStack(app, "SpectraObservabilityStack", {
   ingestHandlerLogGroup: computeStack.ingestHandlerLogGroup,
   jobProcessorLogGroup: computeStack.jobProcessorLogGroup,
   lambdaRegion: env.region ?? "eu-west-1",
+});
+
+// BillingAlarmStack — us-east-1 (required by AWS).
+// AWS/Billing EstimatedCharges metrics only exist in us-east-1, and CDK
+// enforces that an Alarm must live in the same region as its metric.
+// This is a standalone stack with its own SNS topic + email subscription.
+new BillingAlarmStack(app, "SpectraBillingAlarmStack", {
+  env: { account: process.env.AWS_ACCOUNT_ID, region: "us-east-1" },
 });
 
 app.synth();
