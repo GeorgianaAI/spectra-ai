@@ -161,25 +161,30 @@ Spectra AI separates unauthenticated public routes (landing, login) from protect
 ### Diagram
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#f8fafc', 'primaryBorderColor': '#94a3b8', 'lineColor': '#64748b', 'fontSize': '14px'}}}%%
 flowchart TD
-A[Request arrives] --> B{Public route?}
-B -- yes --> C[Pass through — no auth check]
-
-B -- no --> D[middleware.ts: extract Bearer token or cookie]
-D --> E{Token present?}
-E -- no --> F{Page or API route?}
-F -- page --> G[Redirect to /auth/login]
-F -- api --> H[401 Unauthorized]
-
-E -- yes --> I[Verify JWT with JWT_SECRET]
-I --> J{Valid + not expired?}
-J -- no --> F
-J -- yes --> K[Attach userId to request headers]
-K --> L[Forward to page or API handler]
-
-L --> M{API handler: ownership check}
-M -- job.user_id ≠ userId --> N[403 Forbidden]
-M -- match --> O[Return job data]
+    A[Request arrives] --> B{Public route?}
+    
+    B -- yes --> C[Pass through — no auth check]
+    B -- no --> D["middleware.ts: extract\nBearer token or cookie"]
+    
+    D --> E{Token present?}
+    
+    E -- yes --> I[Verify JWT with JWT_SECRET]
+    E -- no --> F{Page or API route?}
+    
+    I --> J{Valid + not expired?}
+    J -- no --> F
+    J -- yes --> K[Attach userId to request headers]
+    
+    F -- page --> G[Redirect to /auth/login]
+    F -- api --> H[401 Unauthorized]
+    
+    K --> L[Forward to page or API handler]
+    L --> M{API handler: ownership check}
+    
+    M -- match --> O[Return job data]
+    M -- "job.user_id ≠ userId" --> N[403 Forbidden]
 ```
 
 ---
@@ -200,12 +205,13 @@ M -- match --> O[Return job data]
 ### Diagram
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#f8fafc', 'primaryBorderColor': '#94a3b8', 'lineColor': '#64748b', 'fontSize': '14px'}}}%%
 flowchart LR
-A["POST /api/upload"] --> B["Read client IP\n(x-forwarded-for or socket)"]
-B --> C["Upstash Redis\nsliding window\n3 req / day / IP"]
-C --> D{Limit exceeded?}
-D -- yes --> E["429\n{ error: Rate limit exceeded\n  code: RATE_LIMITED }"]
-D -- no --> F["Continue to JWT validation\n→ file validation\n→ S3 upload\n→ job creation"]
+    A["POST /api/upload"] --> B["Identify Client IP"]
+    B --> C["Upstash Redis\n(3 req/day/IP)"]
+    C --> D{Limit?}
+    D -- exceeded --> E["429 Rate Limit"]
+    D -- ok --> F["Continue pipeline"]
 ```
 
 ---
@@ -225,18 +231,18 @@ Spectra AI must remain developer-friendly in non-production (missing env vars ar
 ### Diagram
 
 ```mermaid
+%%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#f8fafc', 'primaryBorderColor': '#94a3b8', 'lineColor': '#64748b', 'fontSize': '14px'}}}%%
 flowchart LR
-A["GET /api/health"] --> B{Environment?}
-
-B -- Non-production --> C["Probe Supabase + Redis\n(4s timeout each)"]
-C --> D{Any hard errors?}
-D -- no --> E["200 ok\n(missing is tolerated)"]
-D -- yes --> F["200 degraded\nwarn log"]
-
-B -- Production --> G["Probe Supabase + Redis\n(4s timeout each)"]
-G --> H{Missing or error?}
-H -- yes --> I["503 degraded\nerror log\n(fail closed)"]
-H -- no --> J["200 ok"]
+    A["GET /api/health"] --> B{Env?}
+    B -- Non-prod --> C["Probe Deps\n(Supabase/Redis)"]
+    C --> D{Error?}
+    D -- no --> E["200 OK"]
+    D -- yes --> F["200 Degraded"]
+    
+    B -- Prod --> G["Probe Deps\n(Supabase/Redis)"]
+    G --> H{Fail?}
+    H -- yes --> I["503 Degraded\n(Fail closed)"]
+    H -- no --> J["200 OK"]
 ```
 
 ---
@@ -271,31 +277,21 @@ jobStatus = 'failed'     → statuses frozen at last known state
 ```mermaid
 sequenceDiagram
     actor U as User
-    participant UZ as UploadZone
-    participant DB as Dashboard State
-    participant API as /api/upload
-    participant POLL as /api/job/[id]
-    participant TRACE as /api/job/[id]/trace
-    participant AG as AgentGraph
-    participant SP as SynthesisPanel
-    participant GT as GovernanceTrace
+    participant UI as Dashboard UI
+    participant API as spectra-app API
 
-    U->>UZ: drop/select files
-    UZ->>DB: onUpload(files)
-    U->>DB: click RUN ANALYSIS
-    DB->>API: POST multipart form + JWT
-    API-->>DB: { jobId }
-    DB->>DB: setAgentStatuses(pending → router: processing)
-    loop every 2s
-        DB->>POLL: GET /api/job/[id]
-        POLL-->>DB: { status, confidence_scores, result_url }
-        DB->>AG: agentStatuses (derived)
+    U->>UI: select files + click RUN
+    UI->>API: POST /api/upload
+    API-->>UI: { jobId }
+    
+    loop until status = completed (2s poll)
+        UI->>API: GET /api/job/[id]
+        API-->>UI: { status, scores, result_url }
     end
-    Note over DB,AG: status = completed
-    DB->>TRACE: GET /api/job/[id]/trace
-    TRACE-->>DB: GovernanceEntry[]
-    DB->>SP: reportText + confidenceScores
-    DB->>GT: entries
+    
+    UI->>API: GET /api/job/[id]/trace
+    API-->>UI: GovernanceEntry[]
+    Note right of UI: Update AgentGraph, Panels, & Trace
 ```
 
 ---
