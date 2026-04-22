@@ -2,6 +2,7 @@ import * as cdk from "aws-cdk-lib";
 import * as cloudwatch from "aws-cdk-lib/aws-cloudwatch";
 import * as cw_actions from "aws-cdk-lib/aws-cloudwatch-actions";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as logs from "aws-cdk-lib/aws-logs";
 import * as sns from "aws-cdk-lib/aws-sns";
 import * as sns_subscriptions from "aws-cdk-lib/aws-sns-subscriptions";
 import { Construct } from "constructs";
@@ -97,6 +98,52 @@ export class ObservabilityStack extends cdk.Stack {
     dashboard.addWidgets(
       makeDurationWidget(props.ingestHandler, "ingestHandler"),
       makeDurationWidget(props.jobProcessor, "jobProcessor"),
+    );
+
+    // MetricFilters watch each Lambda log group for [ERROR] lines and increment
+    // a custom metric. Alarms on those metrics fire to the billing SNS topic so
+    // any Lambda error in production triggers an email notification.
+    const makeErrorFilter = (
+      fn: lambda.Function,
+      logGroupName: string,
+      id: string,
+    ) => {
+      const metricName = `${id}ErrorCount`;
+      new logs.MetricFilter(this, `${id}ErrorFilter`, {
+        logGroup: logs.LogGroup.fromLogGroupName(this, `${id}LogGroup`, logGroupName),
+        metricNamespace: "Spectra/Lambda",
+        metricName,
+        filterPattern: logs.FilterPattern.anyTerm("[ERROR]", "ERROR", "Unhandled"),
+        metricValue: "1",
+        defaultValue: 0,
+        unit: cloudwatch.Unit.COUNT,
+      });
+      const alarm = new cloudwatch.Alarm(this, `${id}ErrorAlarm`, {
+        alarmName: `spectra-${id.toLowerCase()}-errors`,
+        alarmDescription: `${fn.functionName} is logging errors`,
+        metric: new cloudwatch.Metric({
+          namespace: "Spectra/Lambda",
+          metricName,
+          statistic: "Sum",
+          period: cdk.Duration.minutes(5),
+        }),
+        threshold: 1,
+        evaluationPeriods: 1,
+        comparisonOperator: cloudwatch.ComparisonOperator.GREATER_THAN_OR_EQUAL_TO_THRESHOLD,
+        treatMissingData: cloudwatch.TreatMissingData.NOT_BREACHING,
+      });
+      alarm.addAlarmAction(new cw_actions.SnsAction(billingAlertTopic));
+    };
+
+    makeErrorFilter(
+      props.ingestHandler,
+      "/aws/lambda/spectra-ingest-handler",
+      "IngestHandler",
+    );
+    makeErrorFilter(
+      props.jobProcessor,
+      "/aws/lambda/spectra-job-processor",
+      "JobProcessor",
     );
 
     new cdk.CfnOutput(this, "DashboardUrl", {
