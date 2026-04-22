@@ -10,10 +10,7 @@ import { inngest } from "@/lib/inngest";
 const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
 const ratelimit = new Ratelimit({
-  redis: new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL ?? "",
-    token: process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
-  }),
+  redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(3, "1 d"),
 });
 

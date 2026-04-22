@@ -6,10 +6,7 @@ import { getSupabaseClient } from "@/lib/supabase";
 import { issueJwt } from "@/lib/jwt";
 
 const ratelimit = new Ratelimit({
-  redis: new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL ?? "",
-    token: process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
-  }),
+  redis: Redis.fromEnv(),
   limiter: Ratelimit.slidingWindow(10, "1 h"),
   prefix: "rl:auth",
 });
