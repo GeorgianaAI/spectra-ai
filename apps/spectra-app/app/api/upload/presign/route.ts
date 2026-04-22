@@ -12,8 +12,8 @@ const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
 const ratelimit = new Ratelimit({
   redis: new Redis({
-    url: process.env.UPSTASH_REDIS_REST_URL ?? process.env.UPSTASH_REDIS_URL ?? "",
-    token: process.env.UPSTASH_REDIS_REST_TOKEN ?? process.env.UPSTASH_REDIS_TOKEN ?? "",
+    url: process.env.UPSTASH_REDIS_REST_URL ?? "",
+    token: process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
   }),
   limiter: Ratelimit.slidingWindow(3, "1 d"),
   prefix: "rl:upload",
