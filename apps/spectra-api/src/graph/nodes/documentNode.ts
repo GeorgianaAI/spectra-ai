@@ -39,6 +39,8 @@ async function parsePdf(buffer: Buffer): Promise<string> {
   });
 }
 
+const MIN_CHUNK_WORDS = 20;
+
 function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
   const words = text.split(/\s+/);
   const chunks: string[] = [];
@@ -47,7 +49,9 @@ function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
     chunks.push(words.slice(i, i + chunkSize).join(" "));
     i += chunkSize - overlap;
   }
-  return chunks.filter((c) => c.trim().length > 0);
+  // Drop short fragments (headers, single-word lines) that add index noise
+  // without contributing useful retrieval signal.
+  return chunks.filter((c) => c.trim().split(/\s+/).length >= MIN_CHUNK_WORDS);
 }
 
 async function embedText(text: string): Promise<number[]> {
