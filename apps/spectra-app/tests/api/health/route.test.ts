@@ -122,7 +122,7 @@ describe("GET /api/health", () => {
   it("does not leak secret values in the response body", async () => {
     setEnv({
       NODE_ENV: "production",
-      ...VALID_ENVS,
+      ...VALID_INFRA_ENVS,
       NEXT_PUBLIC_SUPABASE_ANON_KEY: "super-secret-anon-key",
       SUPABASE_SERVICE_KEY: "super-secret-service-key",
       UPSTASH_REDIS_REST_TOKEN: "super-secret-redis-token",
