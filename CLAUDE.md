@@ -15,6 +15,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 **Backend (spectra-api):** AWS CDK (IaC), Lambda (ingestHandler, jobProcessor), S3, Bedrock (Nova Micro for Router only), LangGraph (agent orchestration), LangSmith (tracing), Supabase PostgreSQL, Upstash Vector (session-namespaced) + Redis (checkpointing), Inngest.
 
 **Models (enforced mapping):**
+
 - Router: Nova Micro (Bedrock)
 - Document: Claude Sonnet (Anthropic SDK)
 - Vision: GPT-4o (OpenAI)
@@ -67,6 +68,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 ### Destructive Git Actions — Prohibited
 
 Never run without explicit Architect instruction:
+
 - `git reset --hard / --soft`
 - `git push --force`
 - `git clean -f`, `git checkout -- .`, `git restore .`
@@ -184,6 +186,6 @@ See [Operational Commands reference](MEMORY.md) for npm scripts in spectra-app a
 
 ## 12. Documentation & Governance
 
-After each Phase: review and update `CLAUDE.md`, `README.md`, `ARCHITECTURE_FLOWS.md`, and supplementary papers (e.g., `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`). Update MEMORY.md entries if project state changes.
+After each Phase: update the releavant sections in the following papers (if not necessary, do not review the entire file, to save tokens!): `README.md`, `ARCHITECTURE_FLOWS.md`, and supplementary papers (e.g., `TECHNICAL_ADVISORY.md`, `HARDENING_ROADMAP.md`). Update MEMORY.md entries if project state changes.
 
 **Never modify `SPEC.md`** — it is the immutable spec (kept out of version control).
