@@ -9,6 +9,14 @@ const openai = new OpenAI({
 });
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 
+const EXT_TO_MIME: Record<string, string> = {
+  mp3: "audio/mpeg",
+  wav: "audio/wav",
+  ogg: "audio/ogg",
+  webm: "audio/webm",
+  m4a: "audio/mp4",
+};
+
 export async function audioNode(
   state: Record<string, unknown>,
 ): Promise<{ audioOutput: AudioOutput }> {
@@ -18,9 +26,10 @@ export async function audioNode(
 
   const ext = input.s3Key.split(".").pop()?.toLowerCase() ?? "mp3";
   const filename = `audio.${ext}`;
+  const mimeType = EXT_TO_MIME[ext] ?? "audio/mpeg";
 
   // Whisper transcription — convert Buffer to File for the OpenAI SDK
-  const audioFile = new File([new Uint8Array(audioBuffer)], filename, { type: `audio/${ext}` });
+  const audioFile = new File([new Uint8Array(audioBuffer)], filename, { type: mimeType });
   const transcription = await openai.audio.transcriptions.create({
     file: audioFile,
     model: "whisper-1",
