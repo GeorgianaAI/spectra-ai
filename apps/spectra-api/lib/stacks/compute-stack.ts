@@ -134,7 +134,8 @@ export class ComputeStack extends cdk.Stack {
       new cdk.aws_iam.PolicyStatement({
         actions: ["bedrock:InvokeModel"],
         resources: [
-          `arn:aws:bedrock:${props.env?.region ?? "eu-west-1"}::inference-profile/eu.amazon.nova-micro-v1:0`,
+          // Inference profile ARN includes account ID (unlike foundation-model ARNs)
+          `arn:aws:bedrock:${props.env?.region ?? "eu-west-1"}:${this.account}:inference-profile/eu.amazon.nova-micro-v1:0`,
           "arn:aws:bedrock:eu-west-1::foundation-model/amazon.nova-micro-v1:0",
           "arn:aws:bedrock:eu-central-1::foundation-model/amazon.nova-micro-v1:0",
           "arn:aws:bedrock:eu-north-1::foundation-model/amazon.nova-micro-v1:0",
