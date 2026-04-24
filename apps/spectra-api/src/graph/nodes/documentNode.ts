@@ -94,7 +94,7 @@ export async function documentNode(
 ): Promise<{ documentOutput: DocumentOutput }> {
   const input = DocumentInputSchema.parse(state);
   // Use a per-job namespace so dedup and retrieval are isolated to this job only.
-  const namespace = `${input.jobId}/${input.userId}`;
+  const namespace = `${input.jobId}_${input.userId}`;
   const index = getVectorIndex();
   const ns = index.namespace(namespace);
 

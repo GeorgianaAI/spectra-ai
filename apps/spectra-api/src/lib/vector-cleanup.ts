@@ -9,7 +9,7 @@ function getVectorIndex(): Index {
 
 export async function cleanupJobVectors(jobId: string, userId: string): Promise<void> {
   const index = getVectorIndex();
-  const namespace = `${jobId}/${userId}`;
+  const namespace = `${jobId}_${userId}`;
 
   try {
     await index.deleteNamespace(namespace);
