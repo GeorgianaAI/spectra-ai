@@ -1,8 +1,10 @@
+import * as path from "path";
 import * as cdk from "aws-cdk-lib";
 import * as events from "aws-cdk-lib/aws-events";
 import * as targets from "aws-cdk-lib/aws-events-targets";
 import * as iam from "aws-cdk-lib/aws-iam";
 import * as lambda from "aws-cdk-lib/aws-lambda";
+import * as lambdaNode from "aws-cdk-lib/aws-lambda-nodejs";
 import * as logs from "aws-cdk-lib/aws-logs";
 import { Construct } from "constructs";
 
@@ -13,29 +15,36 @@ interface ComputeStackProps extends cdk.StackProps {
 }
 
 export class ComputeStack extends cdk.Stack {
-  readonly ingestHandler: lambda.Function;
-  readonly jobProcessor: lambda.Function;
+  readonly ingestHandler: lambdaNode.NodejsFunction;
+  readonly jobProcessor: lambdaNode.NodejsFunction;
   readonly ingestHandlerLogGroup: logs.LogGroup;
   readonly jobProcessorLogGroup: logs.LogGroup;
 
   constructor(scope: Construct, id: string, props: ComputeStackProps) {
     super(scope, id, props);
 
-    // ingestHandler: triggered by S3 ObjectCreated, validates upload, fires Inngest event
+    // ingestHandler: triggered by S3 ObjectCreated, validates upload metadata
     this.ingestHandlerLogGroup = new logs.LogGroup(this, "IngestHandlerLogs", {
       logGroupName: "/aws/lambda/spectra-ingest-handler",
       retention: logs.RetentionDays.TWO_WEEKS,
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    this.ingestHandler = new lambda.Function(this, "IngestHandler", {
+    this.ingestHandler = new lambdaNode.NodejsFunction(this, "IngestHandler", {
       functionName: "spectra-ingest-handler",
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "ingestHandler.handler",
-      code: lambda.Code.fromAsset("dist/src/handlers"),
+      entry: path.join(__dirname, "../../src/handlers/ingestHandler.ts"),
+      handler: "handler",
       timeout: cdk.Duration.seconds(30),
       memorySize: 256,
       logGroup: this.ingestHandlerLogGroup,
+      bundling: {
+        minify: false,
+        sourceMap: false,
+        target: "node20",
+        // Bundle all deps — node_modules are NOT available in Lambda without bundling
+        externalModules: [],
+      },
       environment: {
         NODE_ENV: "production",
         INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ?? "",
@@ -63,11 +72,11 @@ export class ComputeStack extends cdk.Stack {
       removalPolicy: cdk.RemovalPolicy.DESTROY,
     });
 
-    this.jobProcessor = new lambda.Function(this, "JobProcessor", {
+    this.jobProcessor = new lambdaNode.NodejsFunction(this, "JobProcessor", {
       functionName: "spectra-job-processor",
       runtime: lambda.Runtime.NODEJS_20_X,
-      handler: "jobProcessor.handler",
-      code: lambda.Code.fromAsset("dist/src/handlers"),
+      entry: path.join(__dirname, "../../src/handlers/jobProcessor.ts"),
+      handler: "handler",
       // Agent graph needs time: 300s timeout, 1024MB for embedding/model calls
       timeout: cdk.Duration.seconds(300),
       memorySize: 1024,
@@ -77,6 +86,13 @@ export class ComputeStack extends cdk.Stack {
       ...(process.env.LAMBDA_RESERVATION_ENABLED === "true"
         ? { reservedConcurrentExecutions: 1 }
         : {}),
+      bundling: {
+        minify: false,
+        sourceMap: false,
+        target: "node20",
+        // Bundle all deps — node_modules are NOT available in Lambda without bundling
+        externalModules: [],
+      },
       environment: {
         NODE_ENV: "production",
         AWS_REGION_OVERRIDE: props.env?.region ?? "eu-west-1",
@@ -88,12 +104,13 @@ export class ComputeStack extends cdk.Stack {
         OPENAI_WHISPER_API_KEY: process.env.OPENAI_WHISPER_API_KEY ?? "",
         SUPABASE_URL: process.env.SUPABASE_URL ?? "",
         SUPABASE_SERVICE_KEY: process.env.SUPABASE_SERVICE_KEY ?? "",
-        UPSTASH_VECTOR_URL: process.env.UPSTASH_VECTOR_URL ?? "",
-        UPSTASH_VECTOR_TOKEN: process.env.UPSTASH_VECTOR_TOKEN ?? "",
+        UPSTASH_VECTOR_REST_URL: process.env.UPSTASH_VECTOR_REST_URL ?? "",
+        UPSTASH_VECTOR_REST_TOKEN: process.env.UPSTASH_VECTOR_REST_TOKEN ?? "",
         UPSTASH_REDIS_REST_URL: process.env.UPSTASH_REDIS_REST_URL ?? "",
         UPSTASH_REDIS_REST_TOKEN: process.env.UPSTASH_REDIS_REST_TOKEN ?? "",
         LANGSMITH_API_KEY: process.env.LANGSMITH_API_KEY ?? "",
         LANGSMITH_PROJECT: process.env.LANGSMITH_PROJECT ?? "spectra",
+        LANGSMITH_ENDPOINT: process.env.LANGSMITH_ENDPOINT ?? "",
         LANGCHAIN_TRACING_V2: "true",
         SENTRY_DSN: process.env.SENTRY_DSN ?? "",
         INNGEST_SIGNING_KEY: process.env.INNGEST_SIGNING_KEY ?? "",

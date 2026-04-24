@@ -2,8 +2,8 @@ import { Index } from "@upstash/vector";
 
 function getVectorIndex(): Index {
   return new Index({
-    url: process.env.UPSTASH_VECTOR_URL ?? "",
-    token: process.env.UPSTASH_VECTOR_TOKEN ?? "",
+    url: process.env.UPSTASH_VECTOR_REST_URL ?? "",
+    token: process.env.UPSTASH_VECTOR_REST_TOKEN ?? "",
   });
 }
 

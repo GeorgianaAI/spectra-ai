@@ -12,8 +12,8 @@ const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
 function getVectorIndex(): Index {
   return new Index({
-    url: process.env.UPSTASH_VECTOR_URL ?? "",
-    token: process.env.UPSTASH_VECTOR_TOKEN ?? "",
+    url: process.env.UPSTASH_VECTOR_REST_URL ?? "",
+    token: process.env.UPSTASH_VECTOR_REST_TOKEN ?? "",
   });
 }
 
