@@ -42,21 +42,30 @@ The Bedrock scope is intentionally limited to Nova Micro. If a future node requi
 
 ---
 
-## 3. Inngest Event Deduplication — S3 Trigger + Frontend Trigger
+## 3. Inngest Event Deduplication — S3 Trigger Race Condition
 
 ### Context
 
-The upload pipeline fires an Inngest event from two places: `POST /api/upload` (frontend, immediately after the job record is created) and `ingestHandler` (Lambda, on S3 `ObjectCreated`). This is intentional — the S3 trigger is a safety net in case the frontend call fails mid-flight.
+The original design fired Inngest from two places: `POST /api/upload/confirm` (frontend, after all files are uploaded, with full `s3Keys`) and `ingestHandler` (Lambda, on S3 `ObjectCreated`, once per file). The S3 trigger was intended as a safety net in case the frontend call failed mid-flight. Both used `id: jobId` as the Inngest idempotency key, expecting Inngest to deduplicate silently.
 
 ### Challenge
 
-If both succeed, `jobProcessor` runs twice for the same job. The second run overwrites the `confidence_scores` and `governance_trace` in Supabase with a second (different) LLM response — producing non-deterministic results and doubling Lambda + LLM cost.
+The deduplication assumption failed in production. S3 triggers fire fast — the Lambda can invoke Inngest **before** the browser finishes uploading all files and calls the confirm endpoint. When that happens:
+
+1. The Lambda's event wins the idempotency key with only **one file's** `s3Keys` (one invocation per S3 file, not one per job).
+2. The confirm endpoint's event — which carries all three `s3Keys` — is rejected as a duplicate.
+3. `jobProcessor` runs with incomplete data: one modality instead of three.
+4. The remaining two Lambda invocations (one per additional file) also get rejected by Inngest, throwing unhandled errors and triggering the CloudWatch `spectra-ingesthandler-errors` alarm.
+
+The architectural assumption was "frontend trigger always arrives first." In practice, the S3 → Lambda → Inngest path is faster than the browser's confirm POST once S3 acknowledges the upload.
 
 ### Solution
 
-Inngest event deduplication via `idempotencyKey`: both triggers send the event with `id: jobId`. Inngest deduplicates on that key within a 24-hour window — the second event is dropped silently. The frontend trigger is always first; the S3 trigger fires only if the frontend trigger never arrived.
+Removed the Inngest trigger from `ingestHandler` entirely. The handler now validates (size, extension) and logs only. The `POST /api/upload/confirm` endpoint is the **sole** Inngest trigger — it fires once, after all uploads complete (`Promise.all`), with the full `s3Keys` payload for all modalities.
 
-**File:** `apps/spectra-app/app/api/upload/route.ts`, `apps/spectra-api/src/handlers/ingestHandler.ts`
+**Lesson:** Do not rely on event idempotency keys as a correctness mechanism when two trigger sources carry **different payloads**. Idempotency deduplication is a last-resort guard against exact duplicates — not a merge strategy for partial data. If a safety-net trigger is needed, it must carry the same complete payload as the primary trigger.
+
+**Files:** `apps/spectra-api/src/handlers/ingestHandler.ts`, `apps/spectra-app/app/api/upload/confirm/route.ts`
 
 ---
 
