@@ -196,6 +196,16 @@ Full governance ledger across all jobs — traceable control evidence mapped to 
 
 ## 🎯 How to Use Spectra
 
+### Supported File Types
+
+| Modality     | Formats                          | Max Size |
+| :----------- | :------------------------------- | :------- |
+| **Document** | `.pdf`                           | 2 MB     |
+| **Vision**   | `.jpg`, `.jpeg`, `.png`, `.webp` | 1 MB     |
+| **Audio**    | `.mp3`, `.wav`, `.m4a`, `.ogg`   | 10 MB    |
+
+### Usage Steps
+
 1. Upload one or more files — PDF, image, audio. Or use the preset sample files (no upload needed).
 2. Click **Run Analysis**.
 3. Watch the agent graph update live as each specialist node processes its input.
