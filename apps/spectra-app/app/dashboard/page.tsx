@@ -155,6 +155,11 @@ export default function DashboardPage() {
   const hasFiles = Object.keys(files).length > 0;
   const missionId = jobId ? `MISSION-${jobId.slice(0, 6).toUpperCase()}` : "MISSION-NEW";
 
+  const isSecurityRejection =
+    jobStatus === "failed" &&
+    error != null &&
+    /document rejected|prompt injection|content rejected/i.test(error);
+
   const statusLabel = isUploading
     ? "UPLOADING"
     : jobStatus === "pending"
@@ -164,14 +169,18 @@ export default function DashboardPage() {
         : jobStatus === "completed"
           ? "COMPLETE"
           : jobStatus === "failed"
-            ? "FAILED"
+            ? isSecurityRejection
+              ? "BLOCKED"
+              : "FAILED"
             : "NOMINAL";
 
   const statusColor =
     jobStatus === "completed"
       ? "#2dd4bf"
       : jobStatus === "failed"
-        ? "#f87171"
+        ? isSecurityRejection
+          ? "#f59e0b"
+          : "#f87171"
         : isRunning || isUploading
           ? "#00f2ff"
           : "#00f2ff";
@@ -246,7 +255,7 @@ export default function DashboardPage() {
             <span
               style={{
                 fontSize: "0.65rem",
-                color: "#f87171",
+                color: statusColor,
                 fontFamily: "monospace",
                 maxWidth: "600px",
                 wordBreak: "break-word",
