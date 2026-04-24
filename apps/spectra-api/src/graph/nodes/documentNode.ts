@@ -17,6 +17,17 @@ function getVectorIndex(): Index {
   });
 }
 
+// pdf2json encodes text as URI components but does not always produce valid
+// percent-sequences (e.g. a bare "%" in "50% interest" → URIError). Fall back
+// to the raw value so parsing never throws on financial/special characters.
+function safeDecodeURIComponent(s: string): string {
+  try {
+    return decodeURIComponent(s);
+  } catch {
+    return s;
+  }
+}
+
 async function parsePdf(buffer: Buffer): Promise<string> {
   return new Promise((resolve, reject) => {
     const parser = new PDFParser(null, true);
@@ -24,10 +35,14 @@ async function parsePdf(buffer: Buffer): Promise<string> {
       const dataUnknown = data as unknown as Record<string, unknown>;
       try {
         const pages = dataUnknown["Pages"] as Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
+        if (!pages || pages.length === 0) {
+          resolve("");
+          return;
+        }
         const text = pages
-          .flatMap((page) => page.Texts)
-          .flatMap((t) => t.R)
-          .map((r) => decodeURIComponent(r.T))
+          .flatMap((page) => page.Texts ?? [])
+          .flatMap((t) => t.R ?? [])
+          .map((r) => safeDecodeURIComponent(r.T))
           .join(" ");
         resolve(text);
       } catch (err) {
@@ -42,11 +57,12 @@ async function parsePdf(buffer: Buffer): Promise<string> {
 const MIN_CHUNK_WORDS = 20;
 
 function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
-  const words = text.split(/\s+/);
-  
-  // If the entire document is very short, keep it as a single chunk rather than discarding it.
+  const words = text.split(/\s+/).filter((w) => w.length > 0);
+
+  if (words.length === 0) return [];
+
+  // Keep very short documents as a single chunk rather than discarding them.
   if (words.length < MIN_CHUNK_WORDS) {
-    if (words.length === 0 || words[0] === "") return [];
     return [text.trim()];
   }
 
@@ -56,8 +72,6 @@ function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
     chunks.push(words.slice(i, i + chunkSize).join(" "));
     i += chunkSize - overlap;
   }
-  // Drop short fragments (headers, single-word lines) that add index noise
-  // without contributing useful retrieval signal.
   return chunks.filter((c) => c.trim().split(/\s+/).length >= MIN_CHUNK_WORDS);
 }
 
@@ -69,15 +83,28 @@ async function embedText(text: string): Promise<number[]> {
   return response.data[0].embedding;
 }
 
+const EMPTY_OUTPUT: DocumentOutput = {
+  findings: ["Document contained no extractable text — PDF may be image-based or empty."],
+  citations: [],
+  redactedFields: [],
+};
+
 export async function documentNode(
   state: Record<string, unknown>,
 ): Promise<{ documentOutput: DocumentOutput }> {
   const input = DocumentInputSchema.parse(state);
+  // Use a per-job namespace so dedup and retrieval are isolated to this job only.
   const namespace = `${input.jobId}/${input.userId}`;
   const index = getVectorIndex();
+  const ns = index.namespace(namespace);
 
   const rawBuffer = await downloadFromS3(input.s3Key);
   const rawText = await parsePdf(rawBuffer);
+
+  if (!rawText.trim()) {
+    console.warn(`[documentNode] PDF yielded no text for job ${input.jobId} — returning empty output`);
+    return { documentOutput: EMPTY_OUTPUT };
+  }
 
   const injectionCheck = detectPromptInjection(rawText);
   if (!injectionCheck.safe) {
@@ -88,9 +115,12 @@ export async function documentNode(
 
   const chunks = chunkText(redactedText);
 
-  // Embed chunks and deduplicate against already-stored vectors in this namespace.
-  // Chunks whose nearest neighbour exceeds the similarity threshold are near-
-  // duplicate boilerplate and are skipped to keep the index clean.
+  if (chunks.length === 0) {
+    console.warn(`[documentNode] No chunks produced for job ${input.jobId}`);
+    return { documentOutput: { ...EMPTY_OUTPUT, redactedFields } };
+  }
+
+  // Embed and deduplicate within this job's namespace only.
   const DEDUP_THRESHOLD = 0.97;
   const upsertPayload: Array<{ id: string; vector: number[]; metadata: Record<string, unknown> }> = [];
 
@@ -98,7 +128,8 @@ export async function documentNode(
     const embedding = await embedText(chunks[i]);
 
     if (upsertPayload.length > 0) {
-      const nearest = await index.query({
+      // Query only within this job's namespace — no cross-job deduplication.
+      const nearest = await ns.query({
         vector: embedding,
         topK: 1,
         includeMetadata: false,
@@ -109,31 +140,43 @@ export async function documentNode(
     }
 
     upsertPayload.push({
-      id: `${namespace}/${i}`,
+      id: `${i}`,
       vector: embedding,
       metadata: { chunk: chunks[i], jobId: input.jobId, index: i },
     });
   }
 
   if (upsertPayload.length > 0) {
-    await index.upsert(upsertPayload);
+    await ns.upsert(upsertPayload);
   }
 
-  // Retrieve top-5 relevant chunks using the full document as query
+  // Retrieve top-5 relevant chunks scoped to this job's namespace.
   const queryEmbedding = await embedText(redactedText.slice(0, 1000));
-  const results = await index.query({
+  const results = await ns.query({
     vector: queryEmbedding,
     topK: 5,
     includeMetadata: true,
   });
 
-  const topChunks = results.map((r, i) => ({
-    id: `D${i + 1}`,
-    chunk: (r.metadata as { chunk: string }).chunk,
-    relevanceScore: r.score,
-  }));
+  if (results.length === 0) {
+    console.warn(`[documentNode] Vector retrieval returned no results for job ${input.jobId}`);
+    return { documentOutput: { ...EMPTY_OUTPUT, redactedFields } };
+  }
 
-  // Claude Sonnet extracts structured findings and citations
+  const topChunks = results
+    .filter((r) => r.metadata != null && typeof (r.metadata as Record<string, unknown>)["chunk"] === "string")
+    .map((r, i) => ({
+      id: `D${i + 1}`,
+      chunk: (r.metadata as { chunk: string }).chunk,
+      relevanceScore: r.score ?? 0,
+    }));
+
+  if (topChunks.length === 0) {
+    console.warn(`[documentNode] All retrieved vectors lacked chunk metadata for job ${input.jobId}`);
+    return { documentOutput: { ...EMPTY_OUTPUT, redactedFields } };
+  }
+
+  // Claude Sonnet extracts structured findings and citations.
   const citationContext = topChunks.map((c) => `[${c.id}] ${c.chunk}`).join("\n\n");
 
   const message = await anthropic.messages.create({
