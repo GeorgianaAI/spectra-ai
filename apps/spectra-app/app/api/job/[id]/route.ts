@@ -20,7 +20,7 @@ export async function GET(request: NextRequest, { params }: { params: Promise<{ 
   const { data, error } = await supabase
     .from("jobs")
     .select(
-      "id, user_id, status, confidence_scores, governance_trace, modalities_used, completed_at, error",
+      "id, user_id, status, confidence_scores, governance_trace, modalities_used, completed_at, error, result_url",
     )
     .eq("id", id)
     .single();
