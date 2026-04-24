@@ -343,13 +343,13 @@ export default function DashboardPage() {
           padding: "0 0.25rem",
         }}
       >
-        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
           Auth: <span style={{ color: "#fff" }}>JWT / RBAC</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
           Infra: <span style={{ color: "#fff" }}>AWS / EU-West-1</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
           Trace: <span style={{ color: "#00f2ff" }}>Active</span>
         </span>
       </div>

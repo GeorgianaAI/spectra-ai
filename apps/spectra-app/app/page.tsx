@@ -114,13 +114,13 @@ export default function LandingPage() {
           gap: "2rem",
         }}
       >
-        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
           Engine: <span style={{ color: "#fff" }}>v1.0</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
           Nodes: <span style={{ color: "#fff" }}>06</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
           Models: <span style={{ color: "#fff" }}>03</span>
         </span>
       </footer>
