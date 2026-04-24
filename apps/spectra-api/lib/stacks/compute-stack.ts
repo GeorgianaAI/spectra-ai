@@ -93,7 +93,7 @@ export class ComputeStack extends cdk.Stack {
         AWS_REGION_OVERRIDE: props.env?.region ?? "eu-west-1",
         S3_BUCKET_NAME: props.uploadsBucketName,
         BEDROCK_NOVA_MICRO_MODEL_ID:
-          process.env.BEDROCK_NOVA_MICRO_MODEL_ID ?? "amazon.nova-micro-v1:0",
+          process.env.BEDROCK_NOVA_MICRO_MODEL_ID ?? "eu.amazon.nova-micro-v1:0",
         ANTHROPIC_API_KEY: process.env.ANTHROPIC_API_KEY ?? "",
         OPENAI_API_KEY: process.env.OPENAI_API_KEY ?? "",
         OPENAI_WHISPER_API_KEY: process.env.OPENAI_WHISPER_API_KEY ?? "",
@@ -128,11 +128,16 @@ export class ComputeStack extends cdk.Stack {
     warmupRule.addTarget(new targets.LambdaFunction(this.jobProcessor));
 
     // Grant jobProcessor permission to call Bedrock (Nova Micro for Router Agent)
+    // Cross-region inference profile requires permission on the profile ARN plus
+    // the foundation model in each EU region the profile may route to.
     this.jobProcessor.addToRolePolicy(
       new cdk.aws_iam.PolicyStatement({
         actions: ["bedrock:InvokeModel"],
         resources: [
-          `arn:aws:bedrock:${props.env?.region ?? "eu-west-1"}::foundation-model/amazon.nova-micro-v1:0`,
+          `arn:aws:bedrock:${props.env?.region ?? "eu-west-1"}::inference-profile/eu.amazon.nova-micro-v1:0`,
+          "arn:aws:bedrock:eu-west-1::foundation-model/amazon.nova-micro-v1:0",
+          "arn:aws:bedrock:eu-central-1::foundation-model/amazon.nova-micro-v1:0",
+          "arn:aws:bedrock:eu-north-1::foundation-model/amazon.nova-micro-v1:0",
         ],
       }),
     );

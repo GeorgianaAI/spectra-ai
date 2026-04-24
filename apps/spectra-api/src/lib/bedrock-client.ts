@@ -6,7 +6,7 @@
 import { BedrockRuntimeClient, InvokeModelCommand } from "@aws-sdk/client-bedrock-runtime";
 
 const REGION = process.env.AWS_REGION ?? process.env.AWS_REGION_OVERRIDE ?? "eu-west-1";
-const MODEL_ID = process.env.BEDROCK_NOVA_MICRO_MODEL_ID ?? "amazon.nova-micro-v1:0";
+const MODEL_ID = process.env.BEDROCK_NOVA_MICRO_MODEL_ID ?? "eu.amazon.nova-micro-v1:0";
 
 export const bedrockClient = new BedrockRuntimeClient({ region: REGION });
 
