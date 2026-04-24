@@ -46,7 +46,7 @@ The Bedrock scope is intentionally limited to Nova Micro. If a future node requi
 
 ### Context
 
-The original design fired Inngest from two places: `POST /api/upload/confirm` (frontend, after all files are uploaded, with full `s3Keys`) and `ingestHandler` (Lambda, on S3 `ObjectCreated`, once per file). The S3 trigger was intended as a safety net in case the frontend call failed mid-flight. Both used `id: jobId` as the Inngest idempotency key, expecting Inngest to deduplicate silently.
+The original design fired Inngest from two places: `POST /api/upload/confirm` (frontend, after all files are uploaded, with full `s3Keys`) and `ingestHandler` (Lambda, on S3 `ObjectCreated`, once per file). The S3 trigger was intended as a safety net in case the frontend call failed mid-flight. In practice, the Lambda fires fast enough from S3 to win the idempotency key BEFORE the confirm endpoint, so the wrong event gets processed with only one file's data. Both used `id: jobId` as the Inngest idempotency key, expecting Inngest to deduplicate silently. The deduplication assumption was wrong in practice.
 
 ### Challenge
 
@@ -411,10 +411,10 @@ Setting `region: "us-east-1"` on the `Metric` object is only a read-side referen
 
 Split into two separate stacks:
 
-| Stack | Region | Contains |
-| :---- | :----- | :------- |
-| `SpectraObservabilityStack` | `eu-west-1` | MetricFilters, Lambda error alarms, CloudWatch dashboard, SNS error topic (`spectra-lambda-errors`) |
-| `SpectraBillingAlarmStack` *(new)* | `us-east-1` | Billing alarm, SNS billing topic (`spectra-billing-alerts`) |
+| Stack                              | Region      | Contains                                                                                            |
+| :--------------------------------- | :---------- | :-------------------------------------------------------------------------------------------------- |
+| `SpectraObservabilityStack`        | `eu-west-1` | MetricFilters, Lambda error alarms, CloudWatch dashboard, SNS error topic (`spectra-lambda-errors`) |
+| `SpectraBillingAlarmStack` _(new)_ | `us-east-1` | Billing alarm, SNS billing topic (`spectra-billing-alerts`)                                         |
 
 Additional fix in `ComputeStack`: the two `logs.LogGroup` constructs were changed from local `const` variables to `public readonly` fields (`ingestHandlerLogGroup`, `jobProcessorLogGroup`). `ObservabilityStack` now receives them via props as `ILogGroup` references instead of calling `LogGroup.fromLogGroupName()`. This eliminates the live lookup entirely — CDK knows the construct exists because it was just created in the same synthesis pass.
 
