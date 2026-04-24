@@ -37,7 +37,7 @@ export async function POST(request: NextRequest) {
   const { success } = await ratelimit.limit(ip);
   if (!success) {
     return NextResponse.json(
-      { error: "Rate limit exceeded — 3 jobs per day", code: "RATE_LIMITED" },
+      { error: "Rate limit exceeded — 10 jobs per day", code: "RATE_LIMITED" },
       { status: 429 },
     );
   }
