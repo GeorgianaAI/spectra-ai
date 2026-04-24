@@ -11,7 +11,7 @@ const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(3, "1 d"),
+  limiter: Ratelimit.slidingWindow(10, "1 d"),
 });
 
 const ALLOWED_TYPES: Record<

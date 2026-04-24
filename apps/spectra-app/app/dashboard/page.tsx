@@ -241,11 +241,11 @@ export default function DashboardPage() {
                 fontSize: "0.65rem",
                 color: "#f87171",
                 fontFamily: "monospace",
-                maxWidth: "240px",
-                overflow: "hidden",
-                textOverflow: "ellipsis",
-                whiteSpace: "nowrap",
+                maxWidth: "600px",
+                wordBreak: "break-word",
+                whiteSpace: "normal",
               }}
+              title={error}
             >
               {error}
             </span>
