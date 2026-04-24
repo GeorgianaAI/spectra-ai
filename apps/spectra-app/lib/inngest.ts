@@ -1,5 +1,5 @@
 import { Inngest } from "inngest";
-import { LambdaClient, InvokeCommand } from "@aws-sdk/client-lambda";
+import { LambdaClient, InvokeCommand, InvocationType } from "@aws-sdk/client-lambda";
 
 export const inngest = new Inngest({ id: "spectra-app" });
 
@@ -10,7 +10,9 @@ export const processJobFn = inngest.createFunction(
   }: {
     event: { data: { jobId: string; userId: string; s3Keys: Record<string, string> } };
   }) => {
-    const lambda = new LambdaClient({ region: process.env.AWS_REGION ?? "eu-west-1" });
+    const lambda = new LambdaClient({
+      region: process.env.LAMBDA_REGION ?? process.env.AWS_REGION ?? "eu-west-1",
+    });
 
     const lambdaEvent = {
       body: JSON.stringify(event.data),
@@ -19,18 +21,23 @@ export const processJobFn = inngest.createFunction(
       path: "/",
     };
 
+    // Fire-and-forget (InvocationType.Event = async). The Lambda runs independently
+    // and writes status updates directly to Supabase. Synchronous invocation would
+    // time out Vercel's serverless function (10-60s) before Lambda completes (300s).
     const response = await lambda.send(
       new InvokeCommand({
         FunctionName: process.env.AWS_LAMBDA_JOB_PROCESSOR_NAME ?? "spectra-job-processor",
+        InvocationType: InvocationType.Event,
         Payload: Buffer.from(JSON.stringify(lambdaEvent)),
       }),
     );
 
+    // Async invocation returns 202 on success
     const statusCode = response.StatusCode ?? 0;
-    if (statusCode < 200 || statusCode >= 300) {
-      throw new Error(`Lambda invocation failed with status ${statusCode}`);
+    if (statusCode !== 202) {
+      throw new Error(`Lambda async invocation rejected with status ${statusCode}`);
     }
 
-    return { status: "invoked", jobId: event.data.jobId as string };
+    return { status: "dispatched", jobId: event.data.jobId as string };
   },
 );
