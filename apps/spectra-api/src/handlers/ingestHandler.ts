@@ -7,8 +7,6 @@ Sentry.init({
   tracesSampleRate: 0.2,
 });
 
-const INNGEST_EVENT_URL = `${process.env.INNGEST_BASE_URL ?? "https://inn.gs"}/e/${process.env.INNGEST_EVENT_KEY}`;
-
 const ALLOWED_EXTENSIONS: Record<string, "document" | "image" | "audio"> = {
   pdf: "document",
   jpg: "image",
@@ -48,6 +46,10 @@ const MAX_BYTES: Record<"document" | "image" | "audio", number> = {
   audio: 50 * 1024 * 1024,
 };
 
+// Validates and logs S3 uploads. Job processing is triggered by the
+// /api/upload/confirm endpoint, which fires once with all s3Keys after
+// all files have finished uploading. This handler must NOT send Inngest
+// events — doing so causes duplicate triggers and idempotency key collisions.
 const rawHandler: S3Handler = async (event: S3Event): Promise<void> => {
   for (const record of event.Records) {
     const bucket = record.s3.bucket.name;
@@ -62,43 +64,16 @@ const rawHandler: S3Handler = async (event: S3Event): Promise<void> => {
       continue;
     }
 
-    const { userId, jobId, modality } = parsed;
+    const { jobId, modality } = parsed;
 
     if (sizeBytes > MAX_BYTES[modality]) {
       console.warn(
-        `[ingestHandler] skipping — ${modality} exceeds size limit (${sizeBytes} > ${MAX_BYTES[modality]})`,
+        `[ingestHandler] oversized ${modality} for job ${jobId} (${sizeBytes} > ${MAX_BYTES[modality]})`,
       );
       continue;
     }
 
-    const s3Keys: Record<string, string> = {};
-    if (modality === "document") s3Keys["document"] = key;
-    if (modality === "image") s3Keys["image"] = key;
-    if (modality === "audio") s3Keys["audio"] = key;
-
-    const inngestPayload = {
-      id: jobId,
-      name: "spectra/job.process",
-      data: { jobId, userId, s3Keys },
-    };
-
-    try {
-      const response = await fetch(INNGEST_EVENT_URL, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(inngestPayload),
-      });
-
-      if (!response.ok) {
-        const text = await response.text();
-        throw new Error(`Inngest event failed: ${response.status} ${text}`);
-      }
-
-      console.log(`[ingestHandler] Inngest event sent for job ${jobId}`);
-    } catch (err) {
-      Sentry.captureException(err, { extra: { bucket, key, jobId } });
-      throw err;
-    }
+    console.log(`[ingestHandler] validated ${modality} upload for job ${jobId}`);
   }
 };
 
