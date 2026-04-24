@@ -16,7 +16,7 @@ export const MODALITY_LABELS = {
 export const ACCEPTED_FILE_TYPES = {
   document: [".pdf", "application/pdf"],
   vision: [".jpg", ".jpeg", ".png", ".webp", "image/jpeg", "image/png", "image/webp"],
-  audio: [".mp3", ".wav", ".m4a", ".ogg", "audio/mpeg", "audio/wav", "audio/ogg"],
+  audio: [".mp3", ".wav", ".m4a", ".ogg", "audio/mpeg", "audio/wav", "audio/ogg", "audio/mp4a", "audio/x-m4a"],
 } as const;
 
 export const MAX_FILE_SIZES = {
