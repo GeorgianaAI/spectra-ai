@@ -30,24 +30,27 @@ const DEFAULT_STATUSES: AgentStatuses = {
 
 const DEFAULT_SCORES: ConfidenceScores = { doc: 0, vision: 0, audio: 0 };
 
-function deriveAgentStatuses(status: JobStatus): AgentStatuses {
+function deriveAgentStatuses(
+  status: JobStatus,
+  modalities?: { document: boolean; vision: boolean; audio: boolean },
+): AgentStatuses {
   switch (status) {
     case "pending":
       return { ...DEFAULT_STATUSES, router: "processing" };
     case "processing":
       return {
         router: "complete",
-        document: "processing",
-        vision: "processing",
-        audio: "processing",
+        document: modalities?.document ? "processing" : "idle",
+        vision: modalities?.vision ? "processing" : "idle",
+        audio: modalities?.audio ? "processing" : "idle",
         synthesis: "idle",
       };
     case "completed":
       return {
         router: "complete",
-        document: "complete",
-        vision: "complete",
-        audio: "complete",
+        document: modalities?.document ? "complete" : "idle",
+        vision: modalities?.vision ? "complete" : "idle",
+        audio: modalities?.audio ? "complete" : "idle",
         synthesis: "complete",
       };
     default:
@@ -89,7 +92,7 @@ export default function DashboardPage() {
         try {
           const job = await fetchJobStatus(id, token);
           setJobStatus(job.status);
-          setAgentStatuses(deriveAgentStatuses(job.status));
+          setAgentStatuses(deriveAgentStatuses(job.status, job.modalities_used));
 
           if (job.status === "completed") {
             stopPolling();
@@ -134,7 +137,11 @@ export default function DashboardPage() {
       const { jobId: id } = await uploadFiles(files, token);
       setJobId(id);
       setJobStatus("pending");
-      setAgentStatuses(deriveAgentStatuses("pending"));
+      setAgentStatuses(deriveAgentStatuses("pending", {
+        document: !!files.document,
+        vision: !!files.vision,
+        audio: !!files.audio,
+      }));
       startPolling(id, token);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
