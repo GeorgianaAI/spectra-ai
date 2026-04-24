@@ -157,31 +157,110 @@ export default function DashboardPage() {
     const { default: jsPDF } = await import("jspdf");
     const doc = new jsPDF({ unit: "mm", format: "a4" });
     const pageW = doc.internal.pageSize.getWidth();
+    const pageH = doc.internal.pageSize.getHeight();
     const margin = 15;
     const maxW = pageW - margin * 2;
+    const mid = jobId ? `MISSION-${jobId.slice(0, 6).toUpperCase()}` : "MISSION-NEW";
 
+    let y = 20;
+    const checkPage = (needed: number) => {
+      if (y + needed > pageH - 15) { doc.addPage(); y = 20; }
+    };
+
+    // Header
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text("SPECTRA AI — Synthesis Report", margin, 20);
+    doc.text("SPECTRA AI — Synthesis Report", margin, y); y += 7;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    const mid = jobId ? `MISSION-${jobId.slice(0, 6).toUpperCase()}` : "MISSION-NEW";
-    doc.text(`${mid}  ·  ${new Date().toUTCString()}`, margin, 27);
+    doc.text(`${mid}  ·  ${new Date().toUTCString()}`, margin, y); y += 5;
 
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, 30, pageW - margin, 30);
+    doc.line(margin, y, pageW - margin, y); y += 6;
+
+    // Confidence scores
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    doc.text("CONFIDENCE SCORES", margin, y); y += 5;
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(60, 60, 60);
+    doc.text(
+      `Document: ${confidenceScores.doc}%   Vision: ${confidenceScores.vision}%   Audio: ${confidenceScores.audio}%`,
+      margin, y,
+    ); y += 7;
+
+    doc.setDrawColor(220, 220, 220);
+    doc.line(margin, y, pageW - margin, y); y += 6;
+
+    // Synthesis report
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(9);
+    doc.setTextColor(40, 40, 40);
+    doc.text("SYNTHESIS REPORT", margin, y); y += 5;
 
     const clean = reportText.replace(/\[[DVA]\d+\]/g, "");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(30, 30, 30);
-    const lines = doc.splitTextToSize(clean, maxW);
-    doc.text(lines, margin, 38);
+    const reportLines = doc.splitTextToSize(clean, maxW);
+    for (const line of reportLines) {
+      checkPage(5);
+      doc.text(line, margin, y); y += 5;
+    }
+
+    // Governance trace
+    if (governanceEntries.length > 0) {
+      y += 4;
+      checkPage(12);
+      doc.setDrawColor(200, 200, 200);
+      doc.line(margin, y, pageW - margin, y); y += 6;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(9);
+      doc.setTextColor(40, 40, 40);
+      doc.text("NIST AI RMF — GOVERNANCE TRACE", margin, y); y += 6;
+
+      doc.setFont("helvetica", "bold");
+      doc.setFontSize(7);
+      doc.setTextColor(80, 80, 80);
+      doc.text("Time", margin, y);
+      doc.text("Agent", margin + 22, y);
+      doc.text("Finding", margin + 40, y);
+      doc.text("%", margin + 130, y);
+      doc.text("NIST Control", margin + 140, y);
+      y += 4;
+      doc.setDrawColor(210, 210, 210);
+      doc.line(margin, y, pageW - margin, y); y += 4;
+
+      doc.setFont("helvetica", "normal");
+      doc.setFontSize(7);
+      for (const entry of governanceEntries) {
+        checkPage(8);
+        const time = new Date(entry.timestamp).toLocaleTimeString();
+        const finding = doc.splitTextToSize(entry.finding, 85);
+        const control = entry.nistControlId ?? entry.nistTag;
+        doc.setTextColor(100, 100, 100);
+        doc.text(time, margin, y);
+        doc.setTextColor(40, 40, 40);
+        doc.text(entry.agent.toUpperCase(), margin + 22, y);
+        doc.text(finding[0] ?? "", margin + 40, y);
+        doc.text(`${entry.confidence}%`, margin + 130, y);
+        doc.text(control, margin + 140, y);
+        if (finding.length > 1) {
+          y += 4;
+          doc.text(finding[1], margin + 40, y);
+        }
+        y += 5;
+      }
+    }
+
     doc.save(`${mid}.pdf`);
-  }, [reportText, jobId]);
+  }, [reportText, jobId, confidenceScores, governanceEntries]);
 
   const isRunning = jobStatus === "pending" || jobStatus === "processing";
   const hasFiles = Object.keys(files).length > 0;
