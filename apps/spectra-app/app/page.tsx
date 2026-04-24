@@ -1,11 +1,20 @@
 "use client";
 
+import { useEffect } from "react";
+import { useRouter } from "next/navigation";
 import { Aperture } from "lucide-react";
 import AzureButton from "@/components/AzureButton";
 import ModalityCard from "@/components/ModalityCard";
 import { MODALITIES } from "@/lib/constants";
 
 export default function LandingPage() {
+  const router = useRouter();
+
+  useEffect(() => {
+    const match = document.cookie.match(/(?:^|;\s*)__spectra_token=([^;]+)/);
+    if (match) router.replace("/dashboard");
+  }, [router]);
+
   return (
     <main
       style={{
