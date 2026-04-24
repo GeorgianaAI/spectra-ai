@@ -12,7 +12,9 @@
     "cdk:deploy": "cdk deploy --all",
     "cdk:destroy": "cdk destroy --all",
     "cdk:synth": "cdk synth",
-    "test": "vitest run --passWithNoTests",
+    "test": "npm run test:unit && npm run test:redteam",
+    "test:unit": "vitest run --config vitest.config.unit.ts --passWithNoTests",
+    "test:redteam": "vitest run --config vitest.config.redteam.ts --passWithNoTests",
     "test:watch": "vitest"
   },
   "keywords": [],

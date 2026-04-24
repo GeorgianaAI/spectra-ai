@@ -104,7 +104,10 @@ jobs:
           cache: npm
           cache-dependency-path: apps/spectra-app/package-lock.json
       - run: npm ci
-      - run: npm run test
+      - name: Unit Tests
+        run: npm run test:unit
+      - name: Red Team Tests
+        run: npm run test:redteam
       - run: npm run test:coverage
       - uses: actions/upload-artifact@v4
         with:
@@ -227,7 +230,10 @@ jobs:
           cache: npm
           cache-dependency-path: apps/spectra-api/package-lock.json
       - run: npm ci
-      - run: npm run test
+      - name: Unit Tests
+        run: npm run test:unit
+      - name: Red Team Tests
+        run: npm run test:redteam
       - uses: actions/upload-artifact@v4
         with:
           name: api-coverage-report

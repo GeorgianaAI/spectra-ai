@@ -5,7 +5,7 @@ export default defineConfig({
   test: {
     environment: "node",
     globals: false,
-    include: ["tests/**/*.{test,redteam.test}.{ts,tsx}"],
+    include: ["tests/**/*.redteam.test.{ts,tsx}"],
     exclude: ["tests/e2e/**"],
   },
   resolve: {
