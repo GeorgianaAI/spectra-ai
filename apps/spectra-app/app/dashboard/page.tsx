@@ -327,21 +327,22 @@ export default function DashboardPage() {
           marginTop: "1.5rem",
           display: "flex",
           justifyContent: "space-between",
-          fontSize: "0.65rem",
-          color: "rgba(255,255,255,0.15)",
+          fontSize: "0.7rem",
           textTransform: "uppercase",
           letterSpacing: "0.1em",
           fontFamily: "monospace",
           padding: "0 0.25rem",
         }}
       >
-        <span>
-          Auth: <span style={{ color: "rgba(255,255,255,0.5)" }}>Enforced</span>
+        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+          Auth: <span style={{ color: "#fff" }}>JWT / RBAC</span>
         </span>
-        <span>
-          Node: <span style={{ color: "rgba(255,255,255,0.5)" }}>Spectra Prime</span>
+        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+          Infra: <span style={{ color: "#fff" }}>AWS / EU-West-1</span>
         </span>
-        <span style={{ color: "#00f2ff", opacity: 0.4 }}>Governance Trace // Active</span>
+        <span style={{ color: "rgba(255,255,255,0.2)" }}>
+          Trace: <span style={{ color: "#00f2ff" }}>Active</span>
+        </span>
       </div>
     </div>
   );

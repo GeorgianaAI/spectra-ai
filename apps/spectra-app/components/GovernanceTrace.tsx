@@ -53,7 +53,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
           {expanded ? "▼" : "▶"}
         </span>
         <span style={{ color: "#00f2ff", opacity: 0.8 }}>Governance</span>
-        <span>{"// Trace"}</span>
+        <span style={{ color: "#00f2ff", opacity: 0.8 }}>{"// Trace"}</span>
         <span
           aria-label={`${entries.length} governance entries`}
           style={{

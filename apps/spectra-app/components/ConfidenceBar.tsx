@@ -30,8 +30,8 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
         <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <span
             style={{
-              color: "#6b6a63",
-              fontSize: "0.7rem",
+              color: "rgba(255,255,255,0.45)",
+              fontSize: "0.75rem",
               width: "64px",
               flexShrink: 0,
             }}
