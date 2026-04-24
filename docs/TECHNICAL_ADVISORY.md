@@ -40,6 +40,17 @@ The Bedrock scope is intentionally limited to Nova Micro. If a future node requi
 
 **File:** `apps/spectra-api/src/lib/bedrock-client.ts`
 
+### Cross-Region Inference Profile Requirement
+
+AWS no longer supports on-demand invocation of Nova models via the bare model ID (`amazon.nova-micro-v1:0`). The model must be invoked through a **cross-region inference profile**, which dynamically routes the request to an available EU region from the pool (`eu-west-1`, `eu-west-2`, `eu-west-3`, `eu-central-1`, `eu-north-1`).
+
+The model ID in use is `eu.amazon.nova-micro-v1:0`. The IAM `bedrock:InvokeModel` policy must cover:
+
+1. The inference profile ARN — includes the account ID: `arn:aws:bedrock:eu-west-1:{account}:inference-profile/eu.amazon.nova-micro-v1:0`
+2. The foundation model in any EU region — uses a wildcard region because the profile's routing target is non-deterministic: `arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0`
+
+Hardcoding specific EU region ARNs (e.g. eu-west-1, eu-central-1, eu-north-1) is insufficient — the profile has routed to eu-west-3 (Paris) in production. The wildcard is scoped to a single model ID so it is not overly permissive.
+
 ---
 
 ## 3. Inngest Event Deduplication — S3 Trigger Race Condition
