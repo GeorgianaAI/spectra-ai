@@ -263,4 +263,8 @@ npm install
 npm run dev
 ```
 
+### Maintenance
+
+A **scheduled dependency audit** runs automatically on the 1st of each month at 09:00 UTC to catch vulnerabilities between commits. Manually trigger via `workflow_dispatch` in the Actions tab at any time. See [OPERATIONS_RUNBOOK.md](./docs/OPERATIONS_RUNBOOK.md#dependency-maintenance) for procedures.
+
 ---

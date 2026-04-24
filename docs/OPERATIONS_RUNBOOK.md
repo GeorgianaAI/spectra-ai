@@ -172,3 +172,78 @@ export BILLING_ALERT_EMAIL=gchiriac2012@gmail.com           # SNS alarm recipien
 | Job state                        | Supabase → Table editor → `jobs`                                                    |
 | Rate limit hits                  | Upstash Redis → Data browser → keys prefixed `rl:upload` and `rl:auth`              |
 | Inngest job history              | Inngest dashboard → Runs                                                            |
+
+---
+
+## Dependency Maintenance
+
+### Scheduled Audit
+
+A monthly scheduled workflow (`.github/workflows/scheduled-audit.yml`) runs on the 1st of each month at 09:00 UTC to audit all dependency severities across both `spectra-app` and `spectra-api`. This catches vulnerabilities discovered between commits.
+
+**What it checks:**
+- All npm audit severity levels (critical, high, moderate, low)
+- Full dependency tree for both applications
+- Runs in parallel (one job per app for faster feedback)
+
+### Manual Trigger
+
+Run the audit on demand via `workflow_dispatch`:
+
+1. Go to **Actions** tab on GitHub
+2. Select **Scheduled Dependency Audit** workflow
+3. Click **Run workflow** → **Run workflow**
+
+Both jobs (spectra-app and spectra-api) will run in parallel.
+
+### Interpreting Output
+
+The workflow logs show one of two outcomes:
+
+**No vulnerabilities found:**
+```
+up to date
+```
+
+**Vulnerabilities detected:**
+```
+│ Severity │ Type       │ Package       │ ...
+├──────────┼────────────┼───────────────┼─────
+│ high     │ RCE        │ some-package  │ ...
+```
+
+Each entry lists the severity (critical / high / moderate / low), vulnerability type (RCE, DoS, injection, etc.), affected package, and a link to the advisory.
+
+### Handling Failures
+
+When the workflow fails (vulnerabilities found):
+
+1. **Review the advisory** — click the link in the npm audit output to read the CVE details
+2. **Assess impact** — determine if the vulnerability affects the app in its current usage context
+3. **Choose remediation:**
+   - **Patch**: `npm update <package>` (if a patch version is available)
+   - **Fix**: `npm audit fix` (automatic; applies lowest-impact semver bumps)
+   - **Pin**: Pin the safe version in `package.json` manually if the package hasn't released a fix
+   - **Ignore**: Document (in a comment in the audit output or in Sentry) why the vulnerability is not actionable for this app
+4. **Test** — run full test suite after changing dependencies
+5. **Commit & push** — submit a PR with the fix
+6. **Re-run workflow** — manually trigger the audit again to verify all severities pass
+
+### Rate-Limited Packages
+
+Some packages (e.g., Tailwind CSS, Next.js) release frequent updates to the npm registry. If the audit finds a moderate or low severity vulnerability in a fast-moving package:
+
+- Check if an update is already available (`npm outdated`)
+- If newer version exists, update
+- If no newer version, the issue is already public and likely pre-known — document in Sentry and move on
+
+### Workflow Notifications
+
+GitHub automatically emails on workflow failure (SNS behavior is not needed for scheduled audits — GitHub's email is sufficient for monthly runs). The email includes:
+
+- Workflow name and status
+- Repository and branch
+- Link to the failed run
+- Timestamp
+
+---

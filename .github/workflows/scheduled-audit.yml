@@ -1,0 +1,41 @@
+name: Scheduled Dependency Audit
+
+on:
+  schedule:
+    - cron: "0 9 1 * *"
+  workflow_dispatch:
+
+jobs:
+  app-audit:
+    name: "spectra-app — Full Dependency Audit"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-app
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-app/package-lock.json
+      - run: npm ci
+      - name: Full audit (all severities)
+        run: npm audit
+
+  api-audit:
+    name: "spectra-api — Full Dependency Audit"
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/spectra-api
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: "22"
+          cache: npm
+          cache-dependency-path: apps/spectra-api/package-lock.json
+      - run: npm ci
+      - name: Full audit (all severities)
+        run: npm audit
