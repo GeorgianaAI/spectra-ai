@@ -127,18 +127,14 @@ export class ComputeStack extends cdk.Stack {
     });
     warmupRule.addTarget(new targets.LambdaFunction(this.jobProcessor));
 
-    // Grant jobProcessor permission to call Bedrock (Nova Micro for Router Agent)
-    // Cross-region inference profile requires permission on the profile ARN plus
-    // the foundation model in each EU region the profile may route to.
+    // Grant jobProcessor permission to call Bedrock (Nova Micro via EU cross-region inference profile).
+    // The profile dynamically routes to any EU region — wildcard region covers all possible targets.
     this.jobProcessor.addToRolePolicy(
       new cdk.aws_iam.PolicyStatement({
         actions: ["bedrock:InvokeModel"],
         resources: [
-          // Inference profile ARN includes account ID (unlike foundation-model ARNs)
           `arn:aws:bedrock:${props.env?.region ?? "eu-west-1"}:${this.account}:inference-profile/eu.amazon.nova-micro-v1:0`,
-          "arn:aws:bedrock:eu-west-1::foundation-model/amazon.nova-micro-v1:0",
-          "arn:aws:bedrock:eu-central-1::foundation-model/amazon.nova-micro-v1:0",
-          "arn:aws:bedrock:eu-north-1::foundation-model/amazon.nova-micro-v1:0",
+          "arn:aws:bedrock:*::foundation-model/amazon.nova-micro-v1:0",
         ],
       }),
     );
