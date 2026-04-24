@@ -43,6 +43,13 @@ const MIN_CHUNK_WORDS = 20;
 
 function chunkText(text: string, chunkSize = 500, overlap = 50): string[] {
   const words = text.split(/\s+/);
+  
+  // If the entire document is very short, keep it as a single chunk rather than discarding it.
+  if (words.length < MIN_CHUNK_WORDS) {
+    if (words.length === 0 || words[0] === "") return [];
+    return [text.trim()];
+  }
+
   const chunks: string[] = [];
   let i = 0;
   while (i < words.length) {
@@ -130,7 +137,7 @@ export async function documentNode(
   const citationContext = topChunks.map((c) => `[${c.id}] ${c.chunk}`).join("\n\n");
 
   const message = await anthropic.messages.create({
-    model: "claude-sonnet-4-5",
+    model: "claude-sonnet-4-6",
     max_tokens: 2048,
     messages: [
       {
