@@ -100,4 +100,104 @@ describe("POST /api/upload", () => {
     const res = await POST(req as never);
     expect(res.status).toBe(400);
   });
+
+  it("accepts valid PDF document", async () => {
+    const { issueJwt } = await import("@/lib/jwt");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
+    const { POST } = await import("@/app/api/upload/route");
+    const form = new FormData();
+    form.append("document", new File(["pdf content"], "test.pdf", { type: "application/pdf" }));
+    const req = new Request("http://localhost:3000/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(200);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.jobId).toBeDefined();
+  });
+
+  it("accepts valid PNG vision image", async () => {
+    const { issueJwt } = await import("@/lib/jwt");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
+    const { POST } = await import("@/app/api/upload/route");
+    const form = new FormData();
+    form.append("vision", new File(["png data"], "test.png", { type: "image/png" }));
+    const req = new Request("http://localhost:3000/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(200);
+  });
+
+  it("accepts M4A audio with audio/mp4a MIME type", async () => {
+    const { issueJwt } = await import("@/lib/jwt");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
+    const { POST } = await import("@/app/api/upload/route");
+    const form = new FormData();
+    form.append("audio", new File(["m4a data"], "test.m4a", { type: "audio/mp4a" }));
+    const req = new Request("http://localhost:3000/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(200);
+  });
+
+  it("accepts M4A audio with audio/x-m4a MIME type", async () => {
+    const { issueJwt } = await import("@/lib/jwt");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
+    const { POST } = await import("@/app/api/upload/route");
+    const form = new FormData();
+    form.append("audio", new File(["m4a data"], "test.m4a", { type: "audio/x-m4a" }));
+    const req = new Request("http://localhost:3000/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(200);
+  });
+
+  it("rejects unsupported file type", async () => {
+    const { issueJwt } = await import("@/lib/jwt");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
+    const { POST } = await import("@/app/api/upload/route");
+    const form = new FormData();
+    form.append("document", new File(["content"], "test.txt", { type: "text/plain" }));
+    const req = new Request("http://localhost:3000/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.code).toBe("BAD_REQUEST");
+    expect(body.error).toContain("Unsupported file type");
+  });
+
+  it("rejects files exceeding size limit", async () => {
+    const { issueJwt } = await import("@/lib/jwt");
+    const token = await issueJwt(TEST_USER_ID, TEST_USER_EMAIL);
+    const { POST } = await import("@/app/api/upload/route");
+    const form = new FormData();
+    const oversizedPdf = new File(["x".repeat(3 * 1024 * 1024)], "large.pdf", {
+      type: "application/pdf",
+    });
+    form.append("document", oversizedPdf);
+    const req = new Request("http://localhost:3000/api/upload", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${token}` },
+      body: form,
+    });
+    const res = await POST(req as never);
+    expect(res.status).toBe(400);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.error).toContain("exceeds maximum size");
+  });
 });
