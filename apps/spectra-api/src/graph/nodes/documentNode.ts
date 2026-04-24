@@ -35,21 +35,25 @@ async function parsePdf(buffer: Buffer): Promise<string> {
       const dataUnknown = data as unknown as Record<string, unknown>;
       try {
         const pages = dataUnknown["Pages"] as Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
+        console.log(`[parsePdf] pages count: ${pages?.length ?? "null"}`);
         if (!pages || pages.length === 0) {
           resolve("");
           return;
         }
-        const text = pages
-          .flatMap((page) => page.Texts ?? [])
-          .flatMap((t) => t.R ?? [])
-          .map((r) => safeDecodeURIComponent(r.T))
-          .join(" ");
+        const allTexts = pages.flatMap((page) => page.Texts ?? []);
+        const allRuns = allTexts.flatMap((t) => t.R ?? []);
+        console.log(`[parsePdf] texts: ${allTexts.length}, runs: ${allRuns.length}`);
+        const text = allRuns.map((r) => safeDecodeURIComponent(r.T)).join(" ");
+        console.log(`[parsePdf] extracted text length: ${text.length}, sample: "${text.slice(0, 100)}"`);
         resolve(text);
       } catch (err) {
         reject(err);
       }
     });
-    parser.on("pdfParser_dataError", (err: unknown) => reject(err));
+    parser.on("pdfParser_dataError", (err: unknown) => {
+      console.error("[parsePdf] pdfParser_dataError:", err);
+      reject(err);
+    });
     parser.parseBuffer(buffer);
   });
 }
