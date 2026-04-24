@@ -10,6 +10,7 @@ import AgentGraph from "@/components/AgentGraph";
 import SynthesisPanel from "@/components/SynthesisPanel";
 import GovernanceTrace from "@/components/GovernanceTrace";
 import GhostButton from "@/components/GhostButton";
+import { FileDown } from "lucide-react";
 import { uploadFiles, fetchJobStatus, fetchJobTrace } from "@/lib/api";
 import { POLL_INTERVAL_MS } from "@/lib/constants";
 import type {
@@ -150,6 +151,37 @@ export default function DashboardPage() {
       setIsUploading(false);
     }
   }, [files, isUploading, router, startPolling]);
+
+  const handleDownloadPDF = useCallback(async () => {
+    if (!reportText) return;
+    const { default: jsPDF } = await import("jspdf");
+    const doc = new jsPDF({ unit: "mm", format: "a4" });
+    const pageW = doc.internal.pageSize.getWidth();
+    const margin = 15;
+    const maxW = pageW - margin * 2;
+
+    doc.setFont("helvetica", "bold");
+    doc.setFontSize(14);
+    doc.setTextColor(0, 0, 0);
+    doc.text("SPECTRA AI — Synthesis Report", margin, 20);
+
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(8);
+    doc.setTextColor(100, 100, 100);
+    const mid = jobId ? `MISSION-${jobId.slice(0, 6).toUpperCase()}` : "MISSION-NEW";
+    doc.text(`${mid}  ·  ${new Date().toUTCString()}`, margin, 27);
+
+    doc.setDrawColor(200, 200, 200);
+    doc.line(margin, 30, pageW - margin, 30);
+
+    const clean = reportText.replace(/\[[DVA]\d+\]/g, "");
+    doc.setFont("helvetica", "normal");
+    doc.setFontSize(9);
+    doc.setTextColor(30, 30, 30);
+    const lines = doc.splitTextToSize(clean, maxW);
+    doc.text(lines, margin, 38);
+    doc.save(`${mid}.pdf`);
+  }, [reportText, jobId]);
 
   const isRunning = jobStatus === "pending" || jobStatus === "processing";
   const hasFiles = Object.keys(files).length > 0;
@@ -320,7 +352,37 @@ export default function DashboardPage() {
 
         {/* Right column — synthesis */}
         <GlassPanel style={{ minHeight: "450px" }}>
-          <SectionLabel>ANALYSIS // SYNTHESIS_PANEL</SectionLabel>
+          <div style={{ display: "flex", alignItems: "center", marginBottom: "1.25rem" }}>
+            <SectionLabel style={{ marginBottom: 0 }}>ANALYSIS // SYNTHESIS_PANEL</SectionLabel>
+            {reportText && (
+              <button
+                type="button"
+                onClick={handleDownloadPDF}
+                title="Download synthesis as PDF"
+                aria-label="Download synthesis as PDF"
+                style={{
+                  marginLeft: "auto",
+                  background: "none",
+                  border: "1px solid rgba(0,242,255,0.25)",
+                  borderRadius: "4px",
+                  padding: "3px 8px",
+                  color: "rgba(0,242,255,0.7)",
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: "4px",
+                  fontSize: "0.6rem",
+                  fontFamily: "monospace",
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  transition: "border-color 0.15s, color 0.15s",
+                }}
+              >
+                <FileDown size={12} />
+                PDF
+              </button>
+            )}
+          </div>
           <SynthesisPanel reportText={reportText} confidenceScores={confidenceScores} />
         </GlassPanel>
       </div>
