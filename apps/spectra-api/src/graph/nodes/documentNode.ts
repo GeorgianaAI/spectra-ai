@@ -35,16 +35,15 @@ async function parsePdf(buffer: Buffer): Promise<string> {
       const dataUnknown = data as unknown as Record<string, unknown>;
       try {
         const pages = dataUnknown["Pages"] as Array<{ Texts: Array<{ R: Array<{ T: string }> }> }>;
-        console.log(`[parsePdf] pages count: ${pages?.length ?? "null"}`);
         if (!pages || pages.length === 0) {
           resolve("");
           return;
         }
-        const allTexts = pages.flatMap((page) => page.Texts ?? []);
-        const allRuns = allTexts.flatMap((t) => t.R ?? []);
-        console.log(`[parsePdf] texts: ${allTexts.length}, runs: ${allRuns.length}`);
-        const text = allRuns.map((r) => safeDecodeURIComponent(r.T)).join(" ");
-        console.log(`[parsePdf] extracted text length: ${text.length}, sample: "${text.slice(0, 100)}"`);
+        const text = pages
+          .flatMap((page) => page.Texts ?? [])
+          .flatMap((t) => t.R ?? [])
+          .map((r) => safeDecodeURIComponent(r.T))
+          .join(" ");
         resolve(text);
       } catch (err) {
         reject(err);
@@ -87,6 +86,20 @@ async function embedText(text: string): Promise<number[]> {
   return response.data[0].embedding;
 }
 
+// Cosine similarity between two equal-length vectors.
+function cosineSimilarity(a: number[], b: number[]): number {
+  let dot = 0;
+  let normA = 0;
+  let normB = 0;
+  for (let i = 0; i < a.length; i++) {
+    dot += a[i] * b[i];
+    normA += a[i] * a[i];
+    normB += b[i] * b[i];
+  }
+  if (normA === 0 || normB === 0) return 0;
+  return dot / (Math.sqrt(normA) * Math.sqrt(normB));
+}
+
 const EMPTY_OUTPUT: DocumentOutput = {
   findings: ["Document contained no extractable text — PDF may be image-based or empty."],
   citations: [],
@@ -97,7 +110,6 @@ export async function documentNode(
   state: Record<string, unknown>,
 ): Promise<{ documentOutput: DocumentOutput }> {
   const input = DocumentInputSchema.parse(state);
-  // Use a per-job namespace so dedup and retrieval are isolated to this job only.
   const namespace = `${input.jobId}_${input.userId}`;
   const index = getVectorIndex();
   const ns = index.namespace(namespace);
@@ -124,61 +136,34 @@ export async function documentNode(
     return { documentOutput: { ...EMPTY_OUTPUT, redactedFields } };
   }
 
-  // Embed and deduplicate within this job's namespace only.
-  const DEDUP_THRESHOLD = 0.97;
-  const upsertPayload: Array<{ id: string; vector: number[]; metadata: Record<string, unknown> }> = [];
-
+  // Embed all chunks and keep vectors in memory for similarity scoring.
+  // Upstash Vector has eventual consistency — querying immediately after upsert
+  // returns 0 results. We compute retrieval in-memory and upsert for audit trail only.
+  const embeddedChunks: Array<{ id: string; vector: number[]; chunk: string }> = [];
   for (let i = 0; i < Math.min(chunks.length, 50); i++) {
-    const embedding = await embedText(chunks[i]);
-
-    if (upsertPayload.length > 0) {
-      // Query only within this job's namespace — no cross-job deduplication.
-      const nearest = await ns.query({
-        vector: embedding,
-        topK: 1,
-        includeMetadata: false,
-      });
-      if (nearest[0]?.score != null && nearest[0].score >= DEDUP_THRESHOLD) {
-        continue;
-      }
-    }
-
-    upsertPayload.push({
-      id: `${i}`,
-      vector: embedding,
-      metadata: { chunk: chunks[i], jobId: input.jobId, index: i },
-    });
+    const vector = await embedText(chunks[i]);
+    embeddedChunks.push({ id: `${i}`, vector, chunk: chunks[i] });
   }
 
-  if (upsertPayload.length > 0) {
-    await ns.upsert(upsertPayload);
-  }
+  // Upsert to vector store for audit trail (fire-and-forget — not on the critical path).
+  ns.upsert(
+    embeddedChunks.map((c) => ({
+      id: c.id,
+      vector: c.vector,
+      metadata: { chunk: c.chunk, jobId: input.jobId },
+    })),
+  ).catch((err) => console.warn(`[documentNode] vector upsert failed (non-critical):`, err));
 
-  // Retrieve top-5 relevant chunks scoped to this job's namespace.
+  // Select top-5 chunks by cosine similarity against the document head.
   const queryEmbedding = await embedText(redactedText.slice(0, 1000));
-  const results = await ns.query({
-    vector: queryEmbedding,
-    topK: 5,
-    includeMetadata: true,
-  });
-
-  if (results.length === 0) {
-    console.warn(`[documentNode] Vector retrieval returned no results for job ${input.jobId}`);
-    return { documentOutput: { ...EMPTY_OUTPUT, redactedFields } };
-  }
-
-  const topChunks = results
-    .filter((r) => r.metadata != null && typeof (r.metadata as Record<string, unknown>)["chunk"] === "string")
-    .map((r, i) => ({
+  const topChunks = embeddedChunks
+    .map((c, i) => ({
       id: `D${i + 1}`,
-      chunk: (r.metadata as { chunk: string }).chunk,
-      relevanceScore: r.score ?? 0,
-    }));
-
-  if (topChunks.length === 0) {
-    console.warn(`[documentNode] All retrieved vectors lacked chunk metadata for job ${input.jobId}`);
-    return { documentOutput: { ...EMPTY_OUTPUT, redactedFields } };
-  }
+      chunk: c.chunk,
+      relevanceScore: cosineSimilarity(queryEmbedding, c.vector),
+    }))
+    .sort((a, b) => b.relevanceScore - a.relevanceScore)
+    .slice(0, 5);
 
   // Claude Sonnet extracts structured findings and citations.
   const citationContext = topChunks.map((c) => `[${c.id}] ${c.chunk}`).join("\n\n");
