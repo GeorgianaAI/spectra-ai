@@ -375,7 +375,7 @@ cdk bootstrap aws://ACCOUNT_ID/us-east-1
 | `spectra-ingest-handler` | 256 MB  | 30s     | unreserved                        |
 | `spectra-job-processor`  | 1024 MB | 300s    | unreserved (cap pending quota)    |
 
-`jobProcessor` concurrency cap (`reservedConcurrentExecutions: 1`) is gated behind `LAMBDA_RESERVATION_ENABLED=true` and requires an AWS Service Quotas increase before it can be activated.
+`jobProcessor` concurrency is unreserved. A `reservedConcurrentExecutions: 1` cap can be added to `compute-stack.ts` once an AWS Service Quotas increase for concurrent executions is approved.
 
 ### Billing Alarm
 

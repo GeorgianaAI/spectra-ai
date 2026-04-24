@@ -119,7 +119,6 @@ CDK resolves stack dependency order automatically. All four stacks deploy in a s
 
 ```bash
 export PRODUCTION_ORIGIN=https://spectra-ai-app.vercel.app  # lock S3 CORS
-export LAMBDA_RESERVATION_ENABLED=true                       # only after AWS quota increase approved
 export BILLING_ALERT_EMAIL=gchiriac2012@gmail.com           # SNS alarm recipient
 ```
 

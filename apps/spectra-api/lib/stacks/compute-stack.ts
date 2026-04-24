@@ -81,11 +81,6 @@ export class ComputeStack extends cdk.Stack {
       timeout: cdk.Duration.seconds(300),
       memorySize: 1024,
       logGroup: this.jobProcessorLogGroup,
-      // Restore concurrency cap after AWS Service Quotas increase is approved.
-      // Enable by setting LAMBDA_RESERVATION_ENABLED=true in CDK deploy env.
-      ...(process.env.LAMBDA_RESERVATION_ENABLED === "true"
-        ? { reservedConcurrentExecutions: 1 }
-        : {}),
       bundling: {
         minify: false,
         sourceMap: false,
