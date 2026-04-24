@@ -438,3 +438,41 @@ cdk bootstrap aws://ACCOUNT_ID/us-east-1
 The `eu-west-1` bootstrap (already done at project init) does not cover `us-east-1`.
 
 **Files:** `apps/spectra-api/lib/stacks/observability-stack.ts`, `apps/spectra-api/lib/stacks/compute-stack.ts`, `apps/spectra-api/lib/stacks/billing-alarm-stack.ts`, `apps/spectra-api/bin/spectra-api.ts`
+
+---
+
+## 21. Upstash Vector Eventual Consistency — In-Memory Cosine Similarity
+
+### Context
+
+`documentNode` embeds PDF chunks with `text-embedding-3-small`, upserts them to an Upstash Vector namespace scoped to the job, then immediately queries that namespace to retrieve the top-5 most relevant chunks for Claude.
+
+### Challenge
+
+Upstash Vector is eventually consistent. Vectors upserted via the REST API are not immediately queryable — a `query` call issued in the same Lambda invocation, milliseconds after `upsert`, reliably returns 0 results. This caused `documentNode` to fall through to the `EMPTY_OUTPUT` path on every job, producing 0% document confidence and no `[D...]` citations in the synthesis report regardless of whether the PDF was successfully parsed.
+
+The bug was masked by two factors:
+1. `parsePdf` extracted text correctly (confirmed via CloudWatch: "pages count: 2, texts: 80, runs: 80, text length: 1391") — the failure was silent and downstream.
+2. When all three modalities ran in parallel, LangGraph's `Send` branching silently dropped the `documentOutput` state update if the node threw, making it appear as if the document node never ran.
+
+A separate bundling issue compounded diagnosis: `pdf2json` v4 loads from a pure-JS bundle in `dist/`, but esbuild inlined it incorrectly in earlier iterations — fixed by moving it to `nodeModules` in the CDK `NodejsFunction` bundling config so it is installed as a real package.
+
+### Solution
+
+All chunk embeddings are computed and held in memory during the embed loop. After the loop, cosine similarity between the query embedding and each chunk embedding is computed in-process — no round-trip to Upstash Vector needed. The vector upsert is retained as a fire-and-forget audit trail write (non-critical path):
+
+```typescript
+// In-memory cosine similarity — avoids Upstash eventual consistency on immediate query
+const topChunks = embeddedChunks
+  .map((c, i) => ({
+    id: `D${i + 1}`,
+    chunk: c.chunk,
+    relevanceScore: cosineSimilarity(queryEmbedding, c.vector),
+  }))
+  .sort((a, b) => b.relevanceScore - a.relevanceScore)
+  .slice(0, 5);
+```
+
+This is strictly faster (one fewer HTTP round-trip per job), more reliable, and makes the document node's retrieval step self-contained.
+
+**Files:** `apps/spectra-api/src/graph/nodes/documentNode.ts`, `apps/spectra-api/lib/stacks/compute-stack.ts`
