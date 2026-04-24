@@ -11,9 +11,9 @@ Use this file as the engineering source of truth for flow-level behavior.
 
 - **UI** = dashboard and auth pages (Next.js 16, Vercel)
 - **Middleware** = `middleware.ts` — JWT guard on all `/dashboard` and `/api` routes
-- **/api/upload** = file validation, rate limiting, S3 presigned PUT, Inngest trigger
+- **/api/upload** = file validation, rate limiting, S3 presigned PUT; **/api/upload/confirm** = Inngest trigger (fires once after all files are uploaded, with full s3Keys)
 - **Inngest** = job lifecycle (pending → processing → completed/failed), retries
-- **Lambda** = `ingestHandler` (S3 trigger) + `jobProcessor` (Inngest HTTP invocation)
+- **Lambda** = `ingestHandler` (S3 trigger — validation/logging only, does NOT trigger Inngest) + `jobProcessor` (Inngest HTTP invocation)
 - **LangGraph** = agent orchestration inside `jobProcessor`
 - **Supabase** = job record storage, Auth, RLS
 - **Upstash Redis** = rate limiting (frontend) + LangGraph checkpointing (Lambda)
@@ -96,7 +96,7 @@ flowchart TD
 
 ### Why this exists
 
-The upload path spans four systems (Next.js → S3 → Lambda → LangGraph → Supabase) and two async boundaries (S3 trigger, Inngest invocation). This diagram makes the hand-off points and failure modes explicit.
+The upload path spans four systems (Next.js → S3 → Lambda → LangGraph → Supabase) and two async boundaries (confirm endpoint → Inngest, Inngest → jobProcessor). The confirm endpoint is the sole Inngest trigger — it fires once after all files are uploaded and carries the full s3Keys payload. The `ingestHandler` Lambda validates and logs S3 events but does not trigger Inngest.
 
 ### What this flow guarantees
 
@@ -119,15 +119,15 @@ participant INN as Inngest
 participant PROC as jobProcessor λ
 participant DB as Supabase
 
-B->>APP: POST /api/upload (Bearer JWT + files)
+B->>APP: POST /api/upload/presign (Bearer JWT + file metadata)
 APP-->>B: 429 rate limit · 401 invalid JWT · 400 bad files
-APP->>S3: PUT each file via presigned URL
 APP->>DB: INSERT job { status: pending }
-APP->>INN: Fire spectra/job.process { jobId, s3Keys }
-APP-->>B: 200 { jobId }
-
-S3-->>APP: ObjectCreated (S3 safety trigger)
-APP->>INN: Fire spectra/job.process (idempotencyKey: jobId — deduplicated)
+APP-->>B: 200 { jobId, uploadUrls, s3Keys }
+B->>S3: PUT each file directly via presigned URL
+Note over B,S3: All three uploads run in parallel (Promise.all)
+S3-->>APP: ObjectCreated → ingestHandler λ (validates size/ext, logs only)
+B->>APP: POST /api/upload/confirm { jobId, s3Keys (all files) }
+APP->>INN: Fire spectra/job.process { jobId, userId, s3Keys }
 
 INN->>PROC: HTTP invoke { jobId, userId, s3Keys }
 PROC->>DB: UPDATE job { status: processing }
