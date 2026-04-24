@@ -87,6 +87,11 @@ export class ComputeStack extends cdk.Stack {
         target: "node20",
         // Bundle all deps — node_modules are NOT available in Lambda without bundling
         externalModules: [],
+        // pdf2json loads font metric files from __dirname-relative paths at runtime.
+        // esbuild inlines the JS but not those assets, so the paths break and text
+        // extraction silently returns empty. Installing as a real module preserves the
+        // full package directory including static assets.
+        nodeModules: ["pdf2json"],
       },
       environment: {
         NODE_ENV: "production",
