@@ -27,6 +27,8 @@ const ALLOWED_TYPES: Record<
   "audio/mpeg": { modality: "audio", field: "audio", ext: "mp3", maxBytes: 50 * 1024 * 1024 },
   "audio/wav": { modality: "audio", field: "audio", ext: "wav", maxBytes: 50 * 1024 * 1024 },
   "audio/ogg": { modality: "audio", field: "audio", ext: "ogg", maxBytes: 50 * 1024 * 1024 },
+  "audio/mp4a": { modality: "audio", field: "audio", ext: "m4a", maxBytes: 50 * 1024 * 1024 },
+  "audio/x-m4a": { modality: "audio", field: "audio", ext: "m4a", maxBytes: 50 * 1024 * 1024 },
 };
 
 const FileMetaSchema = z.object({
