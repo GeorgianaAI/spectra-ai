@@ -1,19 +1,18 @@
 "use client";
 
-import { useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useState, useEffect } from "react";
 import { Aperture } from "lucide-react";
 import AzureButton from "@/components/AzureButton";
 import ModalityCard from "@/components/ModalityCard";
 import { MODALITIES } from "@/lib/constants";
 
 export default function LandingPage() {
-  const router = useRouter();
+  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
 
   useEffect(() => {
     const match = document.cookie.match(/(?:^|;\s*)__spectra_token=([^;]+)/);
-    if (match) router.replace("/dashboard");
-  }, [router]);
+    setIsAuthenticated(!!match);
+  }, []);
 
   return (
     <main
@@ -94,7 +93,9 @@ export default function LandingPage() {
           Unified into a single grounded report.
         </p>
 
-        <AzureButton href="/auth/login">INITIALIZE WORKSPACE</AzureButton>
+        <AzureButton href={isAuthenticated ? "/dashboard" : "/auth/login"}>
+          {isAuthenticated ? "GO TO DASHBOARD" : "INITIALIZE WORKSPACE"}
+        </AzureButton>
       </section>
 
       <div
