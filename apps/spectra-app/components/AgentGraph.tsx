@@ -62,7 +62,10 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
           {EDGES.map(([fromId, toId]) => {
             const from = NODES.find((n) => n.id === fromId)!;
             const to = NODES.find((n) => n.id === toId)!;
-            const active = getStatus(fromId) === "complete" || getStatus(toId) === "processing";
+            const toStatus = getStatus(toId);
+            const active =
+              toStatus !== "idle" &&
+              (getStatus(fromId) === "complete" || toStatus === "processing");
             return (
               <line
                 key={`${fromId}-${toId}`}
