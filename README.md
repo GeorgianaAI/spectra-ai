@@ -176,6 +176,13 @@ At runtime, Spectra:
 
 Streaming markdown with inline citation badges — `[D1]` (teal), `[V2]` (sky blue), `[A1]` (coral). Each claim tagged to its modality source. Conflicts flagged inline.
 
+Additionally, the report can be downloaded as PDF with these sections:
+
+- Header — "SPECTRA AI — Synthesis Report", mission ID, timestamp
+- Confidence Scores — Document / Vision / Audio percentages
+- Synthesis Report — full text, citation tags stripped
+- NIST AI RMF — Governance Trace — table with time, agent, finding, confidence %, and NIST control ID — only appears if there are entries
+
 ### 2) Per-Modality Confidence Scores
 
 Three percentage scores from the LLM-as-Judge Auditor: Document, Vision, Audio — rendered as labeled horizontal bars in their modality colors.
@@ -191,6 +198,8 @@ Full history of past runs — status, modalities used, timestamps, links to job 
 ### 5) NIST AI RMF Compliance Ledger
 
 Full governance ledger across all jobs — traceable control evidence mapped to AI risk management. Portfolio differentiator.
+
+### 6)
 
 ---
 
