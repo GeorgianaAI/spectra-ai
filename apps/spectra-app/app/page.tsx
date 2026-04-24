@@ -93,7 +93,7 @@ export default function LandingPage() {
           Unified into a single grounded report.
         </p>
 
-        <AzureButton href={isAuthenticated ? "/dashboard" : "/auth/login"}>
+        <AzureButton href={isAuthenticated ? "/dashboard" : "/auth/login"} style={{ fontSize: "0.95rem" }}>
           {isAuthenticated ? "GO TO DASHBOARD" : "INITIALIZE WORKSPACE"}
         </AzureButton>
       </section>
