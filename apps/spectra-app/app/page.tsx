@@ -1,18 +1,18 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useSyncExternalStore } from "react";
 import { Aperture } from "lucide-react";
 import AzureButton from "@/components/AzureButton";
 import ModalityCard from "@/components/ModalityCard";
 import { MODALITIES } from "@/lib/constants";
 
-export default function LandingPage() {
-  const [isAuthenticated, setIsAuthenticated] = useState<boolean>(false);
+const AUTH_RE = /(?:^|;\s*)__spectra_token=([^;]+)/;
+const getAuthSnapshot = () => AUTH_RE.test(document.cookie);
+const getServerAuthSnapshot = () => false;
+const subscribeToAuth = () => () => {};
 
-  useEffect(() => {
-    const match = document.cookie.match(/(?:^|;\s*)__spectra_token=([^;]+)/);
-    setIsAuthenticated(!!match);
-  }, []);
+export default function LandingPage() {
+  const isAuthenticated = useSyncExternalStore(subscribeToAuth, getAuthSnapshot, getServerAuthSnapshot);
 
   return (
     <main
