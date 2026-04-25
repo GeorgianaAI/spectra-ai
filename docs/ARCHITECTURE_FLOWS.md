@@ -164,25 +164,25 @@ Spectra AI separates unauthenticated public routes (landing, login) from protect
 %%{init: {'theme': 'base', 'themeVariables': {'primaryColor': '#f8fafc', 'primaryBorderColor': '#94a3b8', 'lineColor': '#64748b', 'fontSize': '14px'}}}%%
 flowchart TD
     A[Request arrives] --> B{Public route?}
-    
+
     B -- yes --> C[Pass through — no auth check]
     B -- no --> D["middleware.ts: extract\nBearer token or cookie"]
-    
+
     D --> E{Token present?}
-    
+
     E -- yes --> I[Verify JWT with JWT_SECRET]
     E -- no --> F{Page or API route?}
-    
+
     I --> J{Valid + not expired?}
     J -- no --> F
     J -- yes --> K[Attach userId to request headers]
-    
+
     F -- page --> G[Redirect to /auth/login]
     F -- api --> H[401 Unauthorized]
-    
+
     K --> L[Forward to page or API handler]
     L --> M{API handler: ownership check}
-    
+
     M -- match --> O[Return job data]
     M -- "job.user_id ≠ userId" --> N[403 Forbidden]
 ```
@@ -238,7 +238,7 @@ flowchart LR
     C --> D{Error?}
     D -- no --> E["200 OK"]
     D -- yes --> F["200 Degraded"]
-    
+
     B -- Prod --> G["Probe Deps\n(Supabase/Redis)"]
     G --> H{Fail?}
     H -- yes --> I["503 Degraded\n(Fail closed)"]
@@ -283,12 +283,12 @@ sequenceDiagram
     U->>UI: select files + click RUN
     UI->>API: POST /api/upload
     API-->>UI: { jobId }
-    
+
     loop until status = completed (2s poll)
         UI->>API: GET /api/job/[id]
         API-->>UI: { status, scores, result_url }
     end
-    
+
     UI->>API: GET /api/job/[id]/trace
     API-->>UI: GovernanceEntry[]
     Note right of UI: Update AgentGraph, Panels, & Trace
@@ -370,10 +370,10 @@ cdk bootstrap aws://ACCOUNT_ID/us-east-1
 
 ### Lambda Configuration at Deployment
 
-| Function                 | Memory  | Timeout | Concurrency                       |
-| :----------------------- | :------ | :------ | :-------------------------------- |
-| `spectra-ingest-handler` | 256 MB  | 30s     | unreserved                        |
-| `spectra-job-processor`  | 1024 MB | 300s    | unreserved (cap pending quota)    |
+| Function                 | Memory  | Timeout | Concurrency                    |
+| :----------------------- | :------ | :------ | :----------------------------- |
+| `spectra-ingest-handler` | 256 MB  | 30s     | unreserved                     |
+| `spectra-job-processor`  | 1024 MB | 300s    | unreserved (cap pending quota) |
 
 `jobProcessor` concurrency is unreserved. A `reservedConcurrentExecutions: 1` cap can be added to `compute-stack.ts` once an AWS Service Quotas increase for concurrent executions is approved.
 
@@ -416,7 +416,7 @@ Results logged as structured JSON to CloudWatch (`[langsmith-evaluators]` prefix
 
 `AuditorOutputSchema.governanceTrace` entries carry an optional `nistControlId` field (e.g. `"MEASURE 2.1"`) alongside the existing `nistTag` function. The auditor prompt includes a 10-entry NIST AI RMF control reference table. The GovernanceTrace UI displays the full control ID when present, falling back to the function tag.
 
-### Accessibility (Phase 6)
+### Accessibility
 
 All interactive and structural components hardened to WCAG 2.1 AA:
 
