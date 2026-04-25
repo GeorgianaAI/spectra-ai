@@ -19,13 +19,16 @@ export async function GET(request: NextRequest) {
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
     .from("jobs")
-    .select("id, status, created_at, completed_at, modalities_used, confidence_scores")
+    .select("id, status, created_at, completed_at, modalities_used, confidence_scores, error")
     .eq("user_id", userId)
     .order("created_at", { ascending: false })
     .limit(20);
 
   if (error) {
-    return NextResponse.json({ error: "Failed to fetch jobs", code: "SERVER_ERROR" }, { status: 500 });
+    return NextResponse.json(
+      { error: "Failed to fetch jobs", code: "SERVER_ERROR" },
+      { status: 500 },
+    );
   }
 
   return NextResponse.json(data ?? []);

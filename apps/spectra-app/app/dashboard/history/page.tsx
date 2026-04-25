@@ -17,6 +17,20 @@ const STATUS_COLORS: Record<JobStatus, string> = {
   failed: "#f87171",
 };
 
+const SECURITY_RE = /document rejected|prompt injection|content rejected/i;
+
+function isSecurityRejection(job: JobSummary): boolean {
+  return job.status === "failed" && job.error != null && SECURITY_RE.test(job.error);
+}
+
+function statusLabel(job: JobSummary): string {
+  return isSecurityRejection(job) ? "BLOCKED" : job.status;
+}
+
+function statusColor(job: JobSummary): string {
+  return isSecurityRejection(job) ? "#f59e0b" : (STATUS_COLORS[job.status] ?? "#fff");
+}
+
 function ModalityIcons({ modalities }: { modalities: JobSummary["modalities_used"] }) {
   return (
     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
@@ -134,7 +148,8 @@ export default function HistoryPage() {
 
             {jobs.map((job) => {
               const mid = `MISSION-${job.id.slice(0, 6).toUpperCase()}`;
-              const statusColor = STATUS_COLORS[job.status] ?? "#fff";
+              const color = statusColor(job);
+              const label = statusLabel(job);
               const date = new Date(job.created_at).toLocaleString(undefined, {
                 month: "short",
                 day: "numeric",
@@ -194,14 +209,14 @@ export default function HistoryPage() {
                         fontWeight: 700,
                         textTransform: "uppercase",
                         letterSpacing: "0.1em",
-                        color: statusColor,
+                        color: color,
                         padding: "2px 7px",
                         borderRadius: "50px",
-                        border: `1px solid ${statusColor}40`,
-                        background: `${statusColor}08`,
+                        border: `1px solid ${color}40`,
+                        background: `${color}08`,
                       }}
                     >
-                      {job.status}
+                      {label}
                     </span>
                   </div>
                   <div

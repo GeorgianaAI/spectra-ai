@@ -61,6 +61,7 @@ export interface JobSummary {
   completed_at: string | null;
   modalities_used: ModalitiesUsed;
   confidence_scores: ConfidenceScores;
+  error: string | null;
 }
 
 export interface ApiErrorResponse {
