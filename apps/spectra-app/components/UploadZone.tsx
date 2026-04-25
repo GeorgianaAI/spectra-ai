@@ -188,9 +188,10 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
               <button
                 type="button"
                 aria-label={`Remove ${label} file`}
+                disabled={disabled}
                 onClick={(e) => {
                   e.stopPropagation();
-                  setFile(key, null);
+                  if (!disabled) setFile(key, null);
                 }}
                 style={{
                   position: "absolute",
@@ -199,10 +200,11 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   background: "none",
                   border: "none",
                   color: "rgba(255,255,255,0.25)",
-                  cursor: "pointer",
+                  cursor: disabled ? "not-allowed" : "pointer",
                   fontSize: "0.75rem",
                   lineHeight: 1,
                   padding: "2px",
+                  opacity: disabled ? 0.3 : 1,
                 }}
               >
                 ✕
