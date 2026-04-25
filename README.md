@@ -47,6 +47,34 @@ Supabase client (polling)                LangGraph (inside jobProcessor)
 
 For the full runtime flows, sequence diagrams, and infrastructure decisions see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
 
+### Folder Structure
+
+```
+spectra-ai/
+├── apps/
+│   ├── spectra-app/              Next.js 16 frontend on Vercel
+│   │   ├── app/                  App Router: pages, layouts, API routes
+│   │   ├── components/           Reusable React components
+│   │   ├── lib/                  Utilities: API client, types, constants
+│   │   └── middleware.ts         JWT guard for /dashboard and /api
+│   ├── spectra-api/              AWS CDK + Lambda backend
+│   │   ├── bin/                  CDK entry point
+│   │   ├── lib/stacks/           CDK stack definitions
+│   │   ├── src/
+│   │   │   ├── handlers/         Lambda entry points (ingestHandler, jobProcessor)
+│   │   │   ├── graph/            LangGraph agent orchestration + nodes
+│   │   │   └── lib/              Shared schemas (Zod), utilities, SQL
+│   │   ├── migrations/           Supabase SQL migrations
+│   │   └── .env.example          Environment template
+│   └── .prettierrc                Prettier config (shared across apps)
+├── docs/                          Architecture & operations documentation
+├── .husky/                        Git pre-commit hooks
+├── package.json                   Root dev dependencies (husky, lint-staged, prettier)
+└── CLAUDE.md                      Project rules & architecture constraints
+```
+
+Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api deploys via CDK to AWS.
+
 ---
 
 ## 🛠️ Tech Stack
@@ -64,7 +92,7 @@ For the full runtime flows, sequence diagrams, and infrastructure decisions see 
 | Vector store      | Upstash Vector (session-namespaced)                                    |
 | Database          | Supabase PostgreSQL + Auth (RLS)                                       |
 | Job orchestration | Inngest (event-driven, retries, state tracking)                        |
-| Rate limiting     | Upstash Redis (3 req/day/IP sliding window)                            |
+| Rate limiting     | Upstash Redis (10 req/day/IP sliding window, configurable)             |
 | Error tracking    | Sentry (client + server + Lambda)                                      |
 | CI                | GitHub Actions (lint, typecheck, Vitest, Playwright)                   |
 
@@ -224,7 +252,7 @@ Email:    demo@spectra.app
 Password: spectra-demo
 ```
 
-The demo account is a regular user. No special permissions. Rate limit: 3 runs/day/IP.
+The demo account is a regular user. No special permissions. Rate limit: 10 runs/day/IP (configurable in `apps/spectra-app/app/api/upload/presign/route.ts`). For production, restrict to 1-2 runs/day/IP.
 
 ---
 
@@ -240,6 +268,17 @@ The demo account is a regular user. No special permissions. Rate limit: 3 runs/d
 - Upstash Vector + Redis databases created
 - Inngest account
 - LangSmith account
+
+### Setup (Root)
+
+Install dev dependencies and initialize git hooks:
+
+```bash
+npm install
+npx husky install
+```
+
+This sets up Prettier and lint-staged for automatic code formatting on commit. From now on, `npm commit` will auto-format staged `.ts`/`.tsx` files before the commit lands — no separate formatting commits needed.
 
 ### Backend (spectra-api)
 
