@@ -205,6 +205,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   lineHeight: 1,
                   padding: "2px",
                   opacity: disabled ? 0.3 : 1,
+                  pointerEvents: disabled ? "none" : "auto",
                 }}
               >
                 ✕
