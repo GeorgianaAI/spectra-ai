@@ -14,6 +14,34 @@ Built on **LangGraph**, **Claude Sonnet**, **GPT-4o**, and **Whisper**, with **A
 
 ## 🏗️ Core Architecture
 
+### Folder Structure
+
+```
+spectra-ai/
+├── apps/
+│   ├── spectra-app/              Next.js 16 frontend on Vercel
+│   │   ├── app/                  App Router: pages, layouts, API routes
+│   │   ├── components/           Reusable React components
+│   │   ├── lib/                  Utilities: API client, types, constants
+│   │   └── middleware.ts         JWT guard for /dashboard and /api
+│   ├── spectra-api/              AWS CDK + Lambda backend
+│   │   ├── bin/                  CDK entry point
+│   │   ├── lib/stacks/           CDK stack definitions
+│   │   ├── src/
+│   │   │   ├── handlers/         Lambda entry points (ingestHandler, jobProcessor)
+│   │   │   ├── graph/            LangGraph agent orchestration + nodes
+│   │   │   └── lib/              Shared schemas (Zod), utilities, SQL
+│   │   ├── migrations/           Supabase SQL migrations
+│   │   └── .env.example          Environment template
+│   └── .prettierrc                Prettier config (shared across apps)
+├── docs/                          Architecture & operations documentation
+├── .husky/                        Git pre-commit hooks
+├── package.json                   Root dev dependencies (husky, lint-staged, prettier)
+└── CLAUDE.md                      Project rules & architecture constraints
+```
+
+Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api deploys via CDK to AWS.
+
 ### Agent Graph
 
 ```
@@ -46,34 +74,6 @@ Supabase client (polling)                LangGraph (inside jobProcessor)
 ```
 
 For the full runtime flows, sequence diagrams, and infrastructure decisions see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
-
-### Folder Structure
-
-```
-spectra-ai/
-├── apps/
-│   ├── spectra-app/              Next.js 16 frontend on Vercel
-│   │   ├── app/                  App Router: pages, layouts, API routes
-│   │   ├── components/           Reusable React components
-│   │   ├── lib/                  Utilities: API client, types, constants
-│   │   └── middleware.ts         JWT guard for /dashboard and /api
-│   ├── spectra-api/              AWS CDK + Lambda backend
-│   │   ├── bin/                  CDK entry point
-│   │   ├── lib/stacks/           CDK stack definitions
-│   │   ├── src/
-│   │   │   ├── handlers/         Lambda entry points (ingestHandler, jobProcessor)
-│   │   │   ├── graph/            LangGraph agent orchestration + nodes
-│   │   │   └── lib/              Shared schemas (Zod), utilities, SQL
-│   │   ├── migrations/           Supabase SQL migrations
-│   │   └── .env.example          Environment template
-│   └── .prettierrc                Prettier config (shared across apps)
-├── docs/                          Architecture & operations documentation
-├── .husky/                        Git pre-commit hooks
-├── package.json                   Root dev dependencies (husky, lint-staged, prettier)
-└── CLAUDE.md                      Project rules & architecture constraints
-```
-
-Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api deploys via CDK to AWS.
 
 ---
 
