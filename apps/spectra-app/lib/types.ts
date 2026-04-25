@@ -54,6 +54,15 @@ export interface UploadedFiles {
 
 export type AgentStatuses = Record<string, AgentStatus>;
 
+export interface JobSummary {
+  id: string;
+  status: JobStatus;
+  created_at: string;
+  completed_at: string | null;
+  modalities_used: ModalitiesUsed;
+  confidence_scores: ConfidenceScores;
+}
+
 export interface ApiErrorResponse {
   error: string;
   code: string;

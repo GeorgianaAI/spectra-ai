@@ -1,10 +1,26 @@
 // Fetch helpers for Spectra AI API routes
 
-import type { Job, GovernanceEntry, ApiErrorResponse } from "./types";
+import type { Job, JobSummary, GovernanceEntry, ApiErrorResponse } from "./types";
 import { API_ROUTES } from "./constants";
+
+export function readAuthToken(): string | null {
+  const match = document.cookie.match(/(?:^|;\s*)__spectra_token=([^;]+)/);
+  return match ? decodeURIComponent(match[1]) : null;
+}
 
 function getAuthHeaders(token: string): HeadersInit {
   return { Authorization: `Bearer ${token}` };
+}
+
+export async function fetchJobs(token: string): Promise<JobSummary[]> {
+  const res = await fetch(API_ROUTES.jobs, {
+    headers: getAuthHeaders(token),
+  });
+  if (!res.ok) {
+    const err = (await res.json()) as ApiErrorResponse;
+    throw new Error(`[${err.code}] ${err.error}`);
+  }
+  return res.json() as Promise<JobSummary[]>;
 }
 
 export async function fetchJobStatus(id: string, token: string): Promise<Job> {

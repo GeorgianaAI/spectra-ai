@@ -393,6 +393,7 @@ export default function DashboardPage() {
             ● STATUS: {statusLabel}
           </span>
 
+          <GhostButton href="/dashboard/history">History</GhostButton>
           <GhostButton href="/">← Back to Base</GhostButton>
         </div>
       </header>
