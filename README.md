@@ -42,20 +42,6 @@ spectra-ai/
 
 Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api deploys via CDK to AWS.
 
-### Agent Graph
-
-```
-routerNode (Nova Micro / Bedrock)
-    ↓
-[documentNode (Claude Sonnet) ‖ visionNode (GPT-4o) ‖ audioNode (Whisper → Sonnet)]
-    ↓  parallel, conditional on active modalities
-synthesisNode (GPT-4o)
-    ↓
-auditorNode (Claude Sonnet — LLM-as-Judge)
-    ↓
-write to Supabase
-```
-
 ### Infrastructure
 
 ```
@@ -74,6 +60,20 @@ Supabase client (polling)                LangGraph (inside jobProcessor)
 ```
 
 For the full runtime flows, sequence diagrams, and infrastructure decisions see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
+
+### Agent Graph
+
+```
+routerNode (Nova Micro / Bedrock)
+    ↓
+[documentNode (Claude Sonnet) ‖ visionNode (GPT-4o) ‖ audioNode (Whisper → Sonnet)]
+    ↓  parallel, conditional on active modalities
+synthesisNode (GPT-4o)
+    ↓
+auditorNode (Claude Sonnet — LLM-as-Judge)
+    ↓
+write to Supabase
+```
 
 ---
 
