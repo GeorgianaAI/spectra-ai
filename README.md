@@ -79,22 +79,26 @@ write to Supabase
 
 ## 🛠️ Tech Stack
 
-| Area              | Technology                                                             |
-| :---------------- | :--------------------------------------------------------------------- |
-| Frontend          | Next.js 16 App Router · TypeScript · Tailwind CSS 4 · Vercel AI SDK    |
-| Backend IaC       | AWS CDK (TypeScript)                                                   |
-| Compute           | AWS Lambda (Node.js 20.x)                                              |
-| AI routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                    |
-| Agent graph       | LangGraph (TypeScript) — StateGraph, parallel branching, checkpointing |
-| Tracing           | LangSmith                                                              |
-| Models            | Claude Sonnet · GPT-4o · Whisper · Nova Micro                          |
-| Embeddings        | text-embedding-3-small                                                 |
-| Vector store      | Upstash Vector (session-namespaced)                                    |
-| Database          | Supabase PostgreSQL + Auth (RLS)                                       |
-| Job orchestration | Inngest (event-driven, retries, state tracking)                        |
-| Rate limiting     | Upstash Redis (3 req/day/IP sliding window)                            |
-| Error tracking    | Sentry (client + server + Lambda)                                      |
-| CI                | GitHub Actions (lint, typecheck, Vitest, Playwright)                   |
+| Area              | Technology                                                                             |
+| :---------------- | :------------------------------------------------------------------------------------- |
+| Frontend          | Next.js 16 App Router · React 19 · TypeScript · Tailwind CSS 4 · Lucide Icons · AI SDK |
+| Backend IaC       | AWS CDK (TypeScript)                                                                   |
+| Compute           | AWS Lambda (Node.js 20.x)                                                              |
+| AI Routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                                    |
+| Agent Graph       | LangGraph (TypeScript) — StateGraph · Parallel Branching · Checkpointing               |
+| Parsing & Export  | pdf2json (Ingestion) · jspdf (Export)                                                  |
+| Validation        | Zod (Strict schema enforcement)                                                        |
+| Tracing           | LangSmith (End-to-end agent graph tracing · Standardized via @langchain/core )         |
+| Models            | Claude Sonnet · GPT-4o · Whisper · Nova Micro                                          |
+| Embeddings        | text-embedding-3-small                                                                 |
+| Vector Store      | Upstash Vector (Session-namespaced retrieval)                                          |
+| Database          | Supabase PostgreSQL (Relational schema + RLS)                                          |
+| Auth & Security   | Supabase Auth · jose (Edge-JWT) · RBAC Middleware                                      |
+| Job Orchestration | Inngest (Event-driven, retries, state tracking)                                        |
+| Rate Limiting     | Upstash Redis (Sliding window per IP)                                                  |
+| Error Tracking    | Sentry (Full-stack: Client + Server + Lambda)                                          |
+| Testing           | Vitest (Unit) · Red Teaming (Adversarial Suite) · Playwright (E2E)                     |
+| CI                | GitHub Actions (Audit, Lint, Typecheck, Unit Tests, E2E Tests)                         |
 
 ---
 
@@ -138,10 +142,17 @@ See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test s
 ---
 
 > [!TIP]
-> **Architecture & Security Context:** For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
+>
+> **Architecture & Security Context:**
+>
+> For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
+>
 > For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see [TECHNICAL_ADVISORY.md](./docs/TECHNICAL_ADVISORY.md).
+>
 > For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./docs/SECURITY_ADVISORY.md).
+>
 > For the AI engineering hardening roadmap — security controls, observability improvements, retrieval quality, and maturity grades across 7 AI engineering skills — see [HARDENING_ROADMAP.md](./docs/HARDENING_ROADMAP.md).
+>
 > For health semantics, Lambda failure modes, CDK deployment steps, and rollback guidance, see [OPERATIONS_RUNBOOK.md](./docs/OPERATIONS_RUNBOOK.md).
 
 ---
