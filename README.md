@@ -191,8 +191,10 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ### Full product walkthrough: Landing Page → Dashboard (Upload & Run) → Synthesis Report + Governance Trace → Job History → Job Detail
 
-> [!IMPORTANT]
-> **Manual Download Protocol:** To view the high-resolution product demo directly, navigate to [spectra-ai-demo.mp4](https://github.com/GeorgiDS9/spectra-ai/blob/main/public/spectra-ai-demo.mp4) and select **"View raw"** to initialize the local download.
+> [!TIP]
+> **Watch the Spectra Pipeline in Action:** Click the link below to view the high-resolution operational walkthrough—covering the landing sequence, parallel multi-agent execution, live graph updates, and the final synthesis report.
+> 
+> **[▶️ Spectra AI: Operational Demo Walkthrough](https://github.com/GeorgiDS9/spectra-ai/releases/download/v0.1.0-demo/spectra-ai-demo.mov)**
 
 ---
 
