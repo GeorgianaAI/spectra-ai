@@ -43,10 +43,7 @@ export default function JobDetailPage() {
     () => job?.confidence_scores ?? { doc: 0, vision: 0, audio: 0 },
     [job],
   );
-  const governanceEntries = useMemo<GovernanceEntry[]>(
-    () => job?.governance_trace ?? [],
-    [job],
-  );
+  const governanceEntries = useMemo<GovernanceEntry[]>(() => job?.governance_trace ?? [], [job]);
   const missionId = id ? `MISSION-${id.slice(0, 6).toUpperCase()}` : "MISSION";
 
   const handleDownloadPDF = useCallback(async () => {
@@ -59,57 +56,71 @@ export default function JobDetailPage() {
     const maxW = pageW - margin * 2;
     let y = 20;
     const checkPage = (needed: number) => {
-      if (y + needed > pageH - 15) { doc.addPage(); y = 20; }
+      if (y + needed > pageH - 15) {
+        doc.addPage();
+        y = 20;
+      }
     };
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text("SPECTRA AI — Synthesis Report", margin, y); y += 7;
+    doc.text("SPECTRA AI — Synthesis Report", margin, y);
+    y += 7;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`${missionId}  ·  ${new Date().toUTCString()}`, margin, y); y += 5;
+    doc.text(`${missionId}  ·  ${new Date().toUTCString()}`, margin, y);
+    y += 5;
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageW - margin, y); y += 6;
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
-    doc.text("CONFIDENCE SCORES", margin, y); y += 5;
+    doc.text("CONFIDENCE SCORES", margin, y);
+    y += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(60, 60, 60);
     doc.text(
       `Document: ${confidenceScores.doc}%   Vision: ${confidenceScores.vision}%   Audio: ${confidenceScores.audio}%`,
-      margin, y,
-    ); y += 7;
+      margin,
+      y,
+    );
+    y += 7;
     doc.setDrawColor(220, 220, 220);
-    doc.line(margin, y, pageW - margin, y); y += 6;
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
 
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
-    doc.text("SYNTHESIS REPORT", margin, y); y += 5;
+    doc.text("SYNTHESIS REPORT", margin, y);
+    y += 5;
     const clean = reportText.replace(/\[[DVA]\d+\]/g, "");
     doc.setFont("helvetica", "normal");
     doc.setFontSize(9);
     doc.setTextColor(30, 30, 30);
     for (const line of doc.splitTextToSize(clean, maxW)) {
       checkPage(5);
-      doc.text(line, margin, y); y += 5;
+      doc.text(line, margin, y);
+      y += 5;
     }
 
     if (governanceEntries.length > 0) {
       y += 4;
       checkPage(12);
       doc.setDrawColor(200, 200, 200);
-      doc.line(margin, y, pageW - margin, y); y += 6;
+      doc.line(margin, y, pageW - margin, y);
+      y += 6;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(40, 40, 40);
-      doc.text("NIST AI RMF — GOVERNANCE TRACE", margin, y); y += 6;
+      doc.text("NIST AI RMF — GOVERNANCE TRACE", margin, y);
+      y += 6;
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7);
       doc.setTextColor(80, 80, 80);
@@ -119,7 +130,8 @@ export default function JobDetailPage() {
       doc.text("%", margin + 130, y);
       doc.text("NIST Control", margin + 140, y);
       y += 4;
-      doc.line(margin, y, pageW - margin, y); y += 4;
+      doc.line(margin, y, pageW - margin, y);
+      y += 4;
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
       for (const entry of governanceEntries) {
@@ -132,7 +144,10 @@ export default function JobDetailPage() {
         doc.text(finding[0] ?? "", margin + 40, y);
         doc.text(`${entry.confidence}%`, margin + 130, y);
         doc.text(entry.nistControlId ?? entry.nistTag, margin + 140, y);
-        if (finding.length > 1) { y += 4; doc.text(finding[1], margin + 40, y); }
+        if (finding.length > 1) {
+          y += 4;
+          doc.text(finding[1], margin + 40, y);
+        }
         y += 5;
       }
     }
@@ -174,7 +189,10 @@ export default function JobDetailPage() {
               }}
             >
               {new Date(job.created_at).toLocaleString(undefined, {
-                month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+                month: "short",
+                day: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
               })}
             </span>
           ) : undefined
@@ -198,12 +216,14 @@ export default function JobDetailPage() {
           </span>
         )}
         <GhostButton href="/dashboard/history">← Back to History</GhostButton>
-        <GhostButton href="/">← Back to Base</GhostButton>
+        <GhostButton href="/dashboard">← Back to Dashboard</GhostButton>
       </PageHeader>
 
       {loading && (
         <GlassPanel>
-          <p style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace", fontSize: "0.75rem" }}>
+          <p
+            style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace", fontSize: "0.75rem" }}
+          >
             Loading...
           </p>
         </GlassPanel>
