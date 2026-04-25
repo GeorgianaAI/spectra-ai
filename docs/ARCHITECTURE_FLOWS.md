@@ -69,7 +69,7 @@ flowchart TD
 
     subgraph DATA ["Data Layer"]
         DB["Supabase PostgreSQL\njobs · Auth · RLS"]:::data
-        VEC["Upstash Vector\nsession-namespaced {jobId/userId/}"]:::data
+        VEC["Upstash Vector\nsession-namespaced {jobId_userId}"]:::data
         RDB["Upstash Redis\nrate limiting · LangGraph checkpointing"]:::data
     end
 
@@ -466,7 +466,7 @@ A CloudWatch Events scheduled rule (`spectra-jobprocessor-warmup`) fires every 5
 
 ### Vector Lifecycle
 
-`vector-cleanup.ts` deletes all `{jobId}/{userId}/` vectors from Upstash regardless of pipeline state:
+`vector-cleanup.ts` deletes the `{jobId}_{userId}` namespace from Upstash regardless of pipeline state:
 
 - Called after `completeJob()` on success
 - Called in the catch block on failure (errors swallowed — cleanup never blocks job status)

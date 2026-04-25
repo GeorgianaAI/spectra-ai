@@ -165,8 +165,9 @@ At runtime, Spectra:
 - **Scores the output** per modality (Document / Vision / Audio confidence %) via the LLM-as-Judge Auditor.
 - **Produces a governance trace** — per-finding decision log with NIST AI RMF tags (GOVERN / MAP / MEASURE / MANAGE).
 - **Flags conflicts** between modalities in the report: `[CONFLICT: D1 vs V2]`.
-- **Isolates retrieval per session** — Upstash Vector namespaced by `{jobId}/{userId}/`.
+- **Isolates retrieval per session** — Upstash Vector namespaced by `{jobId}_{userId}`.
 - **Redacts PII** before vectorization (Document Agent).
+- **Persists job history** — past runs stored in Supabase, accessible from the History page with links to per-job synthesis and governance detail.
 
 ---
 
@@ -189,17 +190,11 @@ Three percentage scores from the LLM-as-Judge Auditor: Document, Vision, Audio �
 
 ### 3) Governance Trace
 
-A decision log table — per-finding entries with timestamp, agent, finding summary, confidence score, and NIST AI RMF tag. Collapsed by default, expandable. Exportable as structured JSON.
+A decision log table — per-finding entries with timestamp, agent, finding summary, confidence score, and NIST AI RMF tag (GOVERN / MAP / MEASURE / MANAGE). Collapsed by default, expandable. Included in the PDF export.
 
-### 4) Job History
+### 4) Job History & Detail View
 
-Full history of past runs — status, modalities used, timestamps, links to job detail. Supports replay and review.
-
-### 5) NIST AI RMF Compliance Ledger
-
-Full governance ledger across all jobs — traceable control evidence mapped to AI risk management. Portfolio differentiator.
-
-### 6)
+History page lists past runs with mission ID, date, modalities used, status, and average confidence. Completed jobs link to a full detail view showing the synthesis report, confidence bars, governance trace, and PDF download — all re-rendered from persisted Supabase state.
 
 ---
 
@@ -218,8 +213,9 @@ Full governance ledger across all jobs — traceable control evidence mapped to 
 1. Upload one or more files — PDF, image, audio. Or use the preset sample files (no upload needed).
 2. Click **Run Analysis**.
 3. Watch the agent graph update live as each specialist node processes its input.
-4. Read the streaming synthesis report with inline citations and conflict flags.
+4. Read the synthesis report with inline citations and conflict flags.
 5. Review the confidence scores and governance trace at the bottom.
+6. Download the full report as PDF, or navigate to **History** to review past runs and re-open any completed job.
 
 ### 🔐 Demo Access
 
