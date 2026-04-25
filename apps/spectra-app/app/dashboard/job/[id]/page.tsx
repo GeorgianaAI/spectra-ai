@@ -8,6 +8,7 @@ import SynthesisPanel from "@/components/SynthesisPanel";
 import GovernanceTrace from "@/components/GovernanceTrace";
 import GhostButton from "@/components/GhostButton";
 import DownloadPDFButton from "@/components/DownloadPDFButton";
+import PageHeader from "@/components/PageHeader";
 import { fetchJobStatus, readAuthToken } from "@/lib/api";
 import type { Job, ConfidenceScores, GovernanceEntry } from "@/lib/types";
 
@@ -156,81 +157,49 @@ export default function JobDetailPage() {
         color: "#fff",
       }}
     >
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1.25rem",
-          marginBottom: "2rem",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          paddingBottom: "1.25rem",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "1.25rem",
-            fontWeight: 800,
-            letterSpacing: "0.2em",
-            color: "#00f2ff",
-            textTransform: "uppercase",
-            margin: 0,
-          }}
-        >
-          SPECTRA AI{" "}
-          <span
-            style={{
-              fontWeight: 500,
-              letterSpacing: "0.05em",
-              background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
-            }}
-          >
-            {missionId}
-          </span>
-        </h1>
-
-        {job && (
-          <span
-            style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
-              borderRadius: "4px",
-              padding: "3px 10px",
-              fontSize: "0.7rem",
-              fontFamily: "monospace",
-              color: "rgba(255,255,255,0.4)",
-              letterSpacing: "0.1em",
-            }}
-          >
-            {new Date(job.created_at).toLocaleString(undefined, {
-              month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
-            })}
-          </span>
-        )}
-
-        <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem", alignItems: "center" }}>
-          {job?.status && (
+      <PageHeader
+        subtitle={missionId}
+        chip={
+          job ? (
             <span
               style={{
-                fontSize: "0.65rem",
-                color: statusColor,
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
-                padding: "4px 12px",
-                borderRadius: "50px",
-                border: `1px solid ${statusColor}40`,
-                background: `${statusColor}08`,
+                background: "rgba(255,255,255,0.03)",
+                border: "1px solid rgba(255,255,255,0.1)",
+                borderRadius: "4px",
+                padding: "3px 10px",
+                fontSize: "0.7rem",
+                fontFamily: "monospace",
+                color: "rgba(255,255,255,0.4)",
+                letterSpacing: "0.1em",
               }}
             >
-              ● {job.status.toUpperCase()}
+              {new Date(job.created_at).toLocaleString(undefined, {
+                month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+              })}
             </span>
-          )}
-          <GhostButton href="/dashboard/history">← Back to History</GhostButton>
-          <GhostButton href="/">← Back to Base</GhostButton>
-        </div>
-      </header>
+          ) : undefined
+        }
+      >
+        {job?.status && (
+          <span
+            style={{
+              fontSize: "0.65rem",
+              color: statusColor,
+              fontWeight: 700,
+              textTransform: "uppercase",
+              letterSpacing: "0.15em",
+              padding: "4px 12px",
+              borderRadius: "50px",
+              border: `1px solid ${statusColor}40`,
+              background: `${statusColor}08`,
+            }}
+          >
+            ● {job.status.toUpperCase()}
+          </span>
+        )}
+        <GhostButton href="/dashboard/history">← Back to History</GhostButton>
+        <GhostButton href="/">← Back to Base</GhostButton>
+      </PageHeader>
 
       {loading && (
         <GlassPanel>
