@@ -92,7 +92,7 @@ Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api
 | Vector store      | Upstash Vector (session-namespaced)                                    |
 | Database          | Supabase PostgreSQL + Auth (RLS)                                       |
 | Job orchestration | Inngest (event-driven, retries, state tracking)                        |
-| Rate limiting     | Upstash Redis (10 req/day/IP sliding window, configurable)             |
+| Rate limiting     | Upstash Redis (3 req/day/IP sliding window)                            |
 | Error tracking    | Sentry (client + server + Lambda)                                      |
 | CI                | GitHub Actions (lint, typecheck, Vitest, Playwright)                   |
 
@@ -252,7 +252,7 @@ Email:    demo@spectra.app
 Password: spectra-demo
 ```
 
-The demo account is a regular user. No special permissions. Rate limit: 10 runs/day/IP (configurable in `apps/spectra-app/app/api/upload/presign/route.ts`). For production, restrict to 1-2 runs/day/IP.
+The demo account is a regular user. No special permissions. Rate limit: 3 runs/day/IP.
 
 ---
 

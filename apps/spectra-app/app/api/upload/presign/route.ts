@@ -12,15 +12,25 @@ const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(10, "1 d"),
+  limiter: Ratelimit.slidingWindow(3, "1 d"),
   prefix: "rl:upload",
 });
 
 const ALLOWED_TYPES: Record<
   string,
-  { modality: "document" | "image" | "audio"; field: "document" | "vision" | "audio"; ext: string; maxBytes: number }
+  {
+    modality: "document" | "image" | "audio";
+    field: "document" | "vision" | "audio";
+    ext: string;
+    maxBytes: number;
+  }
 > = {
-  "application/pdf": { modality: "document", field: "document", ext: "pdf", maxBytes: 2 * 1024 * 1024 },
+  "application/pdf": {
+    modality: "document",
+    field: "document",
+    ext: "pdf",
+    maxBytes: 2 * 1024 * 1024,
+  },
   "image/jpeg": { modality: "image", field: "vision", ext: "jpg", maxBytes: 1 * 1024 * 1024 },
   "image/png": { modality: "image", field: "vision", ext: "png", maxBytes: 1 * 1024 * 1024 },
   "image/webp": { modality: "image", field: "vision", ext: "webp", maxBytes: 1 * 1024 * 1024 },
@@ -49,7 +59,7 @@ export async function POST(request: NextRequest) {
   const { success } = await ratelimit.limit(ip);
   if (!success) {
     return NextResponse.json(
-      { error: "Rate limit exceeded — 10 jobs per day", code: "RATE_LIMITED" },
+      { error: "Rate limit exceeded — 3 jobs per day", code: "RATE_LIMITED" },
       { status: 429 },
     );
   }
@@ -75,7 +85,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request body", code: "BAD_REQUEST" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body", code: "BAD_REQUEST" },
+      { status: 400 },
+    );
   }
 
   const { files } = parsed.data;
@@ -100,7 +113,10 @@ export async function POST(request: NextRequest) {
     const allowed = ALLOWED_TYPES[meta.contentType];
     if (!allowed) {
       return NextResponse.json(
-        { error: `Unsupported content type for ${field}: ${meta.contentType}`, code: "BAD_REQUEST" },
+        {
+          error: `Unsupported content type for ${field}: ${meta.contentType}`,
+          code: "BAD_REQUEST",
+        },
         { status: 400 },
       );
     }
