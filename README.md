@@ -176,31 +176,54 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ---
 
-## 🖼️ Product Snapshot
+## 📹 Operational Demo
 
-> Spectra AI Landing Page
+### Full product walkthrough: Landing Page → Dashboard (Upload & Run) → Synthesis Report + Governance Trace → Job History → Job Detail
 
-## ![Spectra AI Landing Page](./docs/assets/vanguard-home-page.png)
+> [!IMPORTANT]
+> **Manual Download Protocol:** To view the high-resolution product demo directly, navigate to [spectra-ai-demo.mp4](https://github.com/GeorgiDS9/spectra-ai/blob/main/public/spectra-ai-demo.mp4) and select **"View raw"** to initialize the local download.
 
-### Vanguard Command Center - _Autonomous Reconnaissance Terminal_
+---
 
-> Vanguard Command Stream - Empty State
+## 🖼️ Spectra AI Product Snapshot
 
-## ![Vanguard Command Stream - Empty State](./docs/assets/vanguard-command-empty-state.png)
+### Landing Page
 
-> Vanguard Command Stream - Mission Timeline
+> ![Spectra AI Landing Page](./docs/assets/spectra-ai-landing-page.png)
 
-## ![Vanguard Command Stream - Mission Timeline](./docs/assets/vanguard-command-mission-timeline.png)
+### Dashboard
 
-> Vanguard Command Stream - Authorization Step
+> Processed Job - All 3 Modalities
 
-## ![Vanguard Command Stream - Authorization Step](./docs/assets/vanguard-command-authorization.png)
+> ![Spectra AI Dashboard - Processed Job](./docs/assets/spectra-ai-processing-complete.png)
 
-> Vanguard Command Stream - Rehydrated Session
+> Processed Job - One Modality (PDF)
 
-## ![Vanguard Command Stream - Restored Session](./docs/assets/vanguard-command-restored-session.png)
+> ![Spectra AI Dashboard - Processed PDF Job](./docs/assets/spectra-ai-pdf-processing-complete.png)
 
-### Vanguard Governance Ledger - _NIST AI RMF v1.0 Governance Report: Automated Audit Trail & Integrity Score_
+> Error Status - Rate Limit
+
+> ![Spectra AI Dashboard - Rate Limit Error](./docs/assets/spectra-ai-rate-limit-error.png)
+
+> Blocked Status — Prompt Injection Detection
+
+> ![Spectra AI Dashboard - Blocked Prompt Injection](./docs/assets/spectra-ai-blocked-prompt-injection.png)
+
+> Governance Trace
+
+> ![Spectra AI Dashboard - Governance Trace](./docs/assets/spectra-ai-governance-trace.png)
+
+> Job PDF Download
+
+> ![Spectra AI Dashboard - Governance Ledger](./docs/assets/spectra-ai-job-pdf-download.png)
+
+### Job History
+
+> ![Spectra AI Job History Page](./docs/assets/spectra-ai-job-history.png)
+
+### Job Detail Page
+
+> ![Spectra AI Job Detail Page](./docs/assets/spectra-ai-job-page.png)
 
 ---
 
@@ -268,6 +291,7 @@ History page lists past runs with mission ID, date, modalities used, status, and
 6. Download the full report as PDF, or navigate to **History** to review past runs and re-open any completed job.
 
 > **Tips for best results**
+>
 > - Upload content that covers the **same topic across modalities** — a PDF report, a screenshot of a chart from that report, and a voice note summarising it. The synthesis layer is designed to merge and cross-reference, so unrelated files will produce a shallow output.
 > - The Document agent runs RAG over the PDF — longer, denser documents produce richer citations than single-page files.
 > - Audio works best with clear speech under 30 seconds. Whisper handles accents and technical vocabulary well; heavy background noise degrades transcription quality.
