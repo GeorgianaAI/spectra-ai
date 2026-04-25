@@ -271,14 +271,13 @@ The demo account is a regular user. No special permissions. Rate limit: 3 runs/d
 
 ### Setup (Root)
 
-Install dev dependencies and initialize git hooks:
+Install root dev dependencies — the `prepare` script runs `husky` automatically, wiring up the pre-commit hook:
 
 ```bash
 npm install
-npx husky install
 ```
 
-This sets up Prettier and lint-staged for automatic code formatting on commit. From now on, `npm commit` will auto-format staged `.ts`/`.tsx` files before the commit lands — no separate formatting commits needed.
+From this point on, every `git commit` auto-formats staged `.ts`/`.tsx` files with Prettier before the commit lands — no separate formatting commits needed.
 
 ### Backend (spectra-api)
 
