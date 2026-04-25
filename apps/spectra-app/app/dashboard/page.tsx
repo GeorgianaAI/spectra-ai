@@ -10,7 +10,8 @@ import AgentGraph from "@/components/AgentGraph";
 import SynthesisPanel from "@/components/SynthesisPanel";
 import GovernanceTrace from "@/components/GovernanceTrace";
 import GhostButton from "@/components/GhostButton";
-import { FileDown } from "lucide-react";
+import DownloadPDFButton from "@/components/DownloadPDFButton";
+import PageHeader from "@/components/PageHeader";
 import { uploadFiles, fetchJobStatus, fetchJobTrace } from "@/lib/api";
 import { POLL_INTERVAL_MS } from "@/lib/constants";
 import type {
@@ -312,91 +313,58 @@ export default function DashboardPage() {
       }}
     >
       {/* Header */}
-      <header
-        style={{
-          display: "flex",
-          alignItems: "center",
-          gap: "1.25rem",
-          marginBottom: "2rem",
-          borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
-          paddingBottom: "1.25rem",
-        }}
-      >
-        <h1
-          style={{
-            fontSize: "1.25rem",
-            fontWeight: 800,
-            letterSpacing: "0.2em",
-            color: "#00f2ff",
-            textTransform: "uppercase",
-            margin: 0,
-          }}
-        >
-          SPECTRA AI{" "}
+      <PageHeader
+        subtitle="DASHBOARD"
+        chip={
           <span
             style={{
-              fontWeight: 500,
-              letterSpacing: "0.05em",
-              background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              background: "rgba(255,255,255,0.03)",
+              border: "1px solid rgba(255,255,255,0.1)",
+              borderRadius: "4px",
+              padding: "3px 10px",
+              fontSize: "0.7rem",
+              fontFamily: "monospace",
+              color: "rgba(255,255,255,0.4)",
+              letterSpacing: "0.1em",
             }}
           >
-            DASHBOARD
+            {missionId}
           </span>
-        </h1>
-
-        <span
-          style={{
-            background: "rgba(255,255,255,0.03)",
-            border: "1px solid rgba(255,255,255,0.1)",
-            borderRadius: "4px",
-            padding: "3px 10px",
-            fontSize: "0.7rem",
-            fontFamily: "monospace",
-            color: "rgba(255,255,255,0.4)",
-            letterSpacing: "0.1em",
-          }}
-        >
-          {missionId}
-        </span>
-
-        <div style={{ marginLeft: "auto", display: "flex", gap: "0.75rem", alignItems: "center" }}>
-          {error && (
-            <span
-              style={{
-                fontSize: "0.65rem",
-                color: statusColor,
-                fontFamily: "monospace",
-                maxWidth: "600px",
-                wordBreak: "break-word",
-                whiteSpace: "normal",
-              }}
-              title={error}
-            >
-              {error}
-            </span>
-          )}
+        }
+      >
+        {error && (
           <span
             style={{
               fontSize: "0.65rem",
               color: statusColor,
-              fontWeight: 700,
-              textTransform: "uppercase",
-              letterSpacing: "0.15em",
-              padding: "4px 12px",
-              borderRadius: "50px",
-              border: `1px solid ${statusColor}40`,
-              background: `${statusColor}08`,
+              fontFamily: "monospace",
+              maxWidth: "600px",
+              wordBreak: "break-word",
+              whiteSpace: "normal",
             }}
+            title={error}
           >
-            ● STATUS: {statusLabel}
+            {error}
           </span>
-
-          <GhostButton href="/dashboard/history">History</GhostButton>
-          <GhostButton href="/">← Back to Base</GhostButton>
-        </div>
-      </header>
+        )}
+        <span
+          style={{
+            fontSize: "0.65rem",
+            color: statusColor,
+            fontWeight: 700,
+            textTransform: "uppercase",
+            letterSpacing: "0.15em",
+            padding: "4px 12px",
+            borderRadius: "50px",
+            border: `1px solid ${statusColor}40`,
+            background: `${statusColor}08`,
+          }}
+        >
+          ● STATUS: {statusLabel}
+        </span>
+        <GhostButton href="/dashboard/history">History</GhostButton>
+        <GhostButton href="/">← Back to Base</GhostButton>
+      </PageHeader>
 
       {/* Main grid */}
       <div
@@ -434,34 +402,7 @@ export default function DashboardPage() {
         <GlassPanel style={{ minHeight: "450px" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "1.25rem" }}>
             <SectionLabel style={{ marginBottom: 0 }}>ANALYSIS // SYNTHESIS_PANEL</SectionLabel>
-            {reportText && (
-              <button
-                type="button"
-                onClick={handleDownloadPDF}
-                title="Download synthesis as PDF"
-                aria-label="Download synthesis as PDF"
-                style={{
-                  marginLeft: "auto",
-                  background: "none",
-                  border: "1px solid rgba(0,242,255,0.25)",
-                  borderRadius: "4px",
-                  padding: "3px 8px",
-                  color: "rgba(0,242,255,0.7)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  fontSize: "0.6rem",
-                  fontFamily: "monospace",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  transition: "border-color 0.15s, color 0.15s",
-                }}
-              >
-                <FileDown size={12} />
-                PDF
-              </button>
-            )}
+            {reportText && <DownloadPDFButton onClick={handleDownloadPDF} />}
           </div>
           <SynthesisPanel reportText={reportText} confidenceScores={confidenceScores} />
         </GlassPanel>

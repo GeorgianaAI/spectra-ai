@@ -14,6 +14,34 @@ Built on **LangGraph**, **Claude Sonnet**, **GPT-4o**, and **Whisper**, with **A
 
 ## 🏗️ Core Architecture
 
+### Folder Structure
+
+```
+spectra-ai/
+├── apps/
+│   ├── spectra-app/              Next.js 16 frontend on Vercel
+│   │   ├── app/                  App Router: pages, layouts, API routes
+│   │   ├── components/           Reusable React components
+│   │   ├── lib/                  Utilities: API client, types, constants
+│   │   └── middleware.ts         JWT guard for /dashboard and /api
+│   ├── spectra-api/              AWS CDK + Lambda backend
+│   │   ├── bin/                  CDK entry point
+│   │   ├── lib/stacks/           CDK stack definitions
+│   │   ├── src/
+│   │   │   ├── handlers/         Lambda entry points (ingestHandler, jobProcessor)
+│   │   │   ├── graph/            LangGraph agent orchestration + nodes
+│   │   │   └── lib/              Shared schemas (Zod), utilities, SQL
+│   │   ├── migrations/           Supabase SQL migrations
+│   │   └── .env.example          Environment template
+│   └── .prettierrc                Prettier config (shared across apps)
+├── docs/                          Architecture & operations documentation
+├── .husky/                        Git pre-commit hooks
+├── package.json                   Root dev dependencies (husky, lint-staged, prettier)
+└── CLAUDE.md                      Project rules & architecture constraints
+```
+
+Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api deploys via CDK to AWS.
+
 ### Agent Graph
 
 ```
@@ -240,6 +268,16 @@ The demo account is a regular user. No special permissions. Rate limit: 3 runs/d
 - Upstash Vector + Redis databases created
 - Inngest account
 - LangSmith account
+
+### Setup (Root)
+
+Install root dev dependencies — the `prepare` script runs `husky` automatically, wiring up the pre-commit hook:
+
+```bash
+npm install
+```
+
+From this point on, every `git commit` auto-formats staged `.ts`/`.tsx` files with Prettier before the commit lands — no separate formatting commits needed.
 
 ### Backend (spectra-api)
 
