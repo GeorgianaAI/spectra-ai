@@ -139,11 +139,13 @@ export default function DashboardPage() {
       const { jobId: id } = await uploadFiles(files, token);
       setJobId(id);
       setJobStatus("pending");
-      setAgentStatuses(deriveAgentStatuses("pending", {
-        document: !!files.document,
-        vision: !!files.vision,
-        audio: !!files.audio,
-      }));
+      setAgentStatuses(
+        deriveAgentStatuses("pending", {
+          document: !!files.document,
+          vision: !!files.vision,
+          audio: !!files.audio,
+        }),
+      );
       startPolling(id, token);
     } catch (err) {
       setError(err instanceof Error ? err.message : "Upload failed.");
@@ -165,44 +167,55 @@ export default function DashboardPage() {
 
     let y = 20;
     const checkPage = (needed: number) => {
-      if (y + needed > pageH - 15) { doc.addPage(); y = 20; }
+      if (y + needed > pageH - 15) {
+        doc.addPage();
+        y = 20;
+      }
     };
 
     // Header
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
-    doc.text("SPECTRA AI — Synthesis Report", margin, y); y += 7;
+    doc.text("SPECTRA AI — Synthesis Report", margin, y);
+    y += 7;
 
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(100, 100, 100);
-    doc.text(`${mid}  ·  ${new Date().toUTCString()}`, margin, y); y += 5;
+    doc.text(`${mid}  ·  ${new Date().toUTCString()}`, margin, y);
+    y += 5;
 
     doc.setDrawColor(200, 200, 200);
-    doc.line(margin, y, pageW - margin, y); y += 6;
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
 
     // Confidence scores
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
-    doc.text("CONFIDENCE SCORES", margin, y); y += 5;
+    doc.text("CONFIDENCE SCORES", margin, y);
+    y += 5;
     doc.setFont("helvetica", "normal");
     doc.setFontSize(8);
     doc.setTextColor(60, 60, 60);
     doc.text(
       `Document: ${confidenceScores.doc}%   Vision: ${confidenceScores.vision}%   Audio: ${confidenceScores.audio}%`,
-      margin, y,
-    ); y += 7;
+      margin,
+      y,
+    );
+    y += 7;
 
     doc.setDrawColor(220, 220, 220);
-    doc.line(margin, y, pageW - margin, y); y += 6;
+    doc.line(margin, y, pageW - margin, y);
+    y += 6;
 
     // Synthesis report
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
-    doc.text("SYNTHESIS REPORT", margin, y); y += 5;
+    doc.text("SYNTHESIS REPORT", margin, y);
+    y += 5;
 
     const clean = reportText.replace(/\[[DVA]\d+\]/g, "");
     doc.setFont("helvetica", "normal");
@@ -211,7 +224,8 @@ export default function DashboardPage() {
     const reportLines = doc.splitTextToSize(clean, maxW);
     for (const line of reportLines) {
       checkPage(5);
-      doc.text(line, margin, y); y += 5;
+      doc.text(line, margin, y);
+      y += 5;
     }
 
     // Governance trace
@@ -219,12 +233,14 @@ export default function DashboardPage() {
       y += 4;
       checkPage(12);
       doc.setDrawColor(200, 200, 200);
-      doc.line(margin, y, pageW - margin, y); y += 6;
+      doc.line(margin, y, pageW - margin, y);
+      y += 6;
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(9);
       doc.setTextColor(40, 40, 40);
-      doc.text("NIST AI RMF — GOVERNANCE TRACE", margin, y); y += 6;
+      doc.text("NIST AI RMF — GOVERNANCE TRACE", margin, y);
+      y += 6;
 
       doc.setFont("helvetica", "bold");
       doc.setFontSize(7);
@@ -236,7 +252,8 @@ export default function DashboardPage() {
       doc.text("NIST Control", margin + 140, y);
       y += 4;
       doc.setDrawColor(210, 210, 210);
-      doc.line(margin, y, pageW - margin, y); y += 4;
+      doc.line(margin, y, pageW - margin, y);
+      y += 4;
 
       doc.setFont("helvetica", "normal");
       doc.setFontSize(7);
@@ -336,7 +353,7 @@ export default function DashboardPage() {
           <span
             style={{
               fontSize: "0.65rem",
-              color: statusColor,
+              color: isSecurityRejection ? "#f59e0b" : "#f87171",
               fontFamily: "monospace",
               maxWidth: "600px",
               wordBreak: "break-word",
