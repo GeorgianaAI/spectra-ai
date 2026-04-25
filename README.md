@@ -178,7 +178,29 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ## 🖼️ Product Snapshot
 
-> _(Screenshots added after Phase 5 deployment)_
+> Spectra AI Landing Page
+
+## ![Spectra AI Landing Page](./docs/assets/vanguard-home-page.png)
+
+### Vanguard Command Center - _Autonomous Reconnaissance Terminal_
+
+> Vanguard Command Stream - Empty State
+
+## ![Vanguard Command Stream - Empty State](./docs/assets/vanguard-command-empty-state.png)
+
+> Vanguard Command Stream - Mission Timeline
+
+## ![Vanguard Command Stream - Mission Timeline](./docs/assets/vanguard-command-mission-timeline.png)
+
+> Vanguard Command Stream - Authorization Step
+
+## ![Vanguard Command Stream - Authorization Step](./docs/assets/vanguard-command-authorization.png)
+
+> Vanguard Command Stream - Rehydrated Session
+
+## ![Vanguard Command Stream - Restored Session](./docs/assets/vanguard-command-restored-session.png)
+
+### Vanguard Governance Ledger - _NIST AI RMF v1.0 Governance Report: Automated Audit Trail & Integrity Score_
 
 ---
 
@@ -244,6 +266,13 @@ History page lists past runs with mission ID, date, modalities used, status, and
 4. Read the synthesis report with inline citations and conflict flags.
 5. Review the confidence scores and governance trace at the bottom.
 6. Download the full report as PDF, or navigate to **History** to review past runs and re-open any completed job.
+
+> **Tips for best results**
+> - Upload content that covers the **same topic across modalities** — a PDF report, a screenshot of a chart from that report, and a voice note summarising it. The synthesis layer is designed to merge and cross-reference, so unrelated files will produce a shallow output.
+> - The Document agent runs RAG over the PDF — longer, denser documents produce richer citations than single-page files.
+> - Audio works best with clear speech under 30 seconds. Whisper handles accents and technical vocabulary well; heavy background noise degrades transcription quality.
+> - You can upload a single modality if that is all you have — the graph skips inactive nodes automatically.
+> - Rate limit is **3 runs/day/IP** — plan your uploads before hitting Run.
 
 ### 🔐 Demo Access
 

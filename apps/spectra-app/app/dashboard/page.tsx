@@ -301,7 +301,9 @@ export default function DashboardPage() {
             ? isSecurityRejection
               ? "BLOCKED"
               : "FAILED"
-            : "NOMINAL";
+            : error
+              ? "ERROR"
+              : "NOMINAL";
 
   const statusColor =
     jobStatus === "completed"
@@ -312,7 +314,9 @@ export default function DashboardPage() {
           : "#f87171"
         : isRunning || isUploading
           ? "#00f2ff"
-          : "#00f2ff";
+          : error
+            ? "#f87171"
+            : "#00f2ff";
 
   return (
     <div
