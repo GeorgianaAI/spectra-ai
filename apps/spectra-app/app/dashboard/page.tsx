@@ -10,7 +10,7 @@ import AgentGraph from "@/components/AgentGraph";
 import SynthesisPanel from "@/components/SynthesisPanel";
 import GovernanceTrace from "@/components/GovernanceTrace";
 import GhostButton from "@/components/GhostButton";
-import { FileDown } from "lucide-react";
+import DownloadPDFButton from "@/components/DownloadPDFButton";
 import { uploadFiles, fetchJobStatus, fetchJobTrace } from "@/lib/api";
 import { POLL_INTERVAL_MS } from "@/lib/constants";
 import type {
@@ -434,34 +434,7 @@ export default function DashboardPage() {
         <GlassPanel style={{ minHeight: "450px" }}>
           <div style={{ display: "flex", alignItems: "center", marginBottom: "1.25rem" }}>
             <SectionLabel style={{ marginBottom: 0 }}>ANALYSIS // SYNTHESIS_PANEL</SectionLabel>
-            {reportText && (
-              <button
-                type="button"
-                onClick={handleDownloadPDF}
-                title="Download synthesis as PDF"
-                aria-label="Download synthesis as PDF"
-                style={{
-                  marginLeft: "auto",
-                  background: "none",
-                  border: "1px solid rgba(0,242,255,0.25)",
-                  borderRadius: "4px",
-                  padding: "3px 8px",
-                  color: "rgba(0,242,255,0.7)",
-                  cursor: "pointer",
-                  display: "flex",
-                  alignItems: "center",
-                  gap: "4px",
-                  fontSize: "0.6rem",
-                  fontFamily: "monospace",
-                  letterSpacing: "0.08em",
-                  textTransform: "uppercase",
-                  transition: "border-color 0.15s, color 0.15s",
-                }}
-              >
-                <FileDown size={12} />
-                PDF
-              </button>
-            )}
+            {reportText && <DownloadPDFButton onClick={handleDownloadPDF} />}
           </div>
           <SynthesisPanel reportText={reportText} confidenceScores={confidenceScores} />
         </GlassPanel>

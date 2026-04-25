@@ -102,7 +102,7 @@ export default function HistoryPage() {
               WebkitTextFillColor: "transparent",
             }}
           >
-            HISTORY
+            JOB HISTORY
           </span>
         </h1>
 
@@ -116,7 +116,9 @@ export default function HistoryPage() {
         <SectionLabel>OPERATOR // JOB_HISTORY</SectionLabel>
 
         {loading && (
-          <p style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace", fontSize: "0.75rem" }}>
+          <p
+            style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace", fontSize: "0.75rem" }}
+          >
             Loading...
           </p>
         )}
@@ -126,7 +128,9 @@ export default function HistoryPage() {
         )}
 
         {!loading && !error && jobs.length === 0 && (
-          <p style={{ color: "rgba(255,255,255,0.2)", fontFamily: "monospace", fontSize: "0.75rem" }}>
+          <p
+            style={{ color: "rgba(255,255,255,0.2)", fontFamily: "monospace", fontSize: "0.75rem" }}
+          >
             No jobs yet. Run your first analysis from the dashboard.
           </p>
         )}
@@ -149,7 +153,8 @@ export default function HistoryPage() {
                   style={{
                     padding: "0.3rem 0.5rem",
                     fontSize: "0.55rem",
-                    color: "rgba(255,255,255,0.2)",
+                    color: "rgba(255,255,255,0.4)",
+                    fontWeight: 500,
                     fontFamily: "monospace",
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
@@ -181,6 +186,7 @@ export default function HistoryPage() {
                       borderBottom: "1px solid rgba(255,255,255,0.04)",
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
+                      fontWeight: 500,
                       color: "#00f2ff",
                       letterSpacing: "0.05em",
                     }}

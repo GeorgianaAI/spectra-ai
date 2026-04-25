@@ -2,12 +2,12 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useRouter, useParams } from "next/navigation";
-import { FileDown } from "lucide-react";
 import GlassPanel from "@/components/GlassPanel";
 import SectionLabel from "@/components/SectionLabel";
 import SynthesisPanel from "@/components/SynthesisPanel";
 import GovernanceTrace from "@/components/GovernanceTrace";
 import GhostButton from "@/components/GhostButton";
+import DownloadPDFButton from "@/components/DownloadPDFButton";
 import { fetchJobStatus, readAuthToken } from "@/lib/api";
 import type { Job, ConfidenceScores, GovernanceEntry } from "@/lib/types";
 
@@ -203,7 +203,9 @@ export default function JobDetailPage() {
               letterSpacing: "0.1em",
             }}
           >
-            {new Date(job.created_at).toLocaleString()}
+            {new Date(job.created_at).toLocaleString(undefined, {
+              month: "short", day: "numeric", hour: "2-digit", minute: "2-digit",
+            })}
           </span>
         )}
 
@@ -249,33 +251,7 @@ export default function JobDetailPage() {
           <GlassPanel style={{ minHeight: "450px", marginBottom: "1.5rem" }}>
             <div style={{ display: "flex", alignItems: "center", marginBottom: "1.25rem" }}>
               <SectionLabel style={{ marginBottom: 0 }}>ANALYSIS // SYNTHESIS_PANEL</SectionLabel>
-              {reportText && (
-                <button
-                  type="button"
-                  onClick={handleDownloadPDF}
-                  title="Download synthesis as PDF"
-                  aria-label="Download synthesis as PDF"
-                  style={{
-                    marginLeft: "auto",
-                    background: "none",
-                    border: "1px solid rgba(0,242,255,0.25)",
-                    borderRadius: "4px",
-                    padding: "3px 8px",
-                    color: "rgba(0,242,255,0.7)",
-                    cursor: "pointer",
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    fontSize: "0.6rem",
-                    fontFamily: "monospace",
-                    letterSpacing: "0.08em",
-                    textTransform: "uppercase",
-                  }}
-                >
-                  <FileDown size={12} />
-                  PDF
-                </button>
-              )}
+              {reportText && <DownloadPDFButton onClick={handleDownloadPDF} />}
             </div>
             <SynthesisPanel reportText={reportText} confidenceScores={confidenceScores} />
           </GlassPanel>
