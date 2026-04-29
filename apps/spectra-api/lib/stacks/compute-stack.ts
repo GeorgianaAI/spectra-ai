@@ -32,7 +32,7 @@ export class ComputeStack extends cdk.Stack {
 
     this.ingestHandler = new lambdaNode.NodejsFunction(this, "IngestHandler", {
       functionName: "spectra-ingest-handler",
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       entry: path.join(__dirname, "../../src/handlers/ingestHandler.ts"),
       handler: "handler",
       timeout: cdk.Duration.seconds(30),
@@ -41,7 +41,7 @@ export class ComputeStack extends cdk.Stack {
       bundling: {
         minify: false,
         sourceMap: false,
-        target: "node20",
+        target: "node22",
         // Bundle all deps — node_modules are NOT available in Lambda without bundling
         externalModules: [],
       },
@@ -74,7 +74,7 @@ export class ComputeStack extends cdk.Stack {
 
     this.jobProcessor = new lambdaNode.NodejsFunction(this, "JobProcessor", {
       functionName: "spectra-job-processor",
-      runtime: lambda.Runtime.NODEJS_20_X,
+      runtime: lambda.Runtime.NODEJS_22_X,
       entry: path.join(__dirname, "../../src/handlers/jobProcessor.ts"),
       handler: "handler",
       // Agent graph needs time: 300s timeout, 1024MB for embedding/model calls
@@ -84,7 +84,7 @@ export class ComputeStack extends cdk.Stack {
       bundling: {
         minify: false,
         sourceMap: false,
-        target: "node20",
+        target: "node22",
         // Bundle all deps — node_modules are NOT available in Lambda without bundling
         externalModules: [],
         // pdf2json loads font metric files from __dirname-relative paths at runtime.
