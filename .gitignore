@@ -1,7 +1,7 @@
 # Spec — kept private, not committed
 SPEC.md
 **/SECURITY_ADVISORY.md
-**/EVALUATION_AND_CONTROLS
+**/EVALUATION_AND_CONTROLS.md
 
 # Node
 node_modules/
