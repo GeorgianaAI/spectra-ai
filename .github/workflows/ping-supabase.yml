@@ -1,0 +1,16 @@
+name: Ping Supabase (keep-alive)
+
+on:
+  schedule:
+    - cron: "0 9 * * 1" # Every Monday at 09:00 UTC
+  workflow_dispatch: # Allow manual trigger
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping SpectraAI Supabase
+        run: |
+          curl -sf -X GET "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
+            -o /dev/null && echo "SpectraAI: OK" || echo "SpectraAI: FAILED"
