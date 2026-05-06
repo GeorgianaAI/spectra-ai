@@ -372,8 +372,59 @@ npm install
 npm run dev
 ```
 
-### Maintenance
+## GitHub Actions Workflows
+
+SpectraAI uses three GitHub Actions workflows: pull request validation, dependency security audits, and a Supabase keep-alive to prevent connection spindown:
+
+### ci.yml — Pull Request Quality Gates
+
+**Trigger:** Every pull request (across all code).
+
+**What it runs:**
+
+- Lint (ESLint for spectra-app, Node.js API for spectra-api)
+- Type check (tsc --noEmit for TypeScript)
+- Build (next build for spectra-app)
+- Unit tests (Vitest for spectra-app)
+- E2E tests (Playwright for spectra-app)
+
+**Blocks merge if:** Any check fails.
+
+**Key characteristic:** **Required** — all PRs must pass before merge.
+
+### scheduled-audit.yml — Dependency Security Audit
 
 A **scheduled dependency audit** runs automatically on the 1st of each month at 09:00 UTC to catch vulnerabilities between commits. Manually trigger via `workflow_dispatch` in the Actions tab at any time. The workflow reports only — it does not auto-fix. If vulnerabilities are found, review the Actions output and resolve manually (`npm audit fix` or pin a specific version) before committing. See [OPERATIONS_RUNBOOK.md](./docs/OPERATIONS_RUNBOOK.md#dependency-maintenance) for procedures.
+
+**Trigger:**
+
+- **Automatic:** 1st of every month at 09:00 UTC
+- **Manual:** via `workflow_dispatch` in GitHub Actions tab
+
+**What it does:**
+
+- Runs `npm audit` on spectra-app and spectra-api
+- **Reports vulnerabilities only** — does not auto-fix
+
+**Key characteristic:** **Manual remediation required.** If critical vulnerabilities are found, review the audit results, create a fix branch, and merge into main.
+
+### ping-supabase.yml — Supabase Keep-Alive
+
+A **Supabase keep-alive ping** runs automatically every Monday at 09:00 UTC — sends a simple curl request to the Supabase REST API to ensure the database connection stays warm. This prevents connection spindown on free/low-activity tiers. No human action required; fully automatic and idempotent.
+
+**Trigger:**
+
+- **Automatic:** Every Monday at 09:00 UTC
+- **Manual:** via `workflow_dispatch` in GitHub Actions tab
+
+**What it does:**
+
+- Sends a simple `curl` GET request to Supabase REST API
+- Authenticates with `NEXT_PUBLIC_SUPABASE_ANON_KEY`
+- Logs success or failure
+
+**Why:** Supabase (especially on free/low-activity tiers) may spin down inactive database connections. A weekly keep-alive ping ensures the database stays warm and responsive.
+
+**Key characteristic:** **Fully automatic** — no side effects, idempotent, no human action required.
 
 ---
