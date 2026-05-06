@@ -79,25 +79,25 @@ write to Supabase
 
 ## 🛠️ Tech Stack
 
-| Area              | Technology                                                                             |
-| :---------------- | :------------------------------------------------------------------------------------- |
-| Frontend          | Next.js 16 App Router · React 19 · TypeScript · Tailwind CSS 4 · Lucide Icons · AI SDK |
-| Backend IaC       | AWS CDK (TypeScript)                                                                   |
-| Compute           | AWS Lambda (Node.js 20.x)                                                              |
-| AI Routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                                    |
-| Agent Graph       | LangGraph (TypeScript) — StateGraph · Parallel Branching · Checkpointing               |
-| Parsing & Export  | pdf2json (Ingestion) · jspdf (Export)                                                  |
-| Validation        | Zod (Strict schema enforcement)                                                        |
-| Tracing           | LangSmith (End-to-end agent graph tracing · Standardized via @langchain/core )         |
-| Models            | Claude Sonnet · GPT-4o · Whisper · Nova Micro                                          |
-| Embeddings        | text-embedding-3-small                                                                 |
-| Vector Store      | Upstash Vector (Session-namespaced retrieval)                                          |
-| Database          | Supabase PostgreSQL (Relational schema + RLS)                                          |
-| Auth & Security   | Supabase Auth · jose (Edge-JWT) · RBAC Middleware                                      |
-| Job Orchestration | Inngest (Event-driven, retries, state tracking)                                        |
-| Rate Limiting     | Upstash Redis (Sliding window per IP)                                                  |
-| Error Tracking    | Sentry (Full-stack: Client + Server + Lambda)                                          |
-| Testing           | Vitest (Unit) · Red Teaming (Adversarial Suite) · Playwright (E2E)                     |
+| Area              | Technology                                                                                                                                                                                                                   |
+| :---------------- | :--------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend          | Next.js 16 App Router · React 19 · TypeScript · Tailwind CSS 4 · Lucide Icons · AI SDK                                                                                                                                       |
+| Backend IaC       | AWS CDK (TypeScript)                                                                                                                                                                                                         |
+| Compute           | AWS Lambda (Node.js 20.x)                                                                                                                                                                                                    |
+| AI Routing        | AWS Bedrock — Nova Micro (`amazon.nova-micro-v1:0`)                                                                                                                                                                          |
+| Agent Graph       | LangGraph (TypeScript) — StateGraph · Parallel Branching · Checkpointing                                                                                                                                                     |
+| Parsing & Export  | pdf2json (Ingestion) · jspdf (Export)                                                                                                                                                                                        |
+| Validation        | Zod (Strict schema enforcement)                                                                                                                                                                                              |
+| Tracing           | LangSmith (End-to-end agent graph tracing · Standardized via @langchain/core )                                                                                                                                               |
+| Models            | Claude Sonnet · GPT-4o · Whisper · Nova Micro                                                                                                                                                                                |
+| Embeddings        | text-embedding-3-small                                                                                                                                                                                                       |
+| Vector Store      | Upstash Vector (Session-namespaced retrieval)                                                                                                                                                                                |
+| Database          | Supabase PostgreSQL (Relational schema + RLS)                                                                                                                                                                                |
+| Auth & Security   | Supabase Auth · jose (Edge-JWT) · RBAC Middleware                                                                                                                                                                            |
+| Job Orchestration | Inngest (Event-driven, retries, state tracking)                                                                                                                                                                              |
+| Rate Limiting     | Upstash Redis (Sliding window per IP)                                                                                                                                                                                        |
+| Error Tracking    | Sentry (Full-stack: Client + Server + Lambda)                                                                                                                                                                                |
+| Testing           | Vitest (Unit) · Red Teaming (Adversarial Suite) · Playwright (E2E)                                                                                                                                                           |
 | CI/Workflows      | GitHub Actions ([ci.yml](README.md#ciyml--pull-request-quality-gates), [scheduled-audit.yml](README.md#scheduled-audityml--dependency-security-audit), [ping-supabase.yml](README.md#ping-supabaseyml--supabase-keep-alive)) |
 
 ---
@@ -131,9 +131,9 @@ Spectra AI deliberately matches model capability to task rather than defaulting 
 
 ## 📊 Evals & Quality Assurance
 
-Spectra AI implements a three-layer evaluation framework to measure synthesis quality, faithfulness, and hallucination risk at runtime and in CI. Every job is scored by an LLM-as-Judge Auditor (Claude Sonnet) producing per-modality confidence scores and a governance trace with NIST AI RMF tags. Programmatic evaluators emit structured quality metrics to LangSmith for real-time tracking, and golden-set Vitest tests validate retrieval pipeline quality offline with no API calls.
+Spectra AI implements a three-layer evaluation framework to measure synthesis quality, faithfulness, and hallucination risk at runtime and in CI. Every job is scored by an LLM-as-Judge Auditor (Claude Sonnet) producing per-modality confidence scores and a governance trace with NIST AI RMF tags. Programmatic evaluators emit structured quality metrics to LangSmith for real-time tracking, and golden-set Vitest tests validate retrieval pipeline quality offline with no API calls. _(Detailed evaluation architecture maintained locally to protect tactical defense mechanism details.)_
 
-See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for the full three-layer evaluation architecture, control metrics, and quality gates.
+See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for the full three-layer evaluation architecture, control metrics, and quality gates. _This document is maintained locally and intentionally not published to prevent detailed red-teaming methodology from being publicly available._
 
 ---
 
@@ -141,7 +141,7 @@ See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for the full
 
 Spectra AI enforces multi-stage guardrails to prevent prompt injection, PII leakage, and synthesis drift. All inputs are scanned before routing to agents; five PII pattern types (email, phone, SSN, credit card, UK NINO) are redacted before vectorization; synthesis output is validated for length, injection re-check, and citation presence; and access is protected by per-IP rate limiting, session-namespaced vector retrieval, and hard billing ceiling at $15/month.
 
-See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for complete guardrail specifications, test coverage, and defense-in-depth rationale.
+See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for complete guardrail specifications, test coverage, and defense-in-depth rationale. _Maintained locally, not public_.
 
 ---
 
@@ -150,12 +150,14 @@ See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for complete
 Spectra AI is architected around **NIST AI Risk Management Framework** (GOVERN / MAP / MEASURE / MANAGE) and designed for regulatory compliance across GDPR, EU AI Act, CCPA/CPRA, and HIPAA-adjacent use cases.
 
 **Governance & Transparency:**
+
 - Every job produces an auditable **governance trace** with NIST control IDs, agent findings, confidence scores, and timestamps
 - PII is redacted before processing (5 patterns: email, phone, SSN, credit card, UK NINO)
 - Users control their data via **Supabase RLS** (row-level security)
 - Model choices documented with capabilities, limitations, and bias mitigation per task
 
 **Data Protection:**
+
 - Subprocessors (Anthropic, OpenAI, AWS) are SOC 2 Type II compliant
 - Users processing regulated data must sign Data Processing Agreements
 - Audit trail via Supabase + Sentry + LangSmith for compliance investigations
@@ -172,7 +174,7 @@ Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` �
 - **PII redaction coverage** — five pattern types (email, US phone, SSN, credit card, UK NINO), verified against false positives, duplicate labelling, and clean-text passthrough.
 - **Synthesis output guardrails** — length floor, injection re-check on LLM output, and citation tag presence validated before the auditor receives the report.
 
-See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence.
+See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence. _This document is maintained locally and intentionally not published to prevent detailed red-teaming methodology from being publicly available._
 
 ---
 
@@ -184,11 +186,11 @@ See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test s
 >
 > For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see [TECHNICAL_ADVISORY.md](./docs/TECHNICAL_ADVISORY.md).
 >
-> For the three-layer evaluation framework (LLM-as-Judge, programmatic evaluators, retrieval golden-set tests) and guardrail specifications (injection detection, PII redaction, synthesis validation, rate limiting), see [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md).
+> For the three-layer evaluation framework (LLM-as-Judge, programmatic evaluators, retrieval golden-set tests) and guardrail specifications (injection detection, PII redaction, synthesis validation, rate limiting), see [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md). _Maintained locally to protect tactical evaluation and defense mechanism details._
 >
 > For regulatory compliance (GDPR, EU AI Act, CCPA), model governance & model cards, data governance, audit trail specifications, and risk assessment framework, see [COMPLIANCE.md](./docs/COMPLIANCE.md).
 >
-> For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./docs/SECURITY_ADVISORY.md).
+> For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./docs/SECURITY_ADVISORY.md). _Maintained locally and intentionally not published to prevent detailed red-teaming methodology from being publicly available._
 >
 > For the AI engineering hardening roadmap — security controls, observability improvements, retrieval quality, and maturity grades across 7 AI engineering skills — see [HARDENING_ROADMAP.md](./docs/HARDENING_ROADMAP.md).
 >
@@ -232,7 +234,7 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 > [!TIP]
 > **Watch the Spectra Pipeline in Action:** Click the link below to view the high-resolution operational walkthrough—covering the landing sequence, parallel multi-agent execution, live graph updates, and the final synthesis report.
-> 
+>
 > **[▶️ Spectra AI: Operational Demo Walkthrough](https://github.com/GeorgiDS9/spectra-ai/releases/download/v0.1.0-demo/spectra-ai-demo.mov)**
 
 ---
