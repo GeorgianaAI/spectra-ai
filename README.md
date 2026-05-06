@@ -98,7 +98,7 @@ write to Supabase
 | Rate Limiting     | Upstash Redis (Sliding window per IP)                                                  |
 | Error Tracking    | Sentry (Full-stack: Client + Server + Lambda)                                          |
 | Testing           | Vitest (Unit) · Red Teaming (Adversarial Suite) · Playwright (E2E)                     |
-| CI                | GitHub Actions (Audit, Lint, Typecheck, Unit Tests, E2E Tests)                         |
+| CI/Workflows      | GitHub Actions ([ci.yml](README.md#ciyml--pull-request-quality-gates), [scheduled-audit.yml](README.md#scheduled-audityml--dependency-security-audit), [ping-supabase.yml](README.md#ping-supabaseyml--supabase-keep-alive)) |
 
 ---
 
