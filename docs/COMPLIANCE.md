@@ -504,5 +504,13 @@ For compliance audits, this table maps each NIST function/control to its framewo
 
 ---
 
+## Internal Documentation
+
+**Evaluation & Controls**, **Red Team Methodology**, and **Security Advisory** papers are maintained locally and intentionally not published to prevent detailed red-teaming methodology, injection patterns, and PII detection rules from being publicly available. These documents are for internal architectural knowledge and compliance investigation — sharing specific attack vectors and defense patterns creates unnecessary risk surface.
+
+**Public Documentation:** COMPLIANCE.md, ARCHITECTURE_FLOWS.md, TECHNICAL_ADVISORY.md, HARDENING_ROADMAP.md, OPERATIONS_RUNBOOK.md, and README.md are published. These cover governance frameworks, regulatory alignment, architectural rationale, and operational guidance without exposing tactical security details.
+
+---
+
 **Last Updated:** 2026-05-06  
 **Owner:** Architecture & Compliance
