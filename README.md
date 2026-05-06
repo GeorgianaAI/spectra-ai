@@ -4,11 +4,11 @@
 
 **Multimodal AI | Multi-Agent Graph | LangGraph Orchestration | LLM-as-Judge Auditor | NIST AI RMF Governance**
 
-**Spectra AI** is a multimodal intelligence agent that routes **documents, images, and audio** through a specialist multi-agent graph — processing all three modalities in parallel, merging findings into a single grounded cited report, and scoring the synthesis for faithfulness with an LLM-as-Judge Auditor.
+**Spectra AI** is a governance-first multimodal intelligence agent built on **NIST AI Risk Management Framework**. It routes **documents, images, and audio** through a specialist multi-agent graph — processing all three modalities in parallel, merging findings into a single grounded cited report, and scoring the synthesis for faithfulness with an LLM-as-Judge Auditor. Every job produces an auditable governance trace with NIST control IDs (GOVERN / MAP / MEASURE / MANAGE), enabling compliance investigations and risk traceability from finding to control.
 
-The premise is that real-world intelligence problems are never single-modality. A security analyst gets a PDF report, a screenshot of an anomaly, and a voice memo from a colleague — and has to reason across all three simultaneously. Spectra ingests all three, routes each to a specialized agent, and a synthesis layer produces a single cited output with the reasoning process visible live in the UI.
+The premise is that real-world intelligence problems are never single-modality. A security analyst gets a PDF report, a screenshot of an anomaly, and a voice memo from a colleague — and has to reason across all three simultaneously. Spectra ingests all three, routes each to a specialized agent, and a synthesis layer produces a single cited output with the reasoning process visible live in the UI — while maintaining an immutable audit trail.
 
-Built on **LangGraph**, **Claude Sonnet**, **GPT-4o**, and **Whisper**, with **AWS infrastructure** (S3, Lambda, Bedrock), **Inngest** for job orchestration, and a **live agent status dashboard** streaming results in real time. Deployed as two independently deployable units — **spectra-app** (Next.js 16 on Vercel) and **spectra-api** (AWS CDK + Lambda).
+Built on **LangGraph**, **Claude Sonnet**, **GPT-4o**, and **Whisper**, with **AWS infrastructure** (S3, Lambda, Bedrock), **Inngest** for job orchestration, and a **live agent status dashboard** streaming results in real time. Deployed as two independently deployable units — **spectra-app** (Next.js 16 on Vercel) and **spectra-api** (AWS CDK + Lambda). Governance-focused: NIST AI RMF alignment, SOC 2 subprocessors, PII redaction, RLS, LangSmith tracing.
 
 ---
 
@@ -129,6 +129,41 @@ Spectra AI deliberately matches model capability to task rather than defaulting 
 
 ---
 
+## 📊 Evals & Quality Assurance
+
+Spectra AI implements a three-layer evaluation framework to measure synthesis quality, faithfulness, and hallucination risk at runtime and in CI. Every job is scored by an LLM-as-Judge Auditor (Claude Sonnet) producing per-modality confidence scores and a governance trace with NIST AI RMF tags. Programmatic evaluators emit structured quality metrics to LangSmith for real-time tracking, and golden-set Vitest tests validate retrieval pipeline quality offline with no API calls.
+
+See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for the full three-layer evaluation architecture, control metrics, and quality gates.
+
+---
+
+## 🛡️ Guardrails & Defense Mechanisms
+
+Spectra AI enforces multi-stage guardrails to prevent prompt injection, PII leakage, and synthesis drift. All inputs are scanned before routing to agents; five PII pattern types (email, phone, SSN, credit card, UK NINO) are redacted before vectorization; synthesis output is validated for length, injection re-check, and citation presence; and access is protected by per-IP rate limiting, session-namespaced vector retrieval, and hard billing ceiling at $15/month.
+
+See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for complete guardrail specifications, test coverage, and defense-in-depth rationale.
+
+---
+
+## ⚖️ Compliance & Data Governance
+
+Spectra AI is architected around **NIST AI Risk Management Framework** (GOVERN / MAP / MEASURE / MANAGE) and designed for regulatory compliance across GDPR, EU AI Act, CCPA/CPRA, and HIPAA-adjacent use cases.
+
+**Governance & Transparency:**
+- Every job produces an auditable **governance trace** with NIST control IDs, agent findings, confidence scores, and timestamps
+- PII is redacted before processing (5 patterns: email, phone, SSN, credit card, UK NINO)
+- Users control their data via **Supabase RLS** (row-level security)
+- Model choices documented with capabilities, limitations, and bias mitigation per task
+
+**Data Protection:**
+- Subprocessors (Anthropic, OpenAI, AWS) are SOC 2 Type II compliant
+- Users processing regulated data must sign Data Processing Agreements
+- Audit trail via Supabase + Sentry + LangSmith for compliance investigations
+
+See [COMPLIANCE.md](./docs/COMPLIANCE.md) for NIST AI RMF alignment, regulatory landscape, model governance & model cards, data governance policies, audit trail specifications, and risk assessment framework.
+
+---
+
 ## 🥊 Red-Team Validation
 
 Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 48 tests) covering three security-critical controls:
@@ -143,11 +178,15 @@ See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test s
 
 > [!TIP]
 >
-> **Architecture & Security Context:**
+> **Architecture, Security & Compliance Context:**
 >
 > For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
 >
 > For engineering rationale behind model-to-task selection, S3 pre-signed URL architecture, Upstash deduplication tradeoffs, and CDK cross-stack wiring decisions, see [TECHNICAL_ADVISORY.md](./docs/TECHNICAL_ADVISORY.md).
+>
+> For the three-layer evaluation framework (LLM-as-Judge, programmatic evaluators, retrieval golden-set tests) and guardrail specifications (injection detection, PII redaction, synthesis validation, rate limiting), see [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md).
+>
+> For regulatory compliance (GDPR, EU AI Act, CCPA), model governance & model cards, data governance, audit trail specifications, and risk assessment framework, see [COMPLIANCE.md](./docs/COMPLIANCE.md).
 >
 > For adversarial test scenarios, observed defences, and security control evidence, see [SECURITY_ADVISORY.md](./docs/SECURITY_ADVISORY.md).
 >
