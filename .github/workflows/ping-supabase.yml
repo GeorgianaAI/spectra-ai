@@ -2,7 +2,8 @@ name: Ping Supabase (keep-alive)
 
 on:
   schedule:
-    - cron: "0 9 * * 1" # Every Monday at 09:00 UTC
+    - cron: "0 9 * * 1" # Monday 09:00 UTC
+    - cron: "0 9 * * 4" # Thursday 09:00 UTC — twice a week keeps clear of the 7-day inactivity window
   workflow_dispatch: # Allow manual trigger
 
 jobs:
@@ -11,6 +12,13 @@ jobs:
     steps:
       - name: Ping SpectraAI Supabase
         run: |
-          curl -sf -X GET "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/" \
-            -H "apikey: ${{ secrets.NEXT_PUBLIC_SUPABASE_ANON_KEY }}" \
-            -o /dev/null && echo "SpectraAI: OK" || echo "SpectraAI: FAILED"
+          HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/auth/v1/health" \
+            -H "User-Agent: SpectraAI-Keepalive")
+          echo "HTTP status: $HTTP_STATUS"
+          if [[ "$HTTP_STATUS" == "000" || -z "$HTTP_STATUS" ]]; then
+            echo "SpectraAI Supabase: UNREACHABLE — project may be suspended or URL is wrong"
+            exit 1
+          else
+            echo "SpectraAI Supabase: ALIVE ($HTTP_STATUS) — any response means the project is active"
+          fi
