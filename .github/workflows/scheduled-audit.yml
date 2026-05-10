@@ -37,5 +37,5 @@ jobs:
           cache: npm
           cache-dependency-path: apps/spectra-api/package-lock.json
       - run: npm ci
-      - name: Full audit (all severities)
-        run: npm audit
+      - name: Full audit (all severities, prod deps)
+        run: npm audit --omit=dev

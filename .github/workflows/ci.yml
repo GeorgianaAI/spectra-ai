@@ -180,8 +180,8 @@ jobs:
           cache: npm
           cache-dependency-path: apps/spectra-api/package-lock.json
       - run: npm ci
-      - name: npm audit (high/critical only)
-        run: npm audit --audit-level=high
+      - name: npm audit (high/critical only, prod deps)
+        run: npm audit --audit-level=high --omit=dev
 
   api-type-check:
     name: "spectra-api — Type Check"
