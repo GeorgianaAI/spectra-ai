@@ -27,7 +27,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 ## 2.1 Version Governance & Stability Lock
 
-**Strict Version Policy:** Locked to **Next.js 16.2.4** and the dependency versions installed during Phase 1 scaffold. Do not upgrade without an explicit decision from the Architect.
+**Strict Version Policy:** Locked to **Next.js 16.2.6** and the dependency versions installed during Phase 1 scaffold. Do not upgrade without an explicit decision from the Architect.
 
 - Do not use React 19-specific APIs unless already present in the scaffold.
 - If an "upgrade available" notice appears, ignore it.
