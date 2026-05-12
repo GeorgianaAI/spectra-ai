@@ -13,12 +13,14 @@ jobs:
       - name: Ping SpectraAI Supabase
         run: |
           HTTP_STATUS=$(curl -s -o /dev/null -w "%{http_code}" -X GET \
-            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/auth/v1/health" \
+            "${{ secrets.NEXT_PUBLIC_SUPABASE_URL }}/rest/v1/jobs?select=id&limit=1" \
+            -H "apikey: ${{ secrets.SUPABASE_SERVICE_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_SERVICE_KEY }}" \
             -H "User-Agent: SpectraAI-Keepalive")
           echo "HTTP status: $HTTP_STATUS"
           if [[ "$HTTP_STATUS" == "000" || -z "$HTTP_STATUS" ]]; then
             echo "SpectraAI Supabase: UNREACHABLE — project may be suspended or URL is wrong"
             exit 1
           else
-            echo "SpectraAI Supabase: ALIVE ($HTTP_STATUS) — any response means the project is active"
+            echo "SpectraAI Supabase: ALIVE ($HTTP_STATUS) — REST query confirmed project is active"
           fi
