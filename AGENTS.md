@@ -27,6 +27,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 Hard rule: **never** read, search, open, cat, grep, ripgrep, summarize, or inspect real secret-bearing files **under any circumstance** unless the user explicitly overrides this rule for the current task. This includes `.env`, `.env.local`, `.env.development`, `.env.production`, `.env.test`, any other real secret `.env.*` variants, `*.pem`, `*.key`, and `~/.ssh/**`. If a task requires knowing which keys or variables exist, read `.env.example` only. If a task appears to require actual secret values from a real env file, stop and ask the user instead of accessing that file.
 
-## 4. Commit Metadata
+## 4. Commits
 
 **Never** include "Co-authored-by:" or any AI attribution tags in commit messages.
+Split commits for separation of concerns
