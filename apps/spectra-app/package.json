@@ -41,9 +41,9 @@
   },
   "overrides": {
     "postcss": "^8.5.10",
-    "@opentelemetry/auto-instrumentations-node": "^0.75.0",
-    "@opentelemetry/sdk-node": "^0.217.0",
-    "@opentelemetry/exporter-prometheus": "^0.217.0"
+    "@opentelemetry/auto-instrumentations-node": "^0.76.0",
+    "@opentelemetry/sdk-node": "^0.218.0",
+    "@opentelemetry/exporter-prometheus": "^0.218.0"
   },
   "devDependencies": {
     "@playwright/test": "^1.59.1",
