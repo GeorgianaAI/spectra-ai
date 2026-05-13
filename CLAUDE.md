@@ -176,9 +176,9 @@ All user-supplied file content is treated as untrusted input. Apply PII redactio
 
 `LANGCHAIN_TRACING_V2=true` and `LANGSMITH_PROJECT=spectra` in all environments. Wrap the LangGraph graph with a LangSmith tracer before export.
 
-## 10. Environment Variables
+## 10. Denied Permission to Secret File Access
 
-See [Environment Variables reference](MEMORY.md) for `.env.local` and `.env` templates. Never expose `SUPABASE_SERVICE_KEY` to the client (no `NEXT_PUBLIC_` prefix). Use `.env.example` files in each app as source of truth for required keys.
+Hard rule: **never** read, search, open, cat, grep, ripgrep, summarize, or inspect real secret-bearing files **under any circumstance** unless the user explicitly overrides this rule for the current task. This includes `.env`, `.env.local`, `.env.development`, `.env.production`, `.env.test`, any other real secret `.env.*` variants, `*.pem`, `*.key`, and `~/.ssh/**`. If a task requires knowing which keys or variables exist, read `.env.example` only. If a task appears to require actual secret values from a real env file, stop and ask the user instead of accessing that file.
 
 ## 11. Operational Commands
 

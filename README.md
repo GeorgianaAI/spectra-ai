@@ -451,20 +451,22 @@ A **scheduled dependency audit** runs automatically on the 1st of each month at 
 
 ### ping-supabase.yml — Supabase Keep-Alive
 
-A **Supabase keep-alive ping** runs automatically every Monday at 09:00 UTC — sends a simple curl request to the Supabase REST API to ensure the database connection stays warm. This prevents connection spindown on free/low-activity tiers. No human action required; fully automatic and idempotent.
+A **Supabase keep-alive ping** runs automatically twice a week — sends a `curl` GET request to the Supabase PostgREST API (`/rest/v1/jobs`) to register real database activity and reset the 7-day inactivity window. This prevents Supabase from pausing the project on the free tier.
 
 **Trigger:**
 
-- **Automatic:** Every Monday at 09:00 UTC
+- **Automatic:** Every Monday and Thursday at 09:00 UTC
 - **Manual:** via `workflow_dispatch` in GitHub Actions tab
 
 **What it does:**
 
-- Sends a simple `curl` GET request to Supabase REST API
-- Authenticates with `NEXT_PUBLIC_SUPABASE_ANON_KEY`
-- Logs success or failure
+- Sends a `curl` GET to `/rest/v1/jobs?select=id&limit=1` — a real PostgREST query
+- Authenticates with `SUPABASE_SERVICE_KEY` (`apikey` + `Authorization` headers)
+- Logs the HTTP status; exits with error if the project is unreachable
 
-**Why:** Supabase (especially on free/low-activity tiers) may spin down inactive database connections. A weekly keep-alive ping ensures the database stays warm and responsive.
+**Why:** Supabase's inactivity scanner tracks real API usage — health check probes (`/auth/v1/health`) do not count. Hitting the PostgREST endpoint registers a database request, which resets the inactivity timer. Twice-weekly cadence keeps the maximum gap at 4 days, well within the 7-day threshold.
+
+**Required secret:** `SUPABASE_SERVICE_KEY` must be set in the repository's GitHub Actions secrets.
 
 **Key characteristic:** **Fully automatic** — no side effects, idempotent, no human action required.
 
