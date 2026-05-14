@@ -12,9 +12,9 @@ interface SynthesisPanelProps {
 }
 
 const CITATION_COLORS: Record<string, string> = {
-  D: "#2dd4bf",
-  V: "#38bdf8",
-  A: "#f87171",
+  D: "#0d9488",
+  V: "#0ea5e9",
+  A: "#f43f5e",
 };
 
 const CITATION_MODALITY: Record<string, string> = {
@@ -34,7 +34,7 @@ function CitationTooltip({ letter, index, citations, onClose }: CitationTooltipP
   const id = `${letter}${index}`;
   const match = citations.find((c) => c.id === id);
   const modality = CITATION_MODALITY[letter] ?? letter;
-  const color = CITATION_COLORS[letter] ?? "#fff";
+  const color = CITATION_COLORS[letter] ?? "#0d9488";
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -52,29 +52,29 @@ function CitationTooltip({ letter, index, citations, onClose }: CitationTooltipP
         bottom: "calc(100% + 6px)",
         left: "50%",
         transform: "translateX(-50%)",
-        background: "#111116",
+        background: "#f8fffe",
         border: `1px solid ${color}40`,
         borderRadius: "6px",
         padding: "0.5rem 0.75rem",
         fontSize: "0.65rem",
         fontFamily: "monospace",
-        color: "#e8e6df",
+        color: "#0f2b2a",
         zIndex: 10,
-        boxShadow: "0 4px 20px rgba(0,0,0,0.6)",
+        boxShadow: "0 4px 20px rgba(13,148,136,0.12)",
         lineHeight: 1.5,
         minWidth: "160px",
         maxWidth: "280px",
-        whiteSpace: "normal" as const,
+        whiteSpace: "normal",
       }}
     >
       <span style={{ color, fontWeight: 700 }}>[{id}]</span>{" "}
-      <span style={{ color: "rgba(255,255,255,0.5)" }}>{modality}</span>
+      <span style={{ color: "#6b8f8c" }}>{modality}</span>
       {match && (
         <span
           style={{
             display: "block",
             marginTop: "0.3rem",
-            color: "rgba(255,255,255,0.6)",
+            color: "#2e5e5a",
             fontSize: "0.6rem",
           }}
         >
@@ -97,7 +97,7 @@ function CitationBadge({
   citations: Citation[];
 }) {
   const [open, setOpen] = useState<boolean>(false);
-  const color = CITATION_COLORS[letter] ?? "#fff";
+  const color = CITATION_COLORS[letter] ?? "#0d9488";
 
   const toggle = useCallback(() => setOpen((v) => !v), []);
 
@@ -212,18 +212,20 @@ export default function SynthesisPanel({
           flex: 1,
           fontFamily: "monospace",
           fontSize: "0.8rem",
-          color: "#e8e6df",
+          color: "#0f2b2a",
           lineHeight: 1.85,
           overflowY: "auto",
           paddingRight: "0.25rem",
         }}
       >
         {hasContent ? (
-          <div style={{ whiteSpace: "pre-wrap" }}>{renderWithCitations(displayText, citations)}</div>
+          <div style={{ whiteSpace: "pre-wrap" }}>
+            {renderWithCitations(displayText, citations)}
+          </div>
         ) : (
           <div
             style={{
-              color: "rgba(255,255,255,0.18)",
+              color: "#9ab5b3",
               fontFamily: "monospace",
               fontSize: "0.72rem",
               paddingTop: "0.5rem",

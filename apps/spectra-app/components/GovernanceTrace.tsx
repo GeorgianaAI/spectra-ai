@@ -4,17 +4,17 @@ import { useState } from "react";
 import type { GovernanceEntry } from "@/lib/types";
 
 const AGENT_COLORS: Record<string, string> = {
-  document: "#2dd4bf",
-  vision: "#38bdf8",
-  audio: "#f87171",
-  synthesis: "#00f2ff",
+  document: "#0d9488",
+  vision: "#0ea5e9",
+  audio: "#f43f5e",
+  synthesis: "#0d9488",
 };
 
 const NIST_COLORS: Record<string, string> = {
-  GOVERN: "#00f2ff",
-  MAP: "#38bdf8",
-  MEASURE: "#2dd4bf",
-  MANAGE: "#f87171",
+  GOVERN: "#0d9488",
+  MAP: "#0ea5e9",
+  MEASURE: "#14b8a6",
+  MANAGE: "#f43f5e",
 };
 
 interface GovernanceTraceProps {
@@ -40,7 +40,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
           display: "flex",
           alignItems: "center",
           gap: "0.6rem",
-          color: "rgba(255,255,255,0.2)",
+          color: "#6b8f8c",
           fontSize: "0.65rem",
           fontWeight: 700,
           fontFamily: "monospace",
@@ -49,21 +49,21 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
           textAlign: "left",
         }}
       >
-        <span aria-hidden="true" style={{ color: "#00f2ff", opacity: 0.8 }}>
+        <span aria-hidden="true" style={{ color: "#0d9488", opacity: 0.8 }}>
           {expanded ? "▼" : "▶"}
         </span>
-        <span style={{ color: "#00f2ff", opacity: 0.8 }}>Governance</span>
-        <span style={{ color: "#00f2ff", opacity: 0.8 }}>{"// Trace"}</span>
+        <span style={{ color: "#0d9488", opacity: 0.85 }}>Governance</span>
+        <span style={{ color: "#0d9488", opacity: 0.85 }}>{"// Trace"}</span>
         <span
           aria-label={`${entries.length} governance entries`}
           style={{
             marginLeft: "auto",
-            background: "rgba(0,242,255,0.05)",
-            border: "1px solid rgba(0,242,255,0.2)",
+            background: "rgba(13,148,136,0.06)",
+            border: "1px solid rgba(13,148,136,0.2)",
             borderRadius: "4px",
             padding: "1px 8px",
-            color: "#00f2ff",
-            opacity: 0.7,
+            color: "#0d9488",
+            opacity: 0.8,
             fontSize: "0.6rem",
           }}
         >
@@ -81,7 +81,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
         {entries.length === 0 ? (
           <p
             style={{
-              color: "rgba(255,255,255,0.2)",
+              color: "#9ab5b3",
               fontSize: "0.7rem",
               fontFamily: "monospace",
             }}
@@ -107,11 +107,11 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                   style={{
                     padding: "0.3rem 0.5rem",
                     fontSize: "0.55rem",
-                    color: "rgba(255,255,255,0.2)",
+                    color: "#9ab5b3",
                     fontFamily: "monospace",
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
-                    borderBottom: "1px solid rgba(255,255,255,0.05)",
+                    borderBottom: "1px solid rgba(13,148,136,0.08)",
                   }}
                 >
                   {h}
@@ -120,8 +120,8 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
             </div>
 
             {entries.map((entry, i) => {
-              const agentColor = AGENT_COLORS[entry.agent] ?? "#fff";
-              const nistColor = NIST_COLORS[entry.nistTag] ?? "#00f2ff";
+              const agentColor = AGENT_COLORS[entry.agent] ?? "#0d9488";
+              const nistColor = NIST_COLORS[entry.nistTag] ?? "#0d9488";
               const controlLabel = entry.nistControlId ?? entry.nistTag;
               return (
                 <div key={i} role="row" style={{ display: "contents" }}>
@@ -129,10 +129,10 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                     role="cell"
                     style={{
                       padding: "0.45rem 0.5rem",
-                      borderLeft: `2px solid ${agentColor}40`,
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderLeft: `2px solid ${agentColor}35`,
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
-                      color: "rgba(255,255,255,0.3)",
+                      color: "#9ab5b3",
                       fontFamily: "monospace",
                     }}
                   >
@@ -142,7 +142,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                     role="cell"
                     style={{
                       padding: "0.45rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
                       color: agentColor,
                       fontFamily: "monospace",
@@ -155,9 +155,9 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                     role="cell"
                     style={{
                       padding: "0.45rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
-                      color: "#e8e6df",
+                      color: "#0f2b2a",
                       fontFamily: "monospace",
                       lineHeight: 1.4,
                     }}
@@ -169,9 +169,9 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                     aria-label={`${entry.confidence}% confidence`}
                     style={{
                       padding: "0.45rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
-                      color: "rgba(255,255,255,0.4)",
+                      color: "#6b8f8c",
                       fontFamily: "monospace",
                       textAlign: "right",
                     }}
@@ -182,17 +182,19 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                     role="cell"
                     style={{
                       padding: "0.45rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       display: "flex",
                       alignItems: "center",
                       gap: "0.3rem",
                     }}
                   >
                     <span
-                      title={entry.nistControlId ? `NIST AI RMF: ${entry.nistControlId}` : entry.nistTag}
+                      title={
+                        entry.nistControlId ? `NIST AI RMF: ${entry.nistControlId}` : entry.nistTag
+                      }
                       style={{
-                        background: `${nistColor}12`,
-                        border: `1px solid ${nistColor}40`,
+                        background: `${nistColor}10`,
+                        border: `1px solid ${nistColor}35`,
                         borderRadius: "3px",
                         padding: "1px 5px",
                         color: nistColor,

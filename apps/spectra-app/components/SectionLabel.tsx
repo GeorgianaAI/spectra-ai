@@ -13,8 +13,8 @@ export default function SectionLabel({ children, style, id }: SectionLabelProps)
       role="heading"
       aria-level={3}
       style={{
-        color: "#00f2ff",
-        opacity: 0.8,
+        color: "#0d9488",
+        opacity: 0.85,
         fontSize: "0.65rem",
         fontWeight: 700,
         textTransform: "uppercase",

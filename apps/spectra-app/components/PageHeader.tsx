@@ -14,7 +14,7 @@ export default function PageHeader({ subtitle, chip, children }: PageHeaderProps
         alignItems: "center",
         gap: "1.25rem",
         marginBottom: "2rem",
-        borderBottom: "1px solid rgba(255, 255, 255, 0.08)",
+        borderBottom: "1px solid rgba(13, 148, 136, 0.1)",
         paddingBottom: "1.25rem",
       }}
     >
@@ -23,7 +23,7 @@ export default function PageHeader({ subtitle, chip, children }: PageHeaderProps
           fontSize: "1.25rem",
           fontWeight: 800,
           letterSpacing: "0.2em",
-          color: "#00f2ff",
+          color: "#0d9488",
           textTransform: "uppercase",
           margin: 0,
         }}
@@ -33,9 +33,7 @@ export default function PageHeader({ subtitle, chip, children }: PageHeaderProps
           style={{
             fontWeight: 500,
             letterSpacing: "0.05em",
-            background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
-            WebkitBackgroundClip: "text",
-            WebkitTextFillColor: "transparent",
+            color: "#0f2b2a",
           }}
         >
           {subtitle}

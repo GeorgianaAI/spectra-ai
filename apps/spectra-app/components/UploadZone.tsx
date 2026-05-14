@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import { FileText, Aperture, AudioWaveform } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { UploadedFiles, Modality } from "@/lib/types";
@@ -23,7 +23,7 @@ const TARGETS: {
     key: "document",
     label: "Document",
     sub: "PDF · max 2 MB",
-    color: "#2dd4bf",
+    color: "#0d9488",
     Icon: FileText,
     accept: ACCEPTED_FILE_TYPES.document.join(","),
   },
@@ -31,7 +31,7 @@ const TARGETS: {
     key: "vision",
     label: "Vision",
     sub: "JPG · PNG · WebP · max 1 MB",
-    color: "#38bdf8",
+    color: "#0ea5e9",
     Icon: Aperture,
     accept: ACCEPTED_FILE_TYPES.vision.join(","),
   },
@@ -39,7 +39,7 @@ const TARGETS: {
     key: "audio",
     label: "Audio",
     sub: "MP3 · WAV · M4A · max 10 MB",
-    color: "#f87171",
+    color: "#f43f5e",
     Icon: AudioWaveform,
     accept: ACCEPTED_FILE_TYPES.audio.join(","),
   },
@@ -58,21 +58,21 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
     audio: audioRef,
   };
 
-  const setFile = useCallback(
-    (modality: Modality, file: File | null) => {
-      setFiles((prev) => {
-        const next = { ...prev };
-        if (file) {
-          next[modality] = file;
-        } else {
-          delete next[modality];
-        }
-        onUpload(next);
-        return next;
-      });
-    },
-    [onUpload],
-  );
+  useEffect(() => {
+    onUpload(files);
+  }, [files, onUpload]);
+
+  const setFile = useCallback((modality: Modality, file: File | null) => {
+    setFiles((prev) => {
+      const next = { ...prev };
+      if (file) {
+        next[modality] = file;
+      } else {
+        delete next[modality];
+      }
+      return next;
+    });
+  }, []);
 
   const handleDrop = useCallback(
     (e: React.DragEvent, modality: Modality) => {
@@ -121,13 +121,13 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
             onDrop={(e) => handleDrop(e, key)}
             style={{
               position: "relative",
-              border: `1.5px dashed ${loaded || active ? color : "rgba(255,255,255,0.1)"}`,
+              border: `1.5px dashed ${loaded || active ? color : "rgba(13,148,136,0.15)"}`,
               borderRadius: "14px",
               padding: "1.25rem 0.75rem",
               textAlign: "center",
               cursor: disabled ? "not-allowed" : "pointer",
-              background: loaded || active ? `${color}0d` : "rgba(255,255,255,0.02)",
-              backdropFilter: "blur(10px)",
+              background: loaded || active ? `${color}0d` : "rgba(255,255,255,0.55)",
+              backdropFilter: "blur(8px)",
               transition: "border-color 0.2s, background 0.2s",
               opacity: disabled ? 0.5 : 1,
               display: "flex",
@@ -155,7 +155,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
             <div style={{ minWidth: 0, width: "100%" }}>
               <div
                 style={{
-                  color: "#fff",
+                  color: "#0f2b2a",
                   fontSize: "0.75rem",
                   fontWeight: 600,
                   marginBottom: "0.2rem",
@@ -176,11 +176,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   {files[key]!.name}
                 </div>
               ) : (
-                <div
-                  style={{ color: "rgba(255,255,255,0.25)", fontSize: "0.6rem", lineHeight: 1.3 }}
-                >
-                  {sub}
-                </div>
+                <div style={{ color: "#9ab5b3", fontSize: "0.6rem", lineHeight: 1.3 }}>{sub}</div>
               )}
             </div>
 
@@ -199,7 +195,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   right: "9px",
                   background: "none",
                   border: "none",
-                  color: "rgba(255,255,255,0.25)",
+                  color: "#9ab5b3",
                   cursor: disabled ? "not-allowed" : "pointer",
                   fontSize: "0.75rem",
                   lineHeight: 1,

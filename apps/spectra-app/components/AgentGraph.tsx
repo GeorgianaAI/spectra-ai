@@ -7,11 +7,11 @@ interface AgentGraphProps {
 }
 
 const NODES = [
-  { id: "router", label: "Router", color: "#00f2ff", x: 50, y: 9 },
-  { id: "document", label: "Document", color: "#2dd4bf", x: 16, y: 50 },
-  { id: "vision", label: "Vision", color: "#38bdf8", x: 50, y: 50 },
-  { id: "audio", label: "Audio", color: "#f87171", x: 84, y: 50 },
-  { id: "synthesis", label: "Synthesis", color: "#00f2ff", x: 50, y: 88 },
+  { id: "router", label: "Router", color: "#0d9488", x: 50, y: 9 },
+  { id: "document", label: "Document", color: "#14b8a6", x: 16, y: 50 },
+  { id: "vision", label: "Vision", color: "#0ea5e9", x: 50, y: 50 },
+  { id: "audio", label: "Audio", color: "#f43f5e", x: 84, y: 50 },
+  { id: "synthesis", label: "Synthesis", color: "#0d9488", x: 50, y: 88 },
 ] as const;
 
 const EDGES: [string, string][] = [
@@ -23,11 +23,7 @@ const EDGES: [string, string][] = [
   ["audio", "synthesis"],
 ];
 
-const STATUS_DOT: Record<string, string> = {
-  idle: "rgba(255,255,255,0.15)",
-  processing: "currentColor",
-  complete: "currentColor",
-};
+const STATUS_DOT_IDLE = "rgba(15, 43, 42, 0.15)";
 
 export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
   const getStatus = (id: string) => agentStatuses[id] ?? "idle";
@@ -36,8 +32,8 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
     <>
       <style>{`
         @keyframes spectra-node-pulse {
-          0%,100% { box-shadow: 0 0 0 0 rgba(0,242,255,0.5); }
-          50%      { box-shadow: 0 0 0 7px rgba(0,242,255,0); }
+          0%,100% { box-shadow: 0 0 0 0 rgba(13,148,136,0.4); }
+          50%      { box-shadow: 0 0 0 7px rgba(13,148,136,0); }
         }
       `}</style>
 
@@ -73,7 +69,7 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
                 y1={from.y + 7}
                 x2={to.x}
                 y2={to.y - 7}
-                stroke={active ? "rgba(0,242,255,0.35)" : "rgba(255,255,255,0.06)"}
+                stroke={active ? "rgba(13,148,136,0.4)" : "rgba(15,43,42,0.08)"}
                 strokeWidth="0.6"
                 strokeDasharray={active ? undefined : "2 3"}
               />
@@ -97,8 +93,8 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
                 top: `${y}%`,
                 transform: "translate(-50%, -50%)",
                 width: "82px",
-                background: isActive ? `rgba(${hexToRgb(color)}, 0.06)` : "rgba(255,255,255,0.02)",
-                border: `1px solid ${isActive ? color + "50" : "rgba(255,255,255,0.07)"}`,
+                background: isActive ? `${color}10` : "rgba(255,255,255,0.6)",
+                border: `1px solid ${isActive ? color + "50" : "rgba(15,43,42,0.08)"}`,
                 borderRadius: "10px",
                 padding: "0.45rem 0.6rem",
                 display: "flex",
@@ -115,13 +111,13 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
                   width: "6px",
                   height: "6px",
                   borderRadius: "50%",
-                  background: isActive ? color : STATUS_DOT.idle,
+                  background: isActive ? color : STATUS_DOT_IDLE,
                   flexShrink: 0,
                 }}
               />
               <span
                 style={{
-                  color: isActive ? "#fff" : "rgba(255,255,255,0.35)",
+                  color: isActive ? "#0f2b2a" : "#9ab5b3",
                   fontSize: "0.6rem",
                   fontWeight: 700,
                   fontFamily: "monospace",
@@ -135,7 +131,7 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
               <span
                 style={{
                   fontSize: "0.5rem",
-                  color: isActive ? color : "rgba(255,255,255,0.18)",
+                  color: isActive ? color : "rgba(15,43,42,0.25)",
                   textTransform: "uppercase",
                   letterSpacing: "0.08em",
                 }}
@@ -148,11 +144,4 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
       </div>
     </>
   );
-}
-
-function hexToRgb(hex: string): string {
-  const r = parseInt(hex.slice(1, 3), 16);
-  const g = parseInt(hex.slice(3, 5), 16);
-  const b = parseInt(hex.slice(5, 7), 16);
-  return `${r},${g},${b}`;
 }

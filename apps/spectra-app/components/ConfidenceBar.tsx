@@ -1,14 +1,3 @@
-/**
- * ConfidenceBar — three labeled percentage bars, one per modality.
- *
- * Phase 3 implementation:
- *   - Three thin horizontal bars: Document (teal), Vision (sky blue), Audio (coral).
- *   - Labeled with modality name and percentage score.
- *   - Used inside SynthesisPanel above the streaming report.
- *
- * Style: CSS modules or inline styles only — no Tailwind utility classes.
- */
-
 "use client";
 
 import type { ConfidenceScores } from "@/lib/types";
@@ -18,9 +7,9 @@ interface ConfidenceBarProps {
 }
 
 const BARS = [
-  { key: "doc" as const, label: "Document", color: "#2dd4bf" },
-  { key: "vision" as const, label: "Vision", color: "#38bdf8" },
-  { key: "audio" as const, label: "Audio", color: "#f87171" },
+  { key: "doc" as const, label: "Document", color: "#0d9488" },
+  { key: "vision" as const, label: "Vision", color: "#0ea5e9" },
+  { key: "audio" as const, label: "Audio", color: "#f43f5e" },
 ];
 
 export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
@@ -30,7 +19,7 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
         <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <span
             style={{
-              color: "rgba(255,255,255,0.45)",
+              color: "#6b8f8c",
               fontSize: "0.75rem",
               width: "64px",
               flexShrink: 0,
@@ -47,7 +36,7 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
             style={{
               flex: 1,
               height: "3px",
-              background: "#1e1e26",
+              background: "rgba(13, 148, 136, 0.1)",
               borderRadius: "2px",
               overflow: "hidden",
             }}

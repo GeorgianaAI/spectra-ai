@@ -16,10 +16,10 @@ export default function DownloadPDFButton({ onClick }: DownloadPDFButtonProps) {
       style={{
         marginLeft: "auto",
         background: "none",
-        border: "1px solid rgba(0,242,255,0.25)",
+        border: "1px solid rgba(13, 148, 136, 0.25)",
         borderRadius: "4px",
         padding: "4px 10px",
-        color: "rgba(0,242,255,0.7)",
+        color: "rgba(13, 148, 136, 0.8)",
         cursor: "pointer",
         display: "flex",
         alignItems: "center",
@@ -29,6 +29,7 @@ export default function DownloadPDFButton({ onClick }: DownloadPDFButtonProps) {
         fontWeight: 700,
         letterSpacing: "0.15em",
         textTransform: "uppercase",
+        transition: "border-color 0.15s, color 0.15s",
       }}
     >
       <FileDown size={13} />

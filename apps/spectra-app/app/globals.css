@@ -1,28 +1,65 @@
 @import "tailwindcss";
 
-/* Spectra AI - Command Center Design Tokens */
+/* Spectra AI — Light Mode Design Tokens */
 :root {
   /* Core Environment */
-  --bg: #060609;
-  --surface: #0b0b12;
-  --border: rgba(255, 255, 255, 0.08);
+  --bg: #f0faf9;
+  --surface: #ffffff;
+  --border: rgba(13, 148, 136, 0.1);
 
-  /* Primary Accent: Electric Cyan */
-  --accent: #00f2ff;
-  --accent-rgb: 0, 242, 255;
+  /* Primary Accent: Turquoise */
+  --accent: #0d9488;
+  --accent-dark: #0f766e;
+  --accent-light: rgba(13, 148, 136, 0.1);
+  --accent-rgb: 13, 148, 136;
 
   /* Typography */
-  --text-primary: #ffffff;
-  --text-secondary: rgba(255, 255, 255, 0.5);
+  --text-primary: #0f2b2a;
+  --text-secondary: #2e5e5a;
+  --text-muted: #6b8f8c;
 
   /* Modality States */
-  --modality-doc: #3b82f6;
-  --modality-vision: #10b981;
-  --modality-audio: #8b5cf6;
+  --modality-doc: #0d9488;
+  --modality-vision: #0ea5e9;
+  --modality-audio: #f43f5e;
+
+  /* Card System */
+  --card-bg: rgba(255, 255, 255, 0.75);
+  --card-border: rgba(13, 148, 136, 0.1);
+  --card-shadow: 0 8px 32px rgba(13, 148, 136, 0.08);
+
+  /* Badges */
+  --badge-bg: rgba(13, 148, 136, 0.08);
+  --badge-border: rgba(13, 148, 136, 0.2);
+  --badge-text: #0f766e;
+
+  /* Status */
+  --status-success: #10b981;
+  --status-warning: #f59e0b;
+  --status-danger: #f43f5e;
 
   /* Tailwind Theme Mapping */
   --background: var(--bg);
   --foreground: var(--text-primary);
+
+  /* Spacing */
+  --spacing-xs: 0.25rem;
+  --spacing-sm: 0.5rem;
+  --spacing-md: 1rem;
+  --spacing-lg: 1.5rem;
+  --spacing-xl: 2rem;
+  --spacing-2xl: 3rem;
+
+  /* Border Radius */
+  --radius-sm: 8px;
+  --radius-md: 12px;
+  --radius-lg: 20px;
+  --radius-full: 50px;
+
+  /* Transitions */
+  --transition-fast: 0.15s ease;
+  --transition-base: 0.25s ease;
+  --transition-slow: 0.35s ease;
 }
 
 @theme inline {
@@ -40,32 +77,59 @@
 }
 
 html {
-  color-scheme: dark;
+  color-scheme: light;
   background: var(--bg);
-  /* Whitish Browser Border Override */
-  border-top: 1px solid rgba(255, 255, 255, 0.1);
 }
 
 body {
-  background: var(--bg);
-  /* The "Atmospheric" background matched to SPECTRA Landing/Login */
-  background-image:
-    radial-gradient(
-      circle at 50% -20%,
-      rgba(0, 242, 255, 0.15) 0%,
-      /* Tuned to 0.15 for punchier depth */ transparent 45%
-    ),
-    linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-    linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px) !important;
-  background-size:
-    100% 100%,
-    40px 40px,
-    40px 40px;
+  background: linear-gradient(160deg, #e6f7f5 0%, #fdf5f5 35%, #edfaf4 70%, #d4f4ee 100%);
   color: var(--text-primary);
   font-family: var(--font-sans), system-ui, sans-serif;
   min-height: 100vh;
   margin: 0;
-  overflow-x: hidden; /* Prevents scrollbars from large title scaling */
+  overflow-x: hidden;
+}
+
+/* Typography */
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
+  font-weight: 700;
+  line-height: 1.2;
+  color: var(--text-primary);
+}
+
+h1 {
+  font-size: clamp(2.8rem, 7vw, 4.5rem);
+  letter-spacing: -0.04em;
+}
+
+h2 {
+  font-size: 1.875rem;
+  letter-spacing: -0.02em;
+}
+
+h3 {
+  font-size: 1.5rem;
+}
+
+p {
+  color: var(--text-secondary);
+  line-height: 1.65;
+  font-size: 1rem;
+}
+
+a {
+  color: var(--accent);
+  text-decoration: none;
+  transition: color var(--transition-base);
+}
+
+a:hover {
+  color: var(--accent-dark);
 }
 
 /* Global focus override */
@@ -74,10 +138,10 @@ body {
   outline-offset: 2px;
 }
 
-/* Selection color matched to Azure theme */
+/* Selection */
 ::selection {
-  background: rgba(0, 242, 255, 0.2);
-  color: #fff;
+  background: rgba(13, 148, 136, 0.15);
+  color: var(--text-primary);
 }
 
 /* Agent output and trace logs */
@@ -86,6 +150,100 @@ pre,
 .mono {
   font-family: var(--font-mono), "Courier New", monospace;
   color: var(--accent);
-  opacity: 0.9;
   letter-spacing: 0.05em;
+}
+
+/* Form Elements */
+input,
+textarea,
+select {
+  font-family: var(--font-sans);
+  border: 1px solid var(--card-border);
+  border-radius: var(--radius-sm);
+  padding: var(--spacing-sm) var(--spacing-md);
+  font-size: 1rem;
+  color: var(--text-primary);
+  background-color: white;
+  transition:
+    border-color var(--transition-base),
+    box-shadow var(--transition-base);
+}
+
+input:focus,
+textarea:focus,
+select:focus {
+  outline: none;
+  border-color: var(--accent);
+  box-shadow: 0 0 0 3px var(--accent-light);
+}
+
+input::placeholder,
+textarea::placeholder {
+  color: var(--text-muted);
+}
+
+/* Utility */
+.text-primary {
+  color: var(--text-primary);
+}
+
+.text-secondary {
+  color: var(--text-secondary);
+}
+
+.text-muted {
+  color: var(--text-muted);
+}
+
+.text-accent {
+  color: var(--accent);
+}
+
+/* Animations */
+@keyframes spectra-pulse {
+  0%,
+  100% {
+    opacity: 0.4;
+    transform: scale(1);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.2);
+  }
+}
+
+@keyframes spectra-float {
+  0%,
+  100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-5px);
+  }
+}
+
+@keyframes spectra-slide-up {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Accessibility */
+@media (prefers-reduced-motion: reduce) {
+  * {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
 }

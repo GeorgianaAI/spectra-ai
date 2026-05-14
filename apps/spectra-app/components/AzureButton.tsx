@@ -11,8 +11,8 @@ interface AzureButtonProps {
 
 const baseStyle: CSSProperties = {
   display: "inline-block",
-  background: "#00f2ff",
-  color: "#000",
+  background: "linear-gradient(135deg, #0f766e, #0d9488)",
+  color: "#ffffff",
   border: "none",
   borderRadius: "50px",
   padding: "1rem 3rem",
@@ -22,14 +22,14 @@ const baseStyle: CSSProperties = {
   textTransform: "uppercase",
   textDecoration: "none",
   cursor: "pointer",
-  boxShadow: "0 10px 30px rgba(0, 242, 255, 0.3)",
-  transition: "transform 0.2s ease",
+  boxShadow: "0 4px 20px rgba(13, 148, 136, 0.3)",
+  transition: "transform 0.2s ease, box-shadow 0.2s ease",
   fontFamily: "inherit",
 };
 
 const disabledStyle: CSSProperties = {
-  background: "rgba(255, 255, 255, 0.05)",
-  color: "rgba(255,255,255,0.3)",
+  background: "rgba(13, 148, 136, 0.08)",
+  color: "rgba(13, 148, 136, 0.35)",
   boxShadow: "none",
   cursor: "not-allowed",
 };
