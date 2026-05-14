@@ -13,7 +13,7 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Spectra AI — Multimodal Intelligence",
+  title: "SpectraAI — Multimodal Intelligence",
   description:
     "Route documents, images, and audio through a specialist multi-agent graph. Synthesised, cited, and scored in real time.",
 };

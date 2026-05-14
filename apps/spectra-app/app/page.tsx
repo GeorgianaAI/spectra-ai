@@ -59,12 +59,16 @@ export default function LandingPage() {
         >
           <h1
             style={{
-              fontSize: "clamp(3rem, 8vw, 5rem)",
+              fontSize: "clamp(2.8rem, 7vw, 4.5rem)",
               fontWeight: 800,
               letterSpacing: "-0.04em",
-              lineHeight: 0.9,
+              lineHeight: 0.95,
               margin: 0,
-              color: "#0f2b2a",
+              background:
+                "linear-gradient(135deg, #0f2b2a 0%, #0f766e 40%, #0d9488 70%, #14b8a6 100%)",
+              WebkitBackgroundClip: "text",
+              WebkitTextFillColor: "transparent",
+              backgroundClip: "text",
             }}
           >
             SPECTRA AI
