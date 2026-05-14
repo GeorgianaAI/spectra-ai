@@ -180,6 +180,10 @@ See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test s
 
 > [!TIP]
 >
+> **Documentation Portal:**
+>
+> **[DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md)** — Complete deployment walkthrough for AWS (Lambda/CDK) + Vercel. Covers environment setup, backend/frontend deployment, database migrations, CI/CD workflows, monitoring (CloudWatch, LangSmith, Sentry), cost management, and troubleshooting. Start here for production deployments.
+>
 > **Architecture, Security & Compliance Context:**
 >
 > For runtime flow diagrams covering the upload pipeline, parallel multi-agent LangGraph execution, JWT auth guard, rate limiting, and AWS deployment topology, see [ARCHITECTURE_FLOWS.md](./docs/ARCHITECTURE_FLOWS.md).
@@ -363,110 +367,56 @@ The demo account is a regular user. No special permissions. Rate limit: 3 runs/d
 
 ---
 
-## 🚦 Getting Started
+## 🚦 Getting Started (Local Development)
 
 ### Prerequisites
 
-- Node.js 20+
-- AWS CLI configured (`aws configure`)
-- AWS CDK CLI: `npm install -g aws-cdk`
-- CDK bootstrapped: `cdk bootstrap aws://ACCOUNT/eu-west-1`
-- Supabase project created
-- Upstash Vector + Redis databases created
-- Inngest account
-- LangSmith account
+- **Node.js 20+**
+- **Git** (for repository management)
 
-### Setup (Root)
+For **production deployment**, see [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md) for full setup instructions including AWS, Supabase, Upstash, and CI/CD.
 
-Install root dev dependencies — the `prepare` script runs `husky` automatically, wiring up the pre-commit hook:
+### Setup
+
+1. **Install root dependencies** — this wires up Husky pre-commit hooks for auto-formatting:
 
 ```bash
 npm install
 ```
 
-From this point on, every `git commit` auto-formats staged `.ts`/`.tsx` files with Prettier before the commit lands — no separate formatting commits needed.
+From this point, every `git commit` auto-formats staged `.ts`/`.tsx` files with Prettier.
 
-### Backend (spectra-api)
-
-```bash
-cd apps/spectra-api
-cp .env.example .env
-# Fill in all values
-npm install
-npm run build
-npm run cdk:diff
-npm run cdk:deploy
-```
-
-Run Supabase migrations in order:
-
-1. `migrations/001_jobs.sql`
-2. `migrations/002_demo_seed.sql`
-
-### Frontend (spectra-app)
+2. **Frontend only** (fastest for UI development):
 
 ```bash
 cd apps/spectra-app
 cp .env.example .env.local
-# Fill in all values (point NEXT_PUBLIC_API_URL at your deployed Lambda or localhost)
+# Fill in Supabase credentials (anon key, URL) — see .env.example for details
 npm install
 npm run dev
 ```
 
-## GitHub Actions Workflows
+Visit `http://localhost:3000`. You can test UI flows locally without a deployed backend (rate limiting and file uploads won't work without AWS/Upstash, but routing and component behavior can be tested).
 
-SpectraAI uses three GitHub Actions workflows: pull request validation, dependency security audits, and a Supabase keep-alive to prevent connection spindown:
+3. **Full stack** (frontend + backend):
 
-### ci.yml — Pull Request Quality Gates
+See [DEPLOYMENT_GUIDE.md](./docs/DEPLOYMENT_GUIDE.md#backend-deployment-spectra-api) for backend setup with CDK and Supabase migrations.
 
-**Trigger:** Every pull request (across all code).
+---
 
-**What it runs:**
+## 📦 Deployment
 
-- Lint (ESLint for spectra-app, Node.js API for spectra-api)
-- Type check (tsc --noEmit for TypeScript)
-- Build (next build for spectra-app)
-- Unit tests (Vitest for spectra-app)
-- E2E tests (Playwright for spectra-app)
+**For AWS + Vercel deployment instructions**, see [DEPLOYMENT_GUIDE.md](./DEPLOYMENT_GUIDE.md).
 
-**Blocks merge if:** Any check fails.
+The guide covers:
 
-**Key characteristic:** **Required** — all PRs must pass before merge.
-
-### scheduled-audit.yml — Dependency Security Audit
-
-A **scheduled dependency audit** runs automatically on the 1st of each month at 09:00 UTC to catch vulnerabilities between commits. Manually trigger via `workflow_dispatch` in the Actions tab at any time. The workflow reports only — it does not auto-fix. If vulnerabilities are found, review the Actions output and resolve manually (`npm audit fix` or pin a specific version) before committing. See [OPERATIONS_RUNBOOK.md](./docs/OPERATIONS_RUNBOOK.md#dependency-maintenance) for procedures.
-
-**Trigger:**
-
-- **Automatic:** 1st of every month at 09:00 UTC
-- **Manual:** via `workflow_dispatch` in GitHub Actions tab
-
-**What it does:**
-
-- Runs `npm audit` on spectra-app and spectra-api
-- **Reports vulnerabilities only** — does not auto-fix
-
-**Key characteristic:** **Manual remediation required.** If critical vulnerabilities are found, review the audit results, create a fix branch, and merge into main.
-
-### ping-supabase.yml — Supabase Keep-Alive
-
-A **Supabase keep-alive ping** runs automatically twice a week — sends a `curl` GET request to the Supabase PostgREST API (`/rest/v1/jobs`) to register real database activity and reset the 7-day inactivity window. This prevents Supabase from pausing the project on the free tier.
-
-**Trigger:**
-
-- **Automatic:** Every Monday and Thursday at 09:00 UTC
-- **Manual:** via `workflow_dispatch` in GitHub Actions tab
-
-**What it does:**
-
-- Sends a `curl` GET to `/rest/v1/jobs?select=id&limit=1` — a real PostgREST query
-- Authenticates with `SUPABASE_SERVICE_KEY` (`apikey` + `Authorization` headers)
-- Logs the HTTP status; exits with error if the project is unreachable
-
-**Why:** Supabase's inactivity scanner tracks real API usage — health check probes (`/auth/v1/health`) do not count. Hitting the PostgREST endpoint registers a database request, which resets the inactivity timer. Twice-weekly cadence keeps the maximum gap at 4 days, well within the 7-day threshold.
-
-**Required secret:** `SUPABASE_SERVICE_KEY` must be set in the repository's GitHub Actions secrets.
+- ✅ Environment setup for both apps
+- ✅ AWS CDK backend deployment (Lambda, S3, IAM)
+- ✅ Supabase migrations
+- ✅ Vercel frontend deployment
+- ✅ GitHub Actions CI/CD workflows
+- ✅ Monitoring (CloudWatch, LangSmith, Sentry)
+- ✅ Cost management & troubleshooting
 
 **Key characteristic:** **Fully automatic** — no side effects, idempotent, no human action required.
 
