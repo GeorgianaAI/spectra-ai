@@ -11,7 +11,7 @@ const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
-  limiter: Ratelimit.slidingWindow(5, "1 d"),
+  limiter: Ratelimit.slidingWindow(3, "1 d"),
 });
 
 const ALLOWED_TYPES: Record<
@@ -34,14 +34,13 @@ const ALLOWED_TYPES: Record<
 
 export async function POST(request: NextRequest) {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
-  // TODO: re-enable before deploy
-  // const { success } = await ratelimit.limit(ip);
-  // if (!success) {
-  //   return NextResponse.json(
-  //     { error: "Rate limit exceeded — 5 jobs per day", code: "RATE_LIMITED" },
-  //     { status: 429 },
-  //   );
-  // }
+  const { success } = await ratelimit.limit(ip);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Rate limit exceeded — 3 jobs per day", code: "RATE_LIMITED" },
+      { status: 429 },
+    );
+  }
 
   const auth = request.headers.get("Authorization");
   if (!auth?.startsWith("Bearer ")) {
