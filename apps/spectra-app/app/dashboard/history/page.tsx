@@ -11,10 +11,10 @@ import { fetchJobs, readAuthToken } from "@/lib/api";
 import type { JobSummary, JobStatus } from "@/lib/types";
 
 const STATUS_COLORS: Record<JobStatus, string> = {
-  pending: "#00f2ff",
-  processing: "#00f2ff",
-  completed: "#2dd4bf",
-  failed: "#f87171",
+  pending: "#0d9488",
+  processing: "#0d9488",
+  completed: "#10b981",
+  failed: "#f43f5e",
 };
 
 const SECURITY_RE = /document rejected|prompt injection|content rejected/i;
@@ -28,15 +28,15 @@ function statusLabel(job: JobSummary): string {
 }
 
 function statusColor(job: JobSummary): string {
-  return isSecurityRejection(job) ? "#f59e0b" : (STATUS_COLORS[job.status] ?? "#fff");
+  return isSecurityRejection(job) ? "#f59e0b" : (STATUS_COLORS[job.status] ?? "#0f2b2a");
 }
 
 function ModalityIcons({ modalities }: { modalities: JobSummary["modalities_used"] }) {
   return (
     <div style={{ display: "flex", gap: "6px", alignItems: "center" }}>
-      {modalities.document && <FileText size={13} color="#2dd4bf" />}
-      {modalities.vision && <Aperture size={13} color="#38bdf8" />}
-      {modalities.audio && <AudioWaveform size={13} color="#f87171" />}
+      {modalities.document && <FileText size={13} color="#0d9488" />}
+      {modalities.vision && <Aperture size={13} color="#0ea5e9" />}
+      {modalities.audio && <AudioWaveform size={13} color="#f43f5e" />}
     </div>
   );
 }
@@ -73,20 +73,7 @@ export default function HistoryPage() {
   }, [router]);
 
   return (
-    <div
-      style={{
-        padding: "2rem",
-        minHeight: "100vh",
-        backgroundColor: "#060609",
-        backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.12) 0%, transparent 40%),
-          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
-        color: "#fff",
-      }}
-    >
+    <div style={{ padding: "2rem", minHeight: "100vh" }}>
       <PageHeader subtitle="JOB HISTORY">
         <GhostButton href="/dashboard">← Back to Dashboard</GhostButton>
         <GhostButton href="/">← Back to Base</GhostButton>
@@ -96,21 +83,17 @@ export default function HistoryPage() {
         <SectionLabel>OPERATOR // JOB_HISTORY</SectionLabel>
 
         {loading && (
-          <p
-            style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace", fontSize: "0.75rem" }}
-          >
+          <p style={{ color: "#9ab5b3", fontFamily: "monospace", fontSize: "0.75rem" }}>
             Loading...
           </p>
         )}
 
         {error && (
-          <p style={{ color: "#f87171", fontFamily: "monospace", fontSize: "0.75rem" }}>{error}</p>
+          <p style={{ color: "#f43f5e", fontFamily: "monospace", fontSize: "0.75rem" }}>{error}</p>
         )}
 
         {!loading && !error && jobs.length === 0 && (
-          <p
-            style={{ color: "rgba(255,255,255,0.2)", fontFamily: "monospace", fontSize: "0.75rem" }}
-          >
+          <p style={{ color: "#9ab5b3", fontFamily: "monospace", fontSize: "0.75rem" }}>
             No jobs yet. Run your first analysis from the dashboard.
           </p>
         )}
@@ -133,12 +116,12 @@ export default function HistoryPage() {
                   style={{
                     padding: "0.3rem 0.5rem",
                     fontSize: "0.55rem",
-                    color: "rgba(255,255,255,0.4)",
+                    color: "#9ab5b3",
                     fontWeight: 500,
                     fontFamily: "monospace",
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
-                    borderBottom: "1px solid rgba(255,255,255,0.06)",
+                    borderBottom: "1px solid rgba(13,148,136,0.08)",
                   }}
                 >
                   {h}
@@ -164,11 +147,11 @@ export default function HistoryPage() {
                     role="cell"
                     style={{
                       padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
                       fontWeight: 500,
-                      color: "#00f2ff",
+                      color: "#0d9488",
                       letterSpacing: "0.05em",
                     }}
                   >
@@ -178,10 +161,10 @@ export default function HistoryPage() {
                     role="cell"
                     style={{
                       padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
-                      color: "rgba(255,255,255,0.35)",
+                      color: "#9ab5b3",
                     }}
                   >
                     {date}
@@ -190,7 +173,7 @@ export default function HistoryPage() {
                     role="cell"
                     style={{
                       padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                     }}
                   >
                     <ModalityIcons modalities={job.modalities_used} />
@@ -199,7 +182,7 @@ export default function HistoryPage() {
                     role="cell"
                     style={{
                       padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                     }}
                   >
                     <span
@@ -213,7 +196,7 @@ export default function HistoryPage() {
                         padding: "2px 7px",
                         borderRadius: "50px",
                         border: `1px solid ${color}40`,
-                        background: `${color}08`,
+                        background: `${color}0a`,
                       }}
                     >
                       {label}
@@ -223,10 +206,10 @@ export default function HistoryPage() {
                     role="cell"
                     style={{
                       padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
-                      color: avg > 0 ? "#2dd4bf" : "rgba(255,255,255,0.2)",
+                      color: avg > 0 ? "#10b981" : "#9ab5b3",
                     }}
                   >
                     {avg > 0 ? `${avg}%` : "—"}
@@ -235,7 +218,7 @@ export default function HistoryPage() {
                     role="cell"
                     style={{
                       padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(255,255,255,0.04)",
+                      borderBottom: "1px solid rgba(13,148,136,0.06)",
                     }}
                   >
                     {job.status === "completed" && (

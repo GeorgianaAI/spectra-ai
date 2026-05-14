@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import { Aperture } from "lucide-react";
 import AzureButton from "@/components/AzureButton";
 
 export default function LoginPage() {
@@ -39,93 +40,130 @@ export default function LoginPage() {
     <main
       style={{
         minHeight: "100vh",
-        backgroundColor: "#060609",
-        backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.12) 0%, transparent 40%),
-          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        color: "#fff",
+        position: "relative",
+        overflow: "hidden",
       }}
     >
+      {/* Top atmospheric glow */}
       <div
         style={{
-          background: "rgba(255, 255, 255, 0.03)",
-          backdropFilter: "blur(25px)",
-          border: "1px solid rgba(255, 255, 255, 0.08)",
-          borderRadius: "24px",
-          padding: "3rem",
+          position: "absolute",
+          top: "-120px",
+          left: "50%",
+          transform: "translateX(-50%)",
+          width: "600px",
+          height: "400px",
+          background:
+            "radial-gradient(ellipse at center, rgba(13,148,136,0.12) 0%, transparent 70%)",
+          pointerEvents: "none",
+        }}
+      />
+
+      <div
+        style={{
           width: "100%",
-          maxWidth: "440px",
-          boxShadow: "0 40px 100px rgba(0,0,0,0.6)",
+          maxWidth: "400px",
+          background: "rgba(255, 255, 255, 0.8)",
+          backdropFilter: "blur(12px)",
+          border: "1px solid rgba(13, 148, 136, 0.12)",
+          borderRadius: "24px",
+          padding: "2.5rem",
+          boxShadow: "0 8px 40px rgba(13, 148, 136, 0.1)",
           position: "relative",
+          zIndex: 1,
         }}
       >
-        {/* Module Header */}
-        <div style={{ marginBottom: "2.5rem", textAlign: "center" }}>
-          <h1
+        {/* Logo row */}
+        <div
+          style={{
+            display: "flex",
+            alignItems: "center",
+            gap: "0.75rem",
+            marginBottom: "2rem",
+          }}
+        >
+          <div
             style={{
-              fontSize: "1.25rem",
-              fontWeight: 800,
-              letterSpacing: "0.2em",
-              marginBottom: "0.5rem",
-              color: "#00f2ff",
-              textTransform: "uppercase",
+              width: "40px",
+              height: "40px",
+              borderRadius: "50%",
+              background: "rgba(13, 148, 136, 0.1)",
+              border: "1px solid rgba(13, 148, 136, 0.25)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
             }}
           >
-            SPECTRA AI <span style={{ fontWeight: 300, opacity: 0.5 }}>AUTH</span>
-          </h1>
-          <p
-            style={{
-              color: "rgba(255,255,255,0.4)",
-              fontSize: "0.8rem",
-              textTransform: "uppercase",
-              letterSpacing: "0.1em",
-            }}
-          >
-            Initialize Secure Session
-          </p>
+            <Aperture size={18} color="#0d9488" strokeWidth={1.5} />
+          </div>
+          <div>
+            <div
+              style={{
+                fontSize: "1rem",
+                fontWeight: 800,
+                letterSpacing: "-0.02em",
+                color: "#0f2b2a",
+              }}
+            >
+              Spectra AI
+            </div>
+            <div style={{ fontSize: "0.65rem", color: "#9ab5b3", letterSpacing: "0.12em" }}>
+              MULTIMODAL INTELLIGENCE
+            </div>
+          </div>
         </div>
+
+        <h2
+          style={{
+            fontSize: "1.25rem",
+            fontWeight: 700,
+            color: "#0f2b2a",
+            marginBottom: "0.4rem",
+          }}
+        >
+          Sign in
+        </h2>
+        <p style={{ fontSize: "0.82rem", color: "#9ab5b3", marginBottom: "1.8rem" }}>
+          Demo credentials pre-filled below.
+        </p>
 
         <form
           onSubmit={handleSubmit}
-          style={{ display: "flex", flexDirection: "column", gap: "1.5rem" }}
+          style={{ display: "flex", flexDirection: "column", gap: "1rem" }}
         >
           <div>
             <label
               style={{
-                color: "#00f2ff",
-                fontSize: "0.65rem",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
                 display: "block",
-                marginBottom: "0.75rem",
-                opacity: 0.8,
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                color: "#2e5e5a",
+                marginBottom: "0.5rem",
               }}
             >
-              Operator Identity
+              Email
             </label>
             <input
               type="email"
               value={email}
               onChange={(e) => setEmail(e.target.value)}
+              required
               style={{
                 width: "100%",
-                background: "rgba(0, 0, 0, 0.4)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "12px",
-                padding: "1rem",
-                color: "#fff",
-                fontSize: "0.95rem",
-                fontFamily: "monospace",
+                background: "#ffffff",
+                border: "1px solid rgba(13, 148, 136, 0.15)",
+                borderRadius: "8px",
+                padding: "0.7rem 0.9rem",
+                color: "#0f2b2a",
+                fontSize: "0.9rem",
                 boxSizing: "border-box",
                 outline: "none",
+                transition: "border-color 0.15s",
               }}
             />
           </div>
@@ -133,33 +171,31 @@ export default function LoginPage() {
           <div>
             <label
               style={{
-                color: "#00f2ff",
-                fontSize: "0.65rem",
-                fontWeight: 700,
-                textTransform: "uppercase",
-                letterSpacing: "0.15em",
                 display: "block",
-                marginBottom: "0.75rem",
-                opacity: 0.8,
+                fontSize: "0.75rem",
+                fontWeight: 600,
+                color: "#2e5e5a",
+                marginBottom: "0.5rem",
               }}
             >
-              Access Key
+              Password
             </label>
             <input
               type="password"
               value={password}
               onChange={(e) => setPassword(e.target.value)}
+              required
               style={{
                 width: "100%",
-                background: "rgba(0, 0, 0, 0.4)",
-                border: "1px solid rgba(255, 255, 255, 0.1)",
-                borderRadius: "12px",
-                padding: "1rem",
-                color: "#fff",
-                fontSize: "0.95rem",
-                fontFamily: "monospace",
+                background: "#ffffff",
+                border: "1px solid rgba(13, 148, 136, 0.15)",
+                borderRadius: "8px",
+                padding: "0.7rem 0.9rem",
+                color: "#0f2b2a",
+                fontSize: "0.9rem",
                 boxSizing: "border-box",
                 outline: "none",
+                transition: "border-color 0.15s",
               }}
             />
           </div>
@@ -167,73 +203,43 @@ export default function LoginPage() {
           {error && (
             <div
               style={{
-                padding: "1rem",
-                background: "rgba(248, 113, 113, 0.05)",
-                border: "1px solid rgba(248, 113, 113, 0.2)",
-                borderRadius: "12px",
+                padding: "0.75rem 1rem",
+                background: "rgba(244, 63, 94, 0.06)",
+                border: "1px solid rgba(244, 63, 94, 0.2)",
+                borderRadius: "8px",
               }}
             >
-              <p
-                style={{
-                  color: "#f87171",
-                  fontSize: "0.8rem",
-                  fontFamily: "monospace",
-                  textAlign: "center",
-                }}
-              >
-                &gt; SYSTEM_ERR: {error}
-              </p>
+              <p style={{ color: "#f43f5e", fontSize: "0.8rem", margin: 0 }}>{error}</p>
             </div>
           )}
 
           <AzureButton
             type="submit"
             disabled={loading}
-            style={{ width: "100%", marginTop: "1rem", padding: "1.1rem 1rem" }}
+            style={{
+              width: "100%",
+              marginTop: "0.5rem",
+              padding: "0.75rem",
+              fontSize: "0.75rem",
+            }}
           >
-            {loading ? "Decrypting..." : "Initialize Session"}
+            {loading ? "Signing in…" : "Sign in"}
           </AzureButton>
         </form>
 
-        <div
+        <p
           style={{
-            marginTop: "2.5rem",
+            marginTop: "2rem",
+            fontSize: "0.65rem",
+            color: "#9ab5b3",
             textAlign: "center",
-            fontSize: "0.7rem",
-            color: "rgba(255,255,255,0.3)",
-            letterSpacing: "0.05em",
-            borderTop: "1px solid rgba(255, 255, 255, 0.05)",
-            paddingTop: "1.5rem",
+            textTransform: "uppercase",
+            letterSpacing: "0.1em",
           }}
         >
-          DEFAULT CREDENTIALS:{" "}
-          <span style={{ color: "#fff", fontFamily: "monospace" }}>spectra-demo</span>
-        </div>
+          Rate limit: 3 analysis runs / day / IP
+        </p>
       </div>
-
-      {/* Persistence Footer */}
-      <footer
-        style={{
-          position: "fixed",
-          bottom: "2rem",
-          fontSize: "0.7rem",
-          color: "rgba(255,255,255,0.2)",
-          textTransform: "uppercase",
-          letterSpacing: "0.1em",
-          display: "flex",
-          gap: "2rem",
-        }}
-      >
-        <span>
-          Auth: <span style={{ color: "#fff" }}>Enforced</span>
-        </span>
-        <span>
-          Node: <span style={{ color: "#fff" }}>SPECTRA_PRIME</span>
-        </span>
-        <span>
-          Status: <span style={{ color: "#10b981" }}>Nominal</span>
-        </span>
-      </footer>
     </main>
   );
 }

@@ -173,7 +173,6 @@ export default function DashboardPage() {
       }
     };
 
-    // Header
     doc.setFont("helvetica", "bold");
     doc.setFontSize(14);
     doc.setTextColor(0, 0, 0);
@@ -190,7 +189,6 @@ export default function DashboardPage() {
     doc.line(margin, y, pageW - margin, y);
     y += 6;
 
-    // Confidence scores
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
@@ -210,7 +208,6 @@ export default function DashboardPage() {
     doc.line(margin, y, pageW - margin, y);
     y += 6;
 
-    // Synthesis report
     doc.setFont("helvetica", "bold");
     doc.setFontSize(9);
     doc.setTextColor(40, 40, 40);
@@ -228,7 +225,6 @@ export default function DashboardPage() {
       y += 5;
     }
 
-    // Governance trace
     if (governanceEntries.length > 0) {
       y += 4;
       checkPage(12);
@@ -307,45 +303,32 @@ export default function DashboardPage() {
 
   const statusColor =
     jobStatus === "completed"
-      ? "#2dd4bf"
+      ? "#10b981"
       : jobStatus === "failed"
         ? isSecurityRejection
           ? "#f59e0b"
-          : "#f87171"
+          : "#f43f5e"
         : isRunning || isUploading
-          ? "#00f2ff"
+          ? "#0d9488"
           : error
-            ? "#f87171"
-            : "#00f2ff";
+            ? "#f43f5e"
+            : "#0d9488";
 
   return (
-    <div
-      style={{
-        padding: "2rem",
-        minHeight: "100vh",
-        backgroundColor: "#060609",
-        backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.12) 0%, transparent 40%),
-          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
-        color: "#fff",
-      }}
-    >
+    <div style={{ padding: "2rem", minHeight: "100vh" }}>
       {/* Header */}
       <PageHeader
         subtitle="DASHBOARD"
         chip={
           <span
             style={{
-              background: "rgba(255,255,255,0.03)",
-              border: "1px solid rgba(255,255,255,0.1)",
+              background: "rgba(13,148,136,0.05)",
+              border: "1px solid rgba(13,148,136,0.12)",
               borderRadius: "4px",
               padding: "3px 10px",
               fontSize: "0.7rem",
               fontFamily: "monospace",
-              color: "rgba(255,255,255,0.4)",
+              color: "#6b8f8c",
               letterSpacing: "0.1em",
             }}
           >
@@ -357,7 +340,7 @@ export default function DashboardPage() {
           <span
             style={{
               fontSize: "0.65rem",
-              color: isSecurityRejection ? "#f59e0b" : "#f87171",
+              color: isSecurityRejection ? "#f59e0b" : "#f43f5e",
               fontFamily: "monospace",
               maxWidth: "600px",
               wordBreak: "break-word",
@@ -378,7 +361,7 @@ export default function DashboardPage() {
             padding: "4px 12px",
             borderRadius: "50px",
             border: `1px solid ${statusColor}40`,
-            background: `${statusColor}08`,
+            background: `${statusColor}0a`,
           }}
         >
           ● STATUS: {statusLabel}
@@ -447,14 +430,14 @@ export default function DashboardPage() {
           padding: "0 0.25rem",
         }}
       >
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-          Auth: <span style={{ color: "#fff" }}>JWT / RBAC</span>
+        <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
+          Auth: <span style={{ color: "#0f2b2a" }}>JWT / RBAC</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-          Infra: <span style={{ color: "#fff" }}>AWS / EU-West-1</span>
+        <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
+          Infra: <span style={{ color: "#0f2b2a" }}>AWS / EU-West-1</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-          Trace: <span style={{ color: "#00f2ff" }}>Active</span>
+        <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
+          Trace: <span style={{ color: "#0d9488" }}>Active</span>
         </span>
       </div>
     </div>

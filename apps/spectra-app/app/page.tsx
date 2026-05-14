@@ -12,25 +12,21 @@ const getServerAuthSnapshot = () => false;
 const subscribeToAuth = () => () => {};
 
 export default function LandingPage() {
-  const isAuthenticated = useSyncExternalStore(subscribeToAuth, getAuthSnapshot, getServerAuthSnapshot);
+  const isAuthenticated = useSyncExternalStore(
+    subscribeToAuth,
+    getAuthSnapshot,
+    getServerAuthSnapshot,
+  );
 
   return (
     <main
       style={{
         minHeight: "100vh",
-        backgroundColor: "#060609",
-        backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.15) 0%, transparent 40%),
-          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
         justifyContent: "center",
         padding: "2rem",
-        color: "#fff",
       }}
     >
       <section style={{ textAlign: "center", marginBottom: "3rem" }}>
@@ -39,9 +35,9 @@ export default function LandingPage() {
             display: "inline-block",
             padding: "0.2rem 0.65rem 0.2rem 0.85rem",
             borderRadius: "50px",
-            background: "rgba(0, 242, 255, 0.1)",
-            border: "1px solid rgba(0, 242, 255, 0.2)",
-            color: "#00f2ff",
+            background: "rgba(13, 148, 136, 0.08)",
+            border: "1px solid rgba(13, 148, 136, 0.2)",
+            color: "#0d9488",
             fontSize: "0.6rem",
             fontWeight: 700,
             textTransform: "uppercase",
@@ -68,19 +64,17 @@ export default function LandingPage() {
               letterSpacing: "-0.04em",
               lineHeight: 0.9,
               margin: 0,
-              background: "linear-gradient(to bottom, #fff 40%, rgba(255,255,255,0.4))",
-              WebkitBackgroundClip: "text",
-              WebkitTextFillColor: "transparent",
+              color: "#0f2b2a",
             }}
           >
             SPECTRA AI
           </h1>
-          <Aperture size={56} color="#00f2ff" strokeWidth={1.5} />
+          <Aperture size={56} color="#0d9488" strokeWidth={1.5} />
         </div>
 
         <p
           style={{
-            color: "rgba(255,255,255,0.5)",
+            color: "#2e5e5a",
             fontSize: "1.2rem",
             maxWidth: "600px",
             margin: "0 auto 2.5rem",
@@ -88,7 +82,8 @@ export default function LandingPage() {
             textAlign: "center",
           }}
         >
-          Intelligence across <span style={{ color: "#fff" }}>PDF, Vision, and Audio</span>.
+          Intelligence across{" "}
+          <span style={{ color: "#0f2b2a", fontWeight: 600 }}>PDF, Vision, and Audio</span>.
           <br />
           Unified into a single grounded report.
         </p>
@@ -124,14 +119,14 @@ export default function LandingPage() {
           gap: "2rem",
         }}
       >
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-          Engine: <span style={{ color: "#fff" }}>v1.0</span>
+        <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
+          Engine: <span style={{ color: "#0f2b2a" }}>v1.0</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-          Nodes: <span style={{ color: "#fff" }}>06</span>
+        <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
+          Nodes: <span style={{ color: "#0f2b2a" }}>06</span>
         </span>
-        <span style={{ color: "rgba(255,255,255,0.4)", fontWeight: 500 }}>
-          Models: <span style={{ color: "#fff" }}>03</span>
+        <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
+          Models: <span style={{ color: "#0f2b2a" }}>03</span>
         </span>
       </footer>
     </main>

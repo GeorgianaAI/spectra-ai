@@ -1,9 +1,13 @@
 export default function NotFound() {
   return (
-    <div className="min-h-screen flex items-center justify-center" style={{ background: "var(--bg)" }}>
+    <div className="min-h-screen flex items-center justify-center">
       <div
         className="p-8 rounded-lg border max-w-md text-center"
-        style={{ background: "var(--surface)", borderColor: "var(--border)" }}
+        style={{
+          background: "rgba(255, 255, 255, 0.75)",
+          backdropFilter: "blur(12px)",
+          borderColor: "rgba(13, 148, 136, 0.12)",
+        }}
       >
         <div className="mb-4 text-5xl font-bold" style={{ color: "var(--accent)" }}>
           404
@@ -17,7 +21,7 @@ export default function NotFound() {
         <a
           href="/dashboard"
           className="inline-block px-6 py-2 rounded font-medium transition-colors"
-          style={{ background: "var(--accent)", color: "var(--bg)" }}
+          style={{ background: "var(--accent)", color: "#fff" }}
         >
           Back to Dashboard
         </a>

@@ -155,36 +155,23 @@ export default function JobDetailPage() {
   }, [reportText, missionId, confidenceScores, governanceEntries]);
 
   const statusColor =
-    job?.status === "completed" ? "#2dd4bf" : job?.status === "failed" ? "#f87171" : "#00f2ff";
+    job?.status === "completed" ? "#10b981" : job?.status === "failed" ? "#f43f5e" : "#0d9488";
 
   return (
-    <div
-      style={{
-        padding: "2rem",
-        minHeight: "100vh",
-        backgroundColor: "#060609",
-        backgroundImage: `
-          radial-gradient(circle at 50% -20%, rgba(0, 242, 255, 0.12) 0%, transparent 40%),
-          linear-gradient(rgba(255, 255, 255, 0.02) 1px, transparent 1px),
-          linear-gradient(90deg, rgba(255, 255, 255, 0.02) 1px, transparent 1px)
-        `,
-        backgroundSize: "100% 100%, 40px 40px, 40px 40px",
-        color: "#fff",
-      }}
-    >
+    <div style={{ padding: "2rem", minHeight: "100vh" }}>
       <PageHeader
         subtitle={missionId}
         chip={
           job ? (
             <span
               style={{
-                background: "rgba(255,255,255,0.03)",
-                border: "1px solid rgba(255,255,255,0.1)",
+                background: "rgba(13,148,136,0.05)",
+                border: "1px solid rgba(13,148,136,0.12)",
                 borderRadius: "4px",
                 padding: "3px 10px",
                 fontSize: "0.7rem",
                 fontFamily: "monospace",
-                color: "rgba(255,255,255,0.4)",
+                color: "#6b8f8c",
                 letterSpacing: "0.1em",
               }}
             >
@@ -209,7 +196,7 @@ export default function JobDetailPage() {
               padding: "4px 12px",
               borderRadius: "50px",
               border: `1px solid ${statusColor}40`,
-              background: `${statusColor}08`,
+              background: `${statusColor}0a`,
             }}
           >
             ● {job.status.toUpperCase()}
@@ -221,9 +208,7 @@ export default function JobDetailPage() {
 
       {loading && (
         <GlassPanel>
-          <p
-            style={{ color: "rgba(255,255,255,0.3)", fontFamily: "monospace", fontSize: "0.75rem" }}
-          >
+          <p style={{ color: "#9ab5b3", fontFamily: "monospace", fontSize: "0.75rem" }}>
             Loading...
           </p>
         </GlassPanel>
@@ -231,7 +216,7 @@ export default function JobDetailPage() {
 
       {error && (
         <GlassPanel>
-          <p style={{ color: "#f87171", fontFamily: "monospace", fontSize: "0.75rem" }}>{error}</p>
+          <p style={{ color: "#f43f5e", fontFamily: "monospace", fontSize: "0.75rem" }}>{error}</p>
         </GlassPanel>
       )}
 
