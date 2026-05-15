@@ -1,17 +1,18 @@
 "use client";
 
 import type { AgentStatuses } from "@/lib/types";
+import { COLORS } from "@/lib/theme";
 
 interface AgentGraphProps {
   agentStatuses: AgentStatuses;
 }
 
 const NODES = [
-  { id: "router", label: "Router", color: "#0d9488", x: 50, y: 9 },
-  { id: "document", label: "Document", color: "#14b8a6", x: 16, y: 50 },
-  { id: "vision", label: "Vision", color: "#0ea5e9", x: 50, y: 50 },
-  { id: "audio", label: "Audio", color: "#f43f5e", x: 84, y: 50 },
-  { id: "synthesis", label: "Synthesis", color: "#0d9488", x: 50, y: 88 },
+  { id: "router", label: "Router", color: COLORS.accent, x: 50, y: 9 },
+  { id: "document", label: "Document", color: COLORS.accentLight, x: 16, y: 50 },
+  { id: "vision", label: "Vision", color: COLORS.vision, x: 50, y: 50 },
+  { id: "audio", label: "Audio", color: COLORS.audio, x: 84, y: 50 },
+  { id: "synthesis", label: "Synthesis", color: COLORS.accent, x: 50, y: 88 },
 ] as const;
 
 const EDGES: [string, string][] = [
@@ -117,7 +118,7 @@ export default function AgentGraph({ agentStatuses }: AgentGraphProps) {
               />
               <span
                 style={{
-                  color: isActive ? "#0f2b2a" : "#9ab5b3",
+                  color: isActive ? COLORS.textPrimary : COLORS.textSubtle,
                   fontSize: "0.6rem",
                   fontWeight: 700,
                   fontFamily: "monospace",

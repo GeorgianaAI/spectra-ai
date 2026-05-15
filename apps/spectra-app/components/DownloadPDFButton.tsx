@@ -1,6 +1,7 @@
 "use client";
 
 import { FileDown } from "lucide-react";
+import { COLORS } from "@/lib/theme";
 
 interface DownloadPDFButtonProps {
   onClick: () => void;
@@ -16,10 +17,10 @@ export default function DownloadPDFButton({ onClick }: DownloadPDFButtonProps) {
       style={{
         marginLeft: "auto",
         background: "none",
-        border: "1px solid rgba(13, 148, 136, 0.25)",
+        border: `1px solid ${COLORS.accent}40`,
         borderRadius: "4px",
         padding: "4px 10px",
-        color: "rgba(13, 148, 136, 0.8)",
+        color: `${COLORS.accent}cc`,
         cursor: "pointer",
         display: "flex",
         alignItems: "center",

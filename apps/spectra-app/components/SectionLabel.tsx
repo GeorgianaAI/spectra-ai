@@ -1,4 +1,5 @@
 import type { CSSProperties, ReactNode } from "react";
+import { COLORS } from "@/lib/theme";
 
 interface SectionLabelProps {
   children: ReactNode;
@@ -13,7 +14,7 @@ export default function SectionLabel({ children, style, id }: SectionLabelProps)
       role="heading"
       aria-level={3}
       style={{
-        color: "#0d9488",
+        color: COLORS.accent,
         opacity: 0.85,
         fontSize: "0.65rem",
         fontWeight: 700,

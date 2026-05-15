@@ -122,6 +122,7 @@ export default function HistoryPage() {
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
                     borderBottom: "1px solid rgba(13,148,136,0.08)",
+                    textAlign: h === "Avg %" ? "center" : undefined,
                   }}
                 >
                   {h}
@@ -141,13 +142,17 @@ export default function HistoryPage() {
               });
               const avg = avgConfidence(job.confidence_scores);
 
+              const cellBase: React.CSSProperties = {
+                padding: "0.55rem 0.5rem",
+                borderBottom: "1px solid rgba(13,148,136,0.06)",
+              };
+
               return (
                 <div key={job.id} role="row" style={{ display: "contents" }}>
                   <div
                     role="cell"
                     style={{
-                      padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(13,148,136,0.06)",
+                      ...cellBase,
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
                       fontWeight: 500,
@@ -160,8 +165,7 @@ export default function HistoryPage() {
                   <div
                     role="cell"
                     style={{
-                      padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(13,148,136,0.06)",
+                      ...cellBase,
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
                       color: "#9ab5b3",
@@ -169,22 +173,10 @@ export default function HistoryPage() {
                   >
                     {date}
                   </div>
-                  <div
-                    role="cell"
-                    style={{
-                      padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(13,148,136,0.06)",
-                    }}
-                  >
+                  <div role="cell" style={cellBase}>
                     <ModalityIcons modalities={job.modalities_used} />
                   </div>
-                  <div
-                    role="cell"
-                    style={{
-                      padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(13,148,136,0.06)",
-                    }}
-                  >
+                  <div role="cell" style={cellBase}>
                     <span
                       style={{
                         fontSize: "0.55rem",
@@ -205,22 +197,16 @@ export default function HistoryPage() {
                   <div
                     role="cell"
                     style={{
-                      padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(13,148,136,0.06)",
+                      ...cellBase,
                       fontFamily: "monospace",
                       fontSize: "0.65rem",
                       color: avg > 0 ? "#10b981" : "#9ab5b3",
+                      textAlign: "center",
                     }}
                   >
                     {avg > 0 ? `${avg}%` : "—"}
                   </div>
-                  <div
-                    role="cell"
-                    style={{
-                      padding: "0.55rem 0.5rem",
-                      borderBottom: "1px solid rgba(13,148,136,0.06)",
-                    }}
-                  >
+                  <div role="cell" style={cellBase}>
                     {job.status === "completed" && (
                       <GhostButton href={`/dashboard/job/${job.id}`}>View →</GhostButton>
                     )}

@@ -1,15 +1,16 @@
 "use client";
 
 import type { ConfidenceScores } from "@/lib/types";
+import { COLORS } from "@/lib/theme";
 
 interface ConfidenceBarProps {
   scores: ConfidenceScores;
 }
 
 const BARS = [
-  { key: "doc" as const, label: "Document", color: "#0d9488" },
-  { key: "vision" as const, label: "Vision", color: "#0ea5e9" },
-  { key: "audio" as const, label: "Audio", color: "#f43f5e" },
+  { key: "doc" as const, label: "Document", color: COLORS.accent },
+  { key: "vision" as const, label: "Vision", color: COLORS.vision },
+  { key: "audio" as const, label: "Audio", color: COLORS.audio },
 ];
 
 export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
@@ -19,7 +20,7 @@ export default function ConfidenceBar({ scores }: ConfidenceBarProps) {
         <div key={key} style={{ display: "flex", alignItems: "center", gap: "0.75rem" }}>
           <span
             style={{
-              color: "#6b8f8c",
+              color: COLORS.textMuted,
               fontSize: "0.75rem",
               width: "64px",
               flexShrink: 0,

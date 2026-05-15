@@ -1,20 +1,22 @@
 "use client";
 
 import { useState } from "react";
+import type { CSSProperties } from "react";
 import type { GovernanceEntry } from "@/lib/types";
+import { COLORS } from "@/lib/theme";
 
 const AGENT_COLORS: Record<string, string> = {
-  document: "#0d9488",
-  vision: "#0ea5e9",
-  audio: "#f43f5e",
-  synthesis: "#0d9488",
+  document: COLORS.accent,
+  vision: COLORS.vision,
+  audio: COLORS.audio,
+  synthesis: COLORS.accent,
 };
 
 const NIST_COLORS: Record<string, string> = {
-  GOVERN: "#0d9488",
-  MAP: "#0ea5e9",
-  MEASURE: "#14b8a6",
-  MANAGE: "#f43f5e",
+  GOVERN: COLORS.accent,
+  MAP: COLORS.vision,
+  MEASURE: COLORS.accentLight,
+  MANAGE: COLORS.audio,
 };
 
 interface GovernanceTraceProps {
@@ -40,7 +42,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
           display: "flex",
           alignItems: "center",
           gap: "0.6rem",
-          color: "#6b8f8c",
+          color: COLORS.textMuted,
           fontSize: "0.65rem",
           fontWeight: 700,
           fontFamily: "monospace",
@@ -49,11 +51,11 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
           textAlign: "left",
         }}
       >
-        <span aria-hidden="true" style={{ color: "#0d9488", opacity: 0.8 }}>
+        <span aria-hidden="true" style={{ color: COLORS.accent, opacity: 0.8 }}>
           {expanded ? "▼" : "▶"}
         </span>
-        <span style={{ color: "#0d9488", opacity: 0.85 }}>Governance</span>
-        <span style={{ color: "#0d9488", opacity: 0.85 }}>{"// Trace"}</span>
+        <span style={{ color: COLORS.accent, opacity: 0.85 }}>Governance</span>
+        <span style={{ color: COLORS.accent, opacity: 0.85 }}>{"// Trace"}</span>
         <span
           aria-label={`${entries.length} governance entries`}
           style={{
@@ -62,7 +64,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
             border: "1px solid rgba(13,148,136,0.2)",
             borderRadius: "4px",
             padding: "1px 8px",
-            color: "#0d9488",
+            color: COLORS.accent,
             opacity: 0.8,
             fontSize: "0.6rem",
           }}
@@ -81,7 +83,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
         {entries.length === 0 ? (
           <p
             style={{
-              color: "#9ab5b3",
+              color: COLORS.textSubtle,
               fontSize: "0.7rem",
               fontFamily: "monospace",
             }}
@@ -100,18 +102,19 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
           >
             {/* Header row */}
             <div role="row" style={{ display: "contents" }}>
-              {(["Time", "Agent", "Finding", "%", "NIST Control"] as const).map((h) => (
+              {(["Time", "Agent", "Finding", "Conf.", "NIST Control"] as const).map((h) => (
                 <div
                   key={h}
                   role="columnheader"
                   style={{
                     padding: "0.3rem 0.5rem",
                     fontSize: "0.55rem",
-                    color: "#9ab5b3",
+                    color: COLORS.textSubtle,
                     fontFamily: "monospace",
                     textTransform: "uppercase",
                     letterSpacing: "0.1em",
                     borderBottom: "1px solid rgba(13,148,136,0.08)",
+                    textAlign: h === "Conf." ? "center" : undefined,
                   }}
                 >
                   {h}
@@ -120,8 +123,8 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
             </div>
 
             {entries.map((entry, i) => {
-              const agentColor = AGENT_COLORS[entry.agent] ?? "#0d9488";
-              const nistColor = NIST_COLORS[entry.nistTag] ?? "#0d9488";
+              const agentColor = AGENT_COLORS[entry.agent] ?? COLORS.accent;
+              const nistColor = NIST_COLORS[entry.nistTag] ?? COLORS.accent;
               const controlLabel = entry.nistControlId ?? entry.nistTag;
               return (
                 <div key={i} role="row" style={{ display: "contents" }}>
@@ -132,7 +135,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                       borderLeft: `2px solid ${agentColor}35`,
                       borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
-                      color: "#9ab5b3",
+                      color: COLORS.textSubtle,
                       fontFamily: "monospace",
                     }}
                   >
@@ -157,7 +160,7 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                       padding: "0.45rem 0.5rem",
                       borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
-                      color: "#0f2b2a",
+                      color: COLORS.textPrimary,
                       fontFamily: "monospace",
                       lineHeight: 1.4,
                     }}
@@ -171,9 +174,9 @@ export default function GovernanceTrace({ entries }: GovernanceTraceProps) {
                       padding: "0.45rem 0.5rem",
                       borderBottom: "1px solid rgba(13,148,136,0.06)",
                       fontSize: "0.65rem",
-                      color: "#6b8f8c",
+                      color: COLORS.textMuted,
                       fontFamily: "monospace",
-                      textAlign: "right",
+                      textAlign: "center",
                     }}
                   >
                     {entry.confidence}%

@@ -1,4 +1,5 @@
 import type { ReactNode } from "react";
+import { COLORS } from "@/lib/theme";
 
 interface PageHeaderProps {
   subtitle: string;
@@ -23,7 +24,7 @@ export default function PageHeader({ subtitle, chip, children }: PageHeaderProps
           fontSize: "1.25rem",
           fontWeight: 800,
           letterSpacing: "0.2em",
-          color: "#0d9488",
+          color: COLORS.accent,
           textTransform: "uppercase",
           margin: 0,
         }}
@@ -33,7 +34,7 @@ export default function PageHeader({ subtitle, chip, children }: PageHeaderProps
           style={{
             fontWeight: 500,
             letterSpacing: "0.05em",
-            color: "#0f2b2a",
+            color: COLORS.textPrimary,
           }}
         >
           {subtitle}

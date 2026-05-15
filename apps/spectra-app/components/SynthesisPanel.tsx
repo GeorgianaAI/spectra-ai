@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import ConfidenceBar from "./ConfidenceBar";
 import type { ConfidenceScores, Citation } from "@/lib/types";
+import { COLORS } from "@/lib/theme";
 
 interface SynthesisPanelProps {
   stream?: ReadableStream;
@@ -12,9 +13,9 @@ interface SynthesisPanelProps {
 }
 
 const CITATION_COLORS: Record<string, string> = {
-  D: "#0d9488",
-  V: "#0ea5e9",
-  A: "#f43f5e",
+  D: COLORS.accent,
+  V: COLORS.vision,
+  A: COLORS.audio,
 };
 
 const CITATION_MODALITY: Record<string, string> = {
@@ -34,7 +35,7 @@ function CitationTooltip({ letter, index, citations, onClose }: CitationTooltipP
   const id = `${letter}${index}`;
   const match = citations.find((c) => c.id === id);
   const modality = CITATION_MODALITY[letter] ?? letter;
-  const color = CITATION_COLORS[letter] ?? "#0d9488";
+  const color = CITATION_COLORS[letter] ?? COLORS.accent;
 
   const handleKeyDown = useCallback(
     (e: React.KeyboardEvent) => {
@@ -58,7 +59,7 @@ function CitationTooltip({ letter, index, citations, onClose }: CitationTooltipP
         padding: "0.5rem 0.75rem",
         fontSize: "0.65rem",
         fontFamily: "monospace",
-        color: "#0f2b2a",
+        color: COLORS.textPrimary,
         zIndex: 10,
         boxShadow: "0 4px 20px rgba(13,148,136,0.12)",
         lineHeight: 1.5,
@@ -68,13 +69,13 @@ function CitationTooltip({ letter, index, citations, onClose }: CitationTooltipP
       }}
     >
       <span style={{ color, fontWeight: 700 }}>[{id}]</span>{" "}
-      <span style={{ color: "#6b8f8c" }}>{modality}</span>
+      <span style={{ color: COLORS.textMuted }}>{modality}</span>
       {match && (
         <span
           style={{
             display: "block",
             marginTop: "0.3rem",
-            color: "#2e5e5a",
+            color: COLORS.textSecondary,
             fontSize: "0.6rem",
           }}
         >
@@ -97,7 +98,7 @@ function CitationBadge({
   citations: Citation[];
 }) {
   const [open, setOpen] = useState<boolean>(false);
-  const color = CITATION_COLORS[letter] ?? "#0d9488";
+  const color = CITATION_COLORS[letter] ?? COLORS.accent;
 
   const toggle = useCallback(() => setOpen((v) => !v), []);
 
@@ -212,7 +213,7 @@ export default function SynthesisPanel({
           flex: 1,
           fontFamily: "monospace",
           fontSize: "0.8rem",
-          color: "#0f2b2a",
+          color: COLORS.textPrimary,
           lineHeight: 1.85,
           overflowY: "auto",
           paddingRight: "0.25rem",
@@ -225,7 +226,7 @@ export default function SynthesisPanel({
         ) : (
           <div
             style={{
-              color: "#9ab5b3",
+              color: COLORS.textSubtle,
               fontFamily: "monospace",
               fontSize: "0.72rem",
               paddingTop: "0.5rem",

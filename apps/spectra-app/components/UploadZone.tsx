@@ -5,6 +5,7 @@ import { FileText, Aperture, AudioWaveform } from "lucide-react";
 import type { LucideIcon } from "lucide-react";
 import type { UploadedFiles, Modality } from "@/lib/types";
 import { ACCEPTED_FILE_TYPES } from "@/lib/constants";
+import { COLORS, RADIUS } from "@/lib/theme";
 
 interface UploadZoneProps {
   onUpload: (files: UploadedFiles) => void;
@@ -23,7 +24,7 @@ const TARGETS: {
     key: "document",
     label: "Document",
     sub: "PDF · max 2 MB",
-    color: "#0d9488",
+    color: COLORS.accent,
     Icon: FileText,
     accept: ACCEPTED_FILE_TYPES.document.join(","),
   },
@@ -31,7 +32,7 @@ const TARGETS: {
     key: "vision",
     label: "Vision",
     sub: "JPG · PNG · WebP · max 1 MB",
-    color: "#0ea5e9",
+    color: COLORS.vision,
     Icon: Aperture,
     accept: ACCEPTED_FILE_TYPES.vision.join(","),
   },
@@ -39,7 +40,7 @@ const TARGETS: {
     key: "audio",
     label: "Audio",
     sub: "MP3 · WAV · M4A · max 10 MB",
-    color: "#f43f5e",
+    color: COLORS.audio,
     Icon: AudioWaveform,
     accept: ACCEPTED_FILE_TYPES.audio.join(","),
   },
@@ -122,7 +123,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
             style={{
               position: "relative",
               border: `1.5px dashed ${loaded || active ? color : "rgba(13,148,136,0.15)"}`,
-              borderRadius: "14px",
+              borderRadius: RADIUS.md,
               padding: "1.25rem 0.75rem",
               textAlign: "center",
               cursor: disabled ? "not-allowed" : "pointer",
@@ -155,7 +156,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
             <div style={{ minWidth: 0, width: "100%" }}>
               <div
                 style={{
-                  color: "#0f2b2a",
+                  color: COLORS.textPrimary,
                   fontSize: "0.75rem",
                   fontWeight: 600,
                   marginBottom: "0.2rem",
@@ -176,7 +177,9 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   {files[key]!.name}
                 </div>
               ) : (
-                <div style={{ color: "#9ab5b3", fontSize: "0.6rem", lineHeight: 1.3 }}>{sub}</div>
+                <div style={{ color: COLORS.textSubtle, fontSize: "0.6rem", lineHeight: 1.3 }}>
+                  {sub}
+                </div>
               )}
             </div>
 
@@ -195,7 +198,7 @@ export default function UploadZone({ onUpload, disabled = false }: UploadZonePro
                   right: "9px",
                   background: "none",
                   border: "none",
-                  color: "#9ab5b3",
+                  color: COLORS.textSubtle,
                   cursor: disabled ? "not-allowed" : "pointer",
                   fontSize: "0.75rem",
                   lineHeight: 1,

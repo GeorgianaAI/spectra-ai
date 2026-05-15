@@ -1,4 +1,5 @@
 import type { CSSProperties } from "react";
+import { COLORS, TRANSITIONS, RADIUS } from "@/lib/theme";
 
 interface AzureButtonProps {
   children: React.ReactNode;
@@ -11,10 +12,10 @@ interface AzureButtonProps {
 
 const baseStyle: CSSProperties = {
   display: "inline-block",
-  background: "linear-gradient(135deg, #0f766e, #0d9488)",
+  background: `linear-gradient(135deg, ${COLORS.accentDark}, ${COLORS.accent})`,
   color: "#ffffff",
   border: "none",
-  borderRadius: "50px",
+  borderRadius: RADIUS.full,
   padding: "1rem 3rem",
   fontWeight: 800,
   fontSize: "0.8rem",
@@ -23,7 +24,7 @@ const baseStyle: CSSProperties = {
   textDecoration: "none",
   cursor: "pointer",
   boxShadow: "0 4px 20px rgba(13, 148, 136, 0.3)",
-  transition: "transform 0.2s ease, box-shadow 0.2s ease",
+  transition: TRANSITIONS.lift,
   fontFamily: "inherit",
 };
 
