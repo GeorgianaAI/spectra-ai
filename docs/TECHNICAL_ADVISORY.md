@@ -550,3 +550,35 @@ const topChunks = embeddedChunks
 This is strictly faster (one fewer HTTP round-trip per job), more reliable, and makes the document node's retrieval step self-contained.
 
 **Files:** `apps/spectra-api/src/graph/nodes/documentNode.ts`, `apps/spectra-api/lib/stacks/compute-stack.ts`
+
+---
+
+## 22. Supabase Data API — Explicit Grants Required from Oct 30, 2026
+
+### Context
+
+Supabase notified (May 2026) that the Data API (PostgREST, supabase-js, GraphQL) will no longer auto-expose tables in the `public` schema by default. New projects are affected from 2026-05-30; all existing projects from 2026-10-30.
+
+### Challenge
+
+Spectra AI's `001_jobs.sql` migration created the `jobs` table without an explicit `GRANT` statement for the `authenticated` role. The table relied on the default access that is being removed. The spectra-app frontend uses supabase-js (Data API) with JWT-authenticated requests that resolve to the `authenticated` role — without an explicit grant, those requests return `42501` permission errors even when valid RLS policies are in place.
+
+### Solution
+
+Migration `003_data_api_grants.sql` adds:
+
+```sql
+GRANT SELECT, INSERT, UPDATE, DELETE ON public.jobs TO authenticated;
+```
+
+`anon` receives no grant — Spectra requires authentication for all operations. `service_role` is skipped — Lambda functions connect via a direct Postgres connection string, not the Data API.
+
+RLS policies are unchanged and continue to enforce per-user row isolation. The grant only unlocks PostgREST access at the schema layer and is idempotent.
+
+### Trade-off
+
+None. Grants are additive; RLS is the enforcement boundary. Granting all four DML verbs to `authenticated` is intentionally uniform — RLS rejects any write that violates per-user policy regardless.
+
+**Future path:** All new migrations must include explicit grants alongside `CREATE TABLE` and RLS statements.
+
+**Files:** `apps/spectra-api/migrations/003_data_api_grants.sql`
