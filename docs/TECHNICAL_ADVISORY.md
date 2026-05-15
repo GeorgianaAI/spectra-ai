@@ -53,6 +53,80 @@ Hardcoding specific EU region ARNs (e.g. eu-west-1, eu-central-1, eu-north-1) is
 
 ---
 
+## 2.5. Inngest for Job Orchestration — Strategy & Benefits
+
+### What Inngest Does (General)
+
+Inngest is an event-driven, serverless-first job orchestration platform. For AI projects, it solves a fundamental problem: **LLM inference is slow and unreliable.**
+
+A typical AI workflow:
+1. User submits a request (PDF upload, image analysis, etc.)
+2. Backend classifies the input, routes to specialist agents
+3. Multiple LLM calls happen in parallel (Claude, GPT-4o, Whisper, etc.) — each takes seconds to minutes
+4. Results are assembled, graded, saved to database
+
+**Without orchestration:** The API would block the user's request waiting for the inference to complete. If inference fails (rate limit, timeout, network error), you retry manually. If a request is submitted twice, two jobs run. No visibility into what's in progress.
+
+**With Inngest:**
+- User request returns immediately (202) — backend job queued
+- Inngest invokes the job asynchronously, independent of the HTTP response
+- If job fails: Inngest retries with exponential backoff (no manual retry code)
+- If duplicate event arrives: Inngest deduplicates silently
+- Dashboard shows all jobs: pending, running, completed, failed — with full event payloads
+- Concurrency limits prevent runaway cost (rate-limit LLM API calls)
+
+### How It Applies to Spectra AI
+
+**Flow:**
+```
+1. User uploads 3 files (PDF, image, audio) + clicks "Run Analysis"
+2. Browser calls /api/upload/confirm (JWT validated, rate-limited)
+3. Endpoint fires Inngest event: { jobId, userId, s3Keys }
+4. Endpoint returns 202 — client gets job ID, polling begins
+5. Inngest receives event, invokes jobProcessor Lambda asynchronously
+6. Lambda runs full LangGraph pipeline:
+   - Router (Nova Micro) classifies modalities
+   - Document, Vision, Audio agents run in parallel
+   - Synthesis merges findings
+   - Auditor grades faithfulness
+7. Results written to Supabase; job marked "completed"
+8. Dashboard polls status, renders live synthesis + governance trace
+```
+
+**Key design choices:**
+
+| Choice | Why | Benefit |
+|--------|-----|---------|
+| Async invoke (not sync) | Vercel timeout: 10–60s. Lambda timeout: 300s. Sync would hang. | Frontend returns fast; user isn't blocked. |
+| Exponential backoff retries | LLM APIs fail transiently (rate limits, network hiccups). | No manual retry logic; Inngest handles it. |
+| Checkpointing keyed by `jobId` | If Lambda times out partway through, retry should resume, not restart. | Only the failed node reruns; saves cost + time. |
+| Single trigger point (`/api/upload/confirm`) | Original design fired Inngest from two places (frontend + S3 Lambda). Race condition: S3 wins before all files uploaded. | Job always processes with complete `s3Keys`. |
+| Job state in Supabase + Inngest dashboard | Dashboard needs "is this job done?" to poll for results. Inngest dashboard needs "did this job retry?" for debugging. | Frontend has single source of truth (Supabase). Ops has full history (Inngest). |
+
+### Specific Benefits for Spectra
+
+1. **Cost protection** — If a recruiter shares the demo link, 10 concurrent uploads won't spawn 10×6 LLM calls each. Inngest rate-limits the pipeline; CloudWatch billing alarm stops runaway spend.
+
+2. **Reliability** — A transient Nova Micro timeout doesn't fail the entire job. Inngest retries; LangGraph checkpointing resumes from the last completed node (router + document agent don't re-run; vision agent retries).
+
+3. **Observability** — Inngest dashboard shows:
+   - Which jobs succeeded, failed, were rate-limited
+   - Full event payload (s3Keys, jobId, userId)
+   - Retry count, timestamps, error messages
+   - No guessing from CloudWatch logs
+
+4. **Decoupling** — The Vercel function and Lambda are completely independent. Vercel handles auth + rate limiting. Lambda handles inference. Inngest mediates between them.
+
+### Why Not SQS or Step Functions?
+
+- **SQS:** Raw queue. You manage retries, deduplication, state tracking yourself. Good for simple fan-out; not good for complex workflows.
+- **Step Functions:** Designed for Lambda-to-Lambda orchestration (`invoke → wait → invoke`). Spectra has one entry point (jobProcessor). Step Functions would be overkill and add latency (extra AWS API round-trips).
+- **Inngest:** Built for serverless. Free tier for dev + prod. Retries + dedup + dashboard baked in. Simpler mental model: event fires → function runs → writes results.
+
+**File references:** `apps/spectra-app/lib/inngest.ts`, `apps/spectra-api/src/handlers/jobProcessor.ts`, `apps/spectra-api/src/graph/graph.ts`
+
+---
+
 ## 3. Inngest Event Deduplication — S3 Trigger Race Condition
 
 ### Context
