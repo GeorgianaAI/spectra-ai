@@ -106,15 +106,12 @@ export default function LoginPage() {
               style={{
                 fontSize: "1rem",
                 fontWeight: 800,
-                letterSpacing: "-0.02em",
-                background:
-                  "linear-gradient(135deg, #0f2b2a 0%, #0f766e 40%, #0d9488 70%, #14b8a6 100%)",
-                WebkitBackgroundClip: "text",
-                WebkitTextFillColor: "transparent",
-                backgroundClip: "text",
+                letterSpacing: "0.2em",
+                color: "#0d9488",
+                textTransform: "uppercase",
               }}
             >
-              SPECTRA<span style={{ fontSize: "1.35em" }}>AI</span>
+              SPECTRA AI
             </div>
             <div style={{ fontSize: "0.65rem", color: "#9ab5b3", letterSpacing: "0.12em" }}>
               MULTIMODAL INTELLIGENCE
