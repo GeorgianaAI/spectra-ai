@@ -239,7 +239,7 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 > [!TIP]
 > **Watch the Spectra Pipeline in Action:** Click the link below to view the high-resolution operational walkthrough—covering the landing sequence, parallel multi-agent execution, live graph updates, and the final synthesis report.
 >
-> **[▶️ Spectra AI: Operational Demo Walkthrough](https://github.com/GeorgiDS9/spectra-ai/releases/download/v0.1.0-demo/spectra-ai-demo.mov)**
+> **[▶️ Spectra AI: Operational Demo Walkthrough](https://github.com/GeorgiDS9/spectra-ai/releases/download/v0.2.0-demo/spectra-ai-demo-v2.mov)**
 
 ---
 
@@ -281,7 +281,7 @@ Router and Synthesis are the orchestration layer. The three specialists are the 
 
 ### Job Detail Page
 
-> ![Spectra AI Job Detail Page](./docs/assets/spectra-ai-job-page.png)
+> ![Spectra AI Job Detail Page](./docs/assets/spectra-ai-job-detail.png)
 
 ---
 
