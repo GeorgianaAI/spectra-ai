@@ -31,7 +31,7 @@ Two Lambda functions in `eu-west-1`:
 
 | Function                 | Trigger                                          | Purpose                                        |
 | :----------------------- | :----------------------------------------------- | :--------------------------------------------- |
-| `spectra-ingest-handler` | S3 `ObjectCreated` on `spectra-uploads/uploads/` | Validates upload metadata, fires Inngest event |
+| `spectra-ingest-handler` | S3 `ObjectCreated` on `spectra-uploads/uploads/` | Validates upload metadata and file size limits — does NOT fire Inngest events (Inngest event is sent by `/api/upload` in spectra-app after client confirms upload) |
 | `spectra-job-processor`  | Inngest HTTP invocation                          | Runs full LangGraph agent pipeline             |
 
 `spectra-job-processor` is kept warm by a CloudWatch Events rule (`spectra-jobprocessor-warmup`) firing every 5 minutes. Cold start latency is 3–5s without it.

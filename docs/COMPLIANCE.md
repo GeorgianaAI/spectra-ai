@@ -81,7 +81,7 @@ Spectra AI operates in a multi-jurisdictional landscape with overlapping complia
 
 **Spectra Implementation:**
 - JWT/Supabase Auth gate — users must authenticate (lawful basis: contract)
-- PII redaction before processing — only `[EMAIL]`, `[PHONE]` masks stored
+- PII redaction before processing — masked values stored (`[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`)
 - Supabase RLS — users read/write only their own jobs
 - Job deletion endpoint available (future: automatic cleanup after 90 days)
 - Error handling with PII stripping before Sentry (no data exfiltration)
@@ -159,11 +159,11 @@ Spectra implements five core mechanisms to address regulatory requirements:
 
 | PII Type | Redaction | When Applied | Storage |
 | :--- | :--- | :--- | :--- |
-| Email | `[EMAIL]` | Before PDF chunking | Only masked version stored |
-| Phone | `[PHONE_US]` | Before PDF chunking | Only masked version stored |
-| SSN | `[SSN]` | Before PDF chunking | Only masked version stored |
-| Credit Card | `[CARD]` | Before PDF chunking | Only masked version stored |
-| UK NINO | `[NINO]` | Before PDF chunking | Only masked version stored |
+| Email | `[REDACTED:EMAIL]` | Before PDF chunking | Only masked version stored |
+| Phone | `[REDACTED:PHONE_US]` | Before PDF chunking | Only masked version stored |
+| SSN | `[REDACTED:SSN]` | Before PDF chunking | Only masked version stored |
+| Credit Card | `[REDACTED:CREDIT_CARD]` | Before PDF chunking | Only masked version stored |
+| UK NINO | `[REDACTED:UK_NINO]` | Before PDF chunking | Only masked version stored |
 
 **GDPR alignment:** Data minimization (Art. 5) — PII is masked before any processing, storage, or transmission to LLMs.
 
@@ -242,7 +242,7 @@ Each model ships with operational context documented:
 ```
 Model: claude-sonnet-4-6
 Task: PDF parsing, chunking, PII redaction, RAG retrieval, citation extraction
-Max tokens: 4,096 input context per request
+Max input context: 200K tokens (Claude Sonnet native limit — no artificial cap applied)
 Max output: 2,048 tokens
 Cost: ~$0.003 / 1K input tokens
 Latency: ~2–5s per job
@@ -415,7 +415,7 @@ Every job produces an auditable record:
 
 | Risk | Level | Mitigation | Evidence |
 | :--- | :--- | :--- | :--- |
-| Prompt injection buried in user uploads | Medium | 14-pattern regex scan at ingestion + synthesis re-check | routerNode.ts; red-team.test.ts (14 tests) |
+| Prompt injection buried in user uploads | Medium | 14-pattern regex scan at ingestion + synthesis re-check | documentNode.ts + audioNode.ts; red-team.test.ts (14 tests) |
 | False positive blocking legitimate content | Low | Regex refined over time; false positive monitoring in Sentry | Iterative regex tuning; Sentry error tracking |
 
 #### Model Capability Risk
@@ -474,9 +474,9 @@ For compliance audits, this table maps each NIST function/control to its framewo
 
 | Control Area | Framework | Implementation | Evidence | Source Code |
 | :--- | :--- | :--- | :--- | :--- |
-| **Prompt Injection** | [EVALUATION_AND_CONTROLS.md — Injection Detection](./EVALUATION_AND_CONTROLS.md#prompt-injection-detection) | 14-pattern regex scan at ingestion + synthesis re-check | Red team: 14 injection variant tests | [spectra-api/src/graph/nodes/routerNode.ts](../apps/spectra-api/src/graph/nodes/routerNode.ts) + [red-team.test.ts](../apps/spectra-api/src/__tests__/red-team.test.ts) |
+| **Prompt Injection** | [EVALUATION_AND_CONTROLS.md — Injection Detection](./EVALUATION_AND_CONTROLS.md#prompt-injection-detection) | 14-pattern regex scan at ingestion + synthesis re-check | Red team: 14 injection variant tests | [spectra-api/src/graph/nodes/documentNode.ts](../apps/spectra-api/src/graph/nodes/documentNode.ts) + [audioNode.ts](../apps/spectra-api/src/graph/nodes/audioNode.ts) + [red-team.test.ts](../apps/spectra-api/src/__tests__/red-team.test.ts) |
 | **PII Redaction** | [EVALUATION_AND_CONTROLS.md — PII Redaction](./EVALUATION_AND_CONTROLS.md#pii-redaction) | 5-pattern masking (email, phone, SSN, card, NINO) before vectorization | Red team: 15+ tests for patterns + false positives | [spectra-api/src/graph/nodes/documentNode.ts](../apps/spectra-api/src/graph/nodes/documentNode.ts) |
-| **Synthesis Validation** | [EVALUATION_AND_CONTROLS.md — Synthesis Validation](./EVALUATION_AND_CONTROLS.md#synthesis-output-validation) | Length floor (≥200 chars) + injection re-check + citation tags required | Red team: 5+ synthesis validation tests | [spectra-api/src/graph/nodes/synthesisNode.ts](../apps/spectra-api/src/graph/nodes/synthesisNode.ts) |
+| **Synthesis Validation** | [EVALUATION_AND_CONTROLS.md — Synthesis Validation](./EVALUATION_AND_CONTROLS.md#synthesis-output-validation) | Length floor (≥100 chars) + injection re-check + citation tags required | Red team: 5+ synthesis validation tests | [spectra-api/src/lib/synthesis-guardrails.ts](../apps/spectra-api/src/lib/synthesis-guardrails.ts) |
 | **Rate Limiting** | [EVALUATION_AND_CONTROLS.md — Rate Limiting](./EVALUATION_AND_CONTROLS.md#rate-limiting--billing-ceiling) | Upstash Redis sliding window (3 runs/day/IP) + $15/month CloudWatch alarm | Billing alarm configured in CDK; unit tests validate window config (3/day upload, 10/hr auth) and IP extraction across all three rate-limited routes | [spectra-api/lib/stacks/MonitoringStack.ts](../apps/spectra-api/lib/stacks/MonitoringStack.ts) |
 | **RLS & Access Control** | [COMPLIANCE.md — RLS & Access Control](#3-row-level-security-rls--access-control) | Supabase RLS policies on jobs table | RLS policy enforced at database level; no cross-user leakage | [spectra-api/migrations/001_jobs.sql](../apps/spectra-api/migrations/001_jobs.sql) |
 | **Audit Trail** | [EVALUATION_AND_CONTROLS.md — Audit Trail](./EVALUATION_AND_CONTROLS.md#audit-trail--traceability) | Supabase (metadata) + Sentry (errors) + LangSmith (traces) | Job history queryable; LangSmith traces exportable; Sentry incidents tracked | [spectra-api/src/handlers/jobProcessor.ts](../apps/spectra-api/src/handlers/jobProcessor.ts) |
