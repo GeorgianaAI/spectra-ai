@@ -6,6 +6,21 @@ const OWNER_ID = "owner-uuid-0000-0000-000000000001";
 const OTHER_ID = "other-uuid-0000-0000-000000000002";
 const JOB_ID = "job-uuid-0000-0000-0000-000000000001";
 
+const mockLimit = vi.fn().mockResolvedValue({ success: true });
+const MockRatelimit = function Ratelimit() {
+  return { limit: mockLimit };
+};
+(MockRatelimit as unknown as { slidingWindow: unknown }).slidingWindow = vi
+  .fn()
+  .mockReturnValue("window-config");
+
+vi.mock("@upstash/ratelimit", () => ({ Ratelimit: MockRatelimit }));
+vi.mock("@upstash/redis", () => {
+  const MockRedis = function Redis() {};
+  (MockRedis as unknown as { fromEnv: () => object }).fromEnv = () => ({});
+  return { Redis: MockRedis };
+});
+
 vi.mock("@/lib/supabase", () => ({
   getSupabaseClient: vi.fn(),
 }));
@@ -21,6 +36,7 @@ describe("GET /api/job/[id]", () => {
   beforeEach(() => {
     vi.resetModules();
     vi.clearAllMocks();
+    mockLimit.mockResolvedValue({ success: true });
     setEnv({ JWT_SECRET: TEST_JWT_SECRET });
   });
 
