@@ -1,20 +1,28 @@
 import { NextRequest, NextResponse } from "next/server";
+import { Ratelimit } from "@upstash/ratelimit";
+import { Redis } from "@upstash/redis";
 import { getSupabaseClient } from "@/lib/supabase";
-import { verifyJwt } from "@/lib/jwt";
+import { getClientIp, requireAuth } from "@/lib/apiHelpers";
+
+const ratelimit = new Ratelimit({
+  redis: Redis.fromEnv(),
+  limiter: Ratelimit.slidingWindow(60, "1 m"),
+  prefix: "rl:jobs:list",
+});
 
 export async function GET(request: NextRequest) {
-  const auth = request.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Missing token", code: "UNAUTHORIZED" }, { status: 401 });
+  const ip = getClientIp(request);
+  const { success } = await ratelimit.limit(ip);
+  if (!success) {
+    return NextResponse.json(
+      { error: "Too many requests — slow down", code: "RATE_LIMITED" },
+      { status: 429 },
+    );
   }
 
-  let userId: string;
-  try {
-    const claims = await verifyJwt(auth.slice(7));
-    userId = claims.sub;
-  } catch {
-    return NextResponse.json({ error: "Invalid token", code: "UNAUTHORIZED" }, { status: 401 });
-  }
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
 
   const supabase = getSupabaseClient();
   const { data, error } = await supabase
