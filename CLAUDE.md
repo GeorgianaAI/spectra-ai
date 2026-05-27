@@ -127,7 +127,7 @@ See [App Structure reference](MEMORY.md) for full directory mapping.
 | `modalities_used`   | jsonb       | `{ document: boolean, vision: boolean, audio: boolean }` |
 | `error`             | text        | nullable — error message if status is `failed`           |
 
-- Row Level Security enabled. Users can only read/write their own jobs.
+- Row Level Security policies defined in migration. Note: app uses service key which bypasses RLS — user isolation is enforced at application level via `.eq("user_id", userId)` and ownership checks.
 - Indexes on `user_id`, `created_at DESC`, `status`.
 - Migration file: `apps/spectra-api/migrations/001_jobs.sql`
 - Demo seed: `apps/spectra-api/migrations/002_demo_seed.sql`
@@ -144,7 +144,7 @@ Password: spectra-demo
 Demo account constraints (same as all users):
 
 - Rate limit: 3 job runs per day per IP (Upstash sliding window)
-- Max file sizes: 2MB PDF, 1MB image, 30s audio
+- Max file sizes: 2MB PDF, 1MB image, 5MB audio (≈30s at typical bitrates)
 - Preset sample files available on the dashboard
 
 The real cost guard is the CloudWatch billing alarm at **$15/month** — not the rate limit.

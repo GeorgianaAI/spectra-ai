@@ -136,7 +136,7 @@ npm run dev
 
 Visit `http://localhost:3000` to test locally. Verify:
 - Upload flows work (files → S3)
-- Rate limiting kicks in: 3 uploads/day on `/api/upload`, 10/hr on `/api/auth/token`, 10/min on `/api/auth/refresh`
+- Rate limiting kicks in: 3/day on upload, 10/hr on auth/token, 5/min on auth/refresh, 60/min on job read endpoints
 - Supabase queries work (job creation, history)
 - JWT auth works (middleware)
 
@@ -317,5 +317,5 @@ Vercel stores all previous deployments. In the Vercel dashboard:
 - Set up monitoring dashboards (CloudWatch, LangSmith, Sentry)
 - Configure custom domains (Vercel, Route 53)
 - Set up backups for Supabase (automated on Pro plan)
-- Plan capacity: typical free tier handles current rate limits — 3 jobs/day/IP on upload, 10 req/hr/IP on auth/token, 10 req/min/IP on auth/refresh
+- Plan capacity: typical free tier handles current rate limits — 3/day/IP upload, 10/hr/IP auth/token, 5/min/IP auth/refresh, 60/min/IP job reads
 - Document runbook for on-call engineers (see [OPERATIONS_RUNBOOK.md](./OPERATIONS_RUNBOOK.md))
