@@ -211,3 +211,61 @@ describe("Rate-limit: POST /api/auth/token", () => {
     expect(mockLimit).toHaveBeenCalledWith("unknown");
   });
 });
+
+describe("Rate-limit: POST /api/auth/refresh", () => {
+  const { setEnv, restoreEnv } = useEnvTestHarness();
+
+  beforeEach(() => {
+    vi.resetModules();
+    mockLimit.mockResolvedValue({ success: true });
+    mockSlidingWindow.mockClear();
+    setEnv(BASE_ENV);
+  });
+
+  afterEach(() => {
+    restoreEnv();
+  });
+
+  it("configures a sliding window of 10 requests per minute", async () => {
+    await import("@/app/api/auth/refresh/route");
+    expect(mockSlidingWindow).toHaveBeenCalledWith(10, "1 m");
+  });
+
+  it("returns 429 with RATE_LIMITED code when limit is exhausted", async () => {
+    mockLimit.mockResolvedValue({ success: false });
+    const { POST } = await import("@/app/api/auth/refresh/route");
+    const req = new Request("http://localhost:3000/api/auth/refresh", { method: "POST" });
+    const res = await POST(req as never);
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.code).toBe("RATE_LIMITED");
+  });
+
+  it("passes the first IP from x-forwarded-for to the counter", async () => {
+    const { POST } = await import("@/app/api/auth/refresh/route");
+    const req = new Request("http://localhost:3000/api/auth/refresh", {
+      method: "POST",
+      headers: { "x-forwarded-for": "203.0.113.5, 10.0.0.3" },
+    });
+    await POST(req as never);
+    expect(mockLimit).toHaveBeenCalledWith("203.0.113.5");
+  });
+
+  it("falls back to 'unknown' when x-forwarded-for is absent", async () => {
+    const { POST } = await import("@/app/api/auth/refresh/route");
+    const req = new Request("http://localhost:3000/api/auth/refresh", { method: "POST" });
+    await POST(req as never);
+    expect(mockLimit).toHaveBeenCalledWith("unknown");
+  });
+
+  it("allows the request through when the counter has capacity", async () => {
+    mockLimit.mockResolvedValue({ success: true });
+    const { POST } = await import("@/app/api/auth/refresh/route");
+    const req = new Request("http://localhost:3000/api/auth/refresh", {
+      method: "POST",
+      headers: { "x-forwarded-for": "203.0.113.5" },
+    });
+    const res = await POST(req as never);
+    expect(res.status).not.toBe(429);
+  });
+});
