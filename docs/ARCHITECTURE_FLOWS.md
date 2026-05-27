@@ -315,18 +315,23 @@ Two separate Sentry SDKs are in use — they cannot share config:
 ```
 apps/spectra-app/tests/
 ├── api/
-│   ├── upload/route.test.ts      # Rate limiting, S3 upload, JWT, 400/429 paths
-│   ├── job/route.test.ts         # Ownership enforcement, 401/403/200/404
-│   └── auth/route.test.ts        # Credential validation, JWT issuance
+│   ├── upload/route.redteam.test.ts  # Rate limiting, S3 upload, JWT, 400/429 paths
+│   ├── job/route.test.ts             # Ownership enforcement, 401/403/200/404 (6 tests)
+│   ├── auth/route.test.ts            # Credential validation, JWT issuance (5 tests)
+│   ├── health/route.test.ts          # Health endpoint — ok/degraded/503 semantics (7 tests)
+│   ├── eval/route.test.ts            # Eval route (8 tests)
+│   └── rateLimit.test.ts             # Rate limit sliding window across all 5 routes (30 tests)
+├── lib/
+│   └── authLogger.test.ts            # Structured auth event logging (3 tests)
 └── e2e/
-    ├── landing.spec.ts           # Public landing page smoke
-    ├── login.spec.ts             # Auth flow
-    └── dashboard.spec.ts         # Gated — requires PLAYWRIGHT_RUN_E2E=true + live Supabase
+    ├── landing.spec.ts               # Public landing page smoke
+    ├── login.spec.ts                 # Auth flow
+    └── dashboard.spec.ts             # Gated — requires PLAYWRIGHT_RUN_E2E=true + live Supabase
 
 apps/spectra-api/src/__tests__/
-├── schemas.test.ts               # 23 tests — all 6 agent node schemas (Router → Auditor)
-├── red-team.test.ts              # 48 adversarial tests — injection patterns, PII redaction, synthesis guardrails
-└── retrieval-eval.test.ts        # 13 tests — chunk quality filter, cosine deduplication, golden-set pipeline
+├── schemas.test.ts                   # 23 tests — all 6 agent node schemas (Router → Auditor)
+├── red-team.redteam.test.ts          # 48 adversarial tests — injection patterns, PII redaction, synthesis guardrails
+└── retrieval-eval.test.ts            # 13 tests — chunk quality filter, cosine deduplication, golden-set pipeline
 ```
 
 Vitest picks up `**/*.test.ts` only. Playwright `.spec.ts` files are excluded from Vitest via explicit `exclude: ["tests/e2e/**"]` in `vitest.config.ts`.

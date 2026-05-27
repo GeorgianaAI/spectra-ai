@@ -2,7 +2,7 @@
 
 **[🚀 View Live Demo](https://spectra-ai-app.vercel.app/)** | **[📂 View Codebase](https://github.com/GeorgiDS9/spectra-ai)**
 
-**Multimodal AI | Multi-Agent Graph | LangGraph Orchestration | LLM-as-Judge Auditor | NIST AI RMF Governance**
+**Multimodal AI | Multi-Agent LangGraph Orchestration | LLM-as-Judge Auditor | NIST AI RMF Governance**
 
 **Spectra AI** is a governance-first multimodal intelligence agent built on **NIST AI Risk Management Framework**. It routes **documents, images, and audio** through a specialist multi-agent graph — processing all three modalities in parallel, merging findings into a single grounded cited report, and scoring the synthesis for faithfulness with an LLM-as-Judge Auditor. Every job produces an auditable governance trace with NIST control IDs (GOVERN / MAP / MEASURE / MANAGE), enabling compliance investigations and risk traceability from finding to control.
 
@@ -126,6 +126,9 @@ Spectra AI deliberately matches model capability to task rather than defaulting 
 | 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete |
 | 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete |
 | 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot)                   | ✅ Complete |
+| 6     | Security hardening (prompt injection detection, synthesis guardrails, NIST AI RMF control IDs, accessibility) | ✅ Complete |
+| 7     | Red-team adversarial suite, retrieval evaluation harness, citation deep-linking | ✅ Complete |
+| 8     | Presign URL upload flow, JWT refresh, expanded rate limiting, CloudWatch alarms, vector lifecycle | ✅ Complete |
 
 ---
 
@@ -336,8 +339,8 @@ History page lists past runs with mission ID, date, modalities used, status, and
 | Modality     | Formats                          | Max Size |
 | :----------- | :------------------------------- | :------- |
 | **Document** | `.pdf`                           | 2 MB     |
-| **Vision**   | `.jpg`, `.jpeg`, `.png`, `.webp` | 1 MB     |
-| **Audio**    | `.mp3`, `.wav`, `.m4a`, `.ogg`   | 10 MB    |
+| **Vision**   | `.jpg`, `.jpeg`, `.png`, `.webp`, `.gif` | 1 MB     |
+| **Audio**    | `.mp3`, `.wav`, `.m4a`, `.ogg`, `.webm`  | 5 MB     |
 
 ### Usage Steps
 

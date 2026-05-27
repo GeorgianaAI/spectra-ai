@@ -279,7 +279,7 @@ Mitigation:
 ```
 Model: Whisper (OpenAI) + Claude Sonnet (Anthropic)
 Task: Audio transcription + structured extraction
-Max input: 10 MB audio, < 30 seconds recommended
+Max input: 5 MB audio, < 30 seconds recommended
 Cost: Whisper $0.02/min + Sonnet tokens
 Latency: ~5–10s per audio file
 Failure modes:

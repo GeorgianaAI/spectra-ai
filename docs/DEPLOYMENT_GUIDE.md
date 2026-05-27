@@ -57,7 +57,7 @@ Fill in all values in `.env`. Critical variables:
 - **LANGSMITH_API_KEY** & **LANGSMITH_PROJECT** — from LangSmith dashboard
 - **UPSTASH_VECTOR_REST_URL/TOKEN** — from Upstash console
 - **UPSTASH_REDIS_REST_URL/TOKEN** — from Upstash console
-- **BEDROCK_NOVA_MICRO_MODEL_ID** — fixed: `amazon.nova-micro-v1:0`
+- **BEDROCK_NOVA_MICRO_MODEL_ID** — cross-region inference profile: `eu.amazon.nova-micro-v1:0` (bare model IDs rejected by AWS — see TECHNICAL_ADVISORY.md §2)
 - **BILLING_ALERT_EMAIL** — your email for CloudWatch alerts (hard ceiling: $15/month)
 - **PRODUCTION_ORIGIN** — your Vercel domain (e.g., `https://spectra-ai-app.vercel.app`)
 - **JWT_SECRET** — shared secret with spectra-app (generate: `openssl rand -base64 32`)

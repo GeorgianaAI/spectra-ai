@@ -65,7 +65,7 @@ Two Lambda functions in `eu-west-1`:
 | :---------------------------------- | :---------------------------------------------------------------- | :----------------------------------------------------------------------------------------- |
 | Document Agent returns no citations | `UPSTASH_VECTOR_URL` / `UPSTASH_VECTOR_TOKEN` missing             | Add to Lambda env vars and redeploy                                                        |
 | Vector index growing unexpectedly   | `failJob()` cleanup not running (job failing before cleanup step) | Check CloudWatch logs; vector cleanup runs on both success and failure paths since Phase 8 |
-| Retrieval returns irrelevant chunks | Deduplication threshold too aggressive or embedding model changed | Review `DEDUP_THRESHOLD` in `documentNode.ts`; run `retrieval-eval.test.ts`                |
+| Retrieval returns irrelevant chunks | Deduplication threshold too aggressive or embedding model changed | Review the `0.97` cosine similarity threshold in `documentNode.ts`; run `retrieval-eval.test.ts`                |
 
 ### Supabase
 
@@ -169,7 +169,7 @@ export BILLING_ALERT_EMAIL=gchiriac2012@gmail.com           # SNS alarm recipien
 | Frontend errors                  | Sentry → spectra project → `source: browser`                                        |
 | Lambda errors (with stack trace) | Sentry → spectra project → `source: lambda`                                         |
 | Job state                        | Supabase → Table editor → `jobs`                                                    |
-| Rate limit hits                  | Upstash Redis → Data browser → keys prefixed `rl:upload` and `rl:auth`              |
+| Rate limit hits                  | Upstash Redis → Data browser → keys prefixed `rl:upload`, `rl:auth`, `rl:auth:refresh`, `rl:jobs:list`, `rl:jobs:get`, `rl:jobs:trace` |
 | Inngest job history              | Inngest dashboard → Runs                                                            |
 
 ---
