@@ -23,7 +23,7 @@ Status code conventions used across flows:
 - `400` malformed request payload
 - `401` unauthenticated (missing or invalid JWT)
 - `403` authenticated but not the job owner
-- `429` rate limit exceeded (3 req/day/IP)
+- `429` rate limit exceeded — 3/day/IP on upload routes; 10/hr/IP on `/api/auth/token`; 10/min/IP on `/api/auth/refresh`
 - `501` not yet implemented (scaffold phase)
 - `503` critical runtime dependency unavailable (production strict mode)
 

@@ -109,7 +109,7 @@ Spectra security control paths are mapped to deterministic HTTP status codes:
 | `401`  | Missing or invalid JWT — all `/dashboard` and `/api` routes               |
 | `404`  | Job not found or does not belong to the requesting user                   |
 | `409`  | Upload confirm attempted on a job already in progress or completed        |
-| `429`  | Rate limit exceeded — upload (3 req/day/IP) or auth (10 attempts/hour/IP) |
+| `429`  | Rate limit exceeded — upload (3 req/day/IP), auth/token (10/hr/IP), or auth/refresh (10/min/IP) |
 | `500`  | Pipeline error with structured error message and Sentry capture           |
 
 Injection detection and PII redaction failures surface as `500` job errors with structured log output — they are not user-facing HTTP status codes since they occur inside the Lambda pipeline, not at the API boundary.
