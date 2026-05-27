@@ -1,4 +1,4 @@
-# 🌐 Spectra AI — Architecture Flows
+# 🏛️ Spectra AI — Architecture Flows
 
 This document captures the core runtime flows that define Spectra AI's current behavior.
 Updated as each Phase ships — if a code change alters runtime behavior without updating this doc, treat that as an incomplete PR.

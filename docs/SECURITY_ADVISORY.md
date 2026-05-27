@@ -1,4 +1,4 @@
-# 🛡️ Spectra AI — Security Advisory
+# 🥊 Spectra AI — Security Advisory
 
 This advisory documents security behaviors observed in Spectra AI under structured adversarial testing, including prompt injection attempts embedded in user-supplied documents, PII redaction coverage verification, and synthesis output integrity validation.
 
@@ -103,14 +103,14 @@ The LLM synthesis output itself contains injection fragments, is malformed/empty
 
 Spectra security control paths are mapped to deterministic HTTP status codes:
 
-| Status | Meaning                                                                   |
-| :----- | :------------------------------------------------------------------------ |
-| `400`  | Malformed request payload, unsupported file type, schema parse failure    |
-| `401`  | Missing or invalid JWT — all `/dashboard` and `/api` routes               |
-| `404`  | Job not found or does not belong to the requesting user                   |
-| `409`  | Upload confirm attempted on a job already in progress or completed        |
+| Status | Meaning                                                                                                        |
+| :----- | :------------------------------------------------------------------------------------------------------------- |
+| `400`  | Malformed request payload, unsupported file type, schema parse failure                                         |
+| `401`  | Missing or invalid JWT — all `/dashboard` and `/api` routes                                                    |
+| `404`  | Job not found or does not belong to the requesting user                                                        |
+| `409`  | Upload confirm attempted on a job already in progress or completed                                             |
 | `429`  | Rate limit exceeded — upload (3/day/IP), auth/token (10/hr/IP), auth/refresh (5/min/IP), job reads (60/min/IP) |
-| `500`  | Pipeline error with structured error message and Sentry capture           |
+| `500`  | Pipeline error with structured error message and Sentry capture                                                |
 
 Injection detection and PII redaction failures surface as `500` job errors with structured log output — they are not user-facing HTTP status codes since they occur inside the Lambda pipeline, not at the API boundary.
 

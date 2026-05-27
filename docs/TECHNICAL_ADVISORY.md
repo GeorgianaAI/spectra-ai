@@ -1,4 +1,4 @@
-# Spectra AI — Technical Advisory
+# ⚙️ Spectra AI — Technical Advisory
 
 This document records the implementation challenges encountered during development, the root-cause analysis for each, and the solutions applied. It serves as an engineering reference for understanding non-obvious design choices in the codebase.
 
@@ -60,6 +60,7 @@ Hardcoding specific EU region ARNs (e.g. eu-west-1, eu-central-1, eu-north-1) is
 Inngest is an event-driven, serverless-first job orchestration platform. For AI projects, it solves a fundamental problem: **LLM inference is slow and unreliable.**
 
 A typical AI workflow:
+
 1. User submits a request (PDF upload, image analysis, etc.)
 2. Backend classifies the input, routes to specialist agents
 3. Multiple LLM calls happen in parallel (Claude, GPT-4o, Whisper, etc.) — each takes seconds to minutes
@@ -68,6 +69,7 @@ A typical AI workflow:
 **Without orchestration:** The API would block the user's request waiting for the inference to complete. If inference fails (rate limit, timeout, network error), you retry manually. If a request is submitted twice, two jobs run. No visibility into what's in progress.
 
 **With Inngest:**
+
 - User request returns immediately (202) — backend job queued
 - Inngest invokes the job asynchronously, independent of the HTTP response
 - If job fails: Inngest retries with exponential backoff (no manual retry code)
@@ -78,6 +80,7 @@ A typical AI workflow:
 ### How It Applies to Spectra AI
 
 **Flow:**
+
 ```
 1. User uploads 3 files (PDF, image, audio) + clicks "Run Analysis"
 2. Browser calls /api/upload/confirm (JWT validated, rate-limited)
@@ -95,13 +98,13 @@ A typical AI workflow:
 
 **Key design choices:**
 
-| Choice | Why | Benefit |
-|--------|-----|---------|
-| Async invoke (not sync) | Vercel timeout: 10–60s. Lambda timeout: 300s. Sync would hang. | Frontend returns fast; user isn't blocked. |
-| Exponential backoff retries | LLM APIs fail transiently (rate limits, network hiccups). | No manual retry logic; Inngest handles it. |
-| Checkpointing keyed by `jobId` | If Lambda times out partway through, retry should resume, not restart. | Only the failed node reruns; saves cost + time. |
-| Single trigger point (`/api/upload/confirm`) | Original design fired Inngest from two places (frontend + S3 Lambda). Race condition: S3 wins before all files uploaded. | Job always processes with complete `s3Keys`. |
-| Job state in Supabase + Inngest dashboard | Dashboard needs "is this job done?" to poll for results. Inngest dashboard needs "did this job retry?" for debugging. | Frontend has single source of truth (Supabase). Ops has full history (Inngest). |
+| Choice                                       | Why                                                                                                                      | Benefit                                                                         |
+| -------------------------------------------- | ------------------------------------------------------------------------------------------------------------------------ | ------------------------------------------------------------------------------- |
+| Async invoke (not sync)                      | Vercel timeout: 10–60s. Lambda timeout: 300s. Sync would hang.                                                           | Frontend returns fast; user isn't blocked.                                      |
+| Exponential backoff retries                  | LLM APIs fail transiently (rate limits, network hiccups).                                                                | No manual retry logic; Inngest handles it.                                      |
+| Checkpointing keyed by `jobId`               | If Lambda times out partway through, retry should resume, not restart.                                                   | Only the failed node reruns; saves cost + time.                                 |
+| Single trigger point (`/api/upload/confirm`) | Original design fired Inngest from two places (frontend + S3 Lambda). Race condition: S3 wins before all files uploaded. | Job always processes with complete `s3Keys`.                                    |
+| Job state in Supabase + Inngest dashboard    | Dashboard needs "is this job done?" to poll for results. Inngest dashboard needs "did this job retry?" for debugging.    | Frontend has single source of truth (Supabase). Ops has full history (Inngest). |
 
 ### Specific Benefits for Spectra
 
@@ -526,6 +529,7 @@ The `eu-west-1` bootstrap (already done at project init) does not cover `us-east
 Upstash Vector is eventually consistent. Vectors upserted via the REST API are not immediately queryable — a `query` call issued in the same Lambda invocation, milliseconds after `upsert`, reliably returns 0 results. This caused `documentNode` to fall through to the `EMPTY_OUTPUT` path on every job, producing 0% document confidence and no `[D...]` citations in the synthesis report regardless of whether the PDF was successfully parsed.
 
 The bug was masked by two factors:
+
 1. `parsePdf` extracted text correctly (confirmed via CloudWatch: "pages count: 2, texts: 80, runs: 80, text length: 1391") — the failure was silent and downstream.
 2. When all three modalities ran in parallel, LangGraph's `Send` branching silently dropped the `documentOutput` state update if the node threw, making it appear as if the document node never ran.
 
