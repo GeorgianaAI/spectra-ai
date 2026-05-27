@@ -226,9 +226,9 @@ describe("Rate-limit: POST /api/auth/refresh", () => {
     restoreEnv();
   });
 
-  it("configures a sliding window of 10 requests per minute", async () => {
+  it("configures a sliding window of 5 requests per minute", async () => {
     await import("@/app/api/auth/refresh/route");
-    expect(mockSlidingWindow).toHaveBeenCalledWith(10, "1 m");
+    expect(mockSlidingWindow).toHaveBeenCalledWith(5, "1 m");
   });
 
   it("returns 429 with RATE_LIMITED code when limit is exhausted", async () => {
@@ -267,5 +267,143 @@ describe("Rate-limit: POST /api/auth/refresh", () => {
     });
     const res = await POST(req as never);
     expect(res.status).not.toBe(429);
+  });
+});
+
+describe("Rate-limit: GET /api/jobs", () => {
+  const { setEnv, restoreEnv } = useEnvTestHarness();
+
+  beforeEach(() => {
+    vi.resetModules();
+    mockLimit.mockResolvedValue({ success: true });
+    mockSlidingWindow.mockClear();
+    setEnv(BASE_ENV);
+  });
+
+  afterEach(() => {
+    restoreEnv();
+  });
+
+  it("configures a sliding window of 60 requests per minute", async () => {
+    await import("@/app/api/jobs/route");
+    expect(mockSlidingWindow).toHaveBeenCalledWith(60, "1 m");
+  });
+
+  it("returns 429 with RATE_LIMITED code when limit is exhausted", async () => {
+    mockLimit.mockResolvedValue({ success: false });
+    const { GET } = await import("@/app/api/jobs/route");
+    const req = new Request("http://localhost:3000/api/jobs");
+    const res = await GET(req as never);
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.code).toBe("RATE_LIMITED");
+  });
+
+  it("passes the first IP from x-forwarded-for to the counter", async () => {
+    const { GET } = await import("@/app/api/jobs/route");
+    const req = new Request("http://localhost:3000/api/jobs", {
+      headers: { "x-forwarded-for": "198.51.100.1, 10.0.0.1" },
+    });
+    await GET(req as never);
+    expect(mockLimit).toHaveBeenCalledWith("198.51.100.1");
+  });
+
+  it("falls back to 'unknown' when x-forwarded-for is absent", async () => {
+    const { GET } = await import("@/app/api/jobs/route");
+    const req = new Request("http://localhost:3000/api/jobs");
+    await GET(req as never);
+    expect(mockLimit).toHaveBeenCalledWith("unknown");
+  });
+});
+
+describe("Rate-limit: GET /api/job/[id]", () => {
+  const { setEnv, restoreEnv } = useEnvTestHarness();
+
+  beforeEach(() => {
+    vi.resetModules();
+    mockLimit.mockResolvedValue({ success: true });
+    mockSlidingWindow.mockClear();
+    setEnv(BASE_ENV);
+  });
+
+  afterEach(() => {
+    restoreEnv();
+  });
+
+  it("configures a sliding window of 60 requests per minute", async () => {
+    await import("@/app/api/job/[id]/route");
+    expect(mockSlidingWindow).toHaveBeenCalledWith(60, "1 m");
+  });
+
+  it("returns 429 with RATE_LIMITED code when limit is exhausted", async () => {
+    mockLimit.mockResolvedValue({ success: false });
+    const { GET } = await import("@/app/api/job/[id]/route");
+    const req = new Request("http://localhost:3000/api/job/test-id");
+    const res = await GET(req as never, { params: Promise.resolve({ id: "test-id" }) });
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.code).toBe("RATE_LIMITED");
+  });
+
+  it("passes the first IP from x-forwarded-for to the counter", async () => {
+    const { GET } = await import("@/app/api/job/[id]/route");
+    const req = new Request("http://localhost:3000/api/job/test-id", {
+      headers: { "x-forwarded-for": "198.51.100.2, 10.0.0.1" },
+    });
+    await GET(req as never, { params: Promise.resolve({ id: "test-id" }) });
+    expect(mockLimit).toHaveBeenCalledWith("198.51.100.2");
+  });
+
+  it("falls back to 'unknown' when x-forwarded-for is absent", async () => {
+    const { GET } = await import("@/app/api/job/[id]/route");
+    const req = new Request("http://localhost:3000/api/job/test-id");
+    await GET(req as never, { params: Promise.resolve({ id: "test-id" }) });
+    expect(mockLimit).toHaveBeenCalledWith("unknown");
+  });
+});
+
+describe("Rate-limit: GET /api/job/[id]/trace", () => {
+  const { setEnv, restoreEnv } = useEnvTestHarness();
+
+  beforeEach(() => {
+    vi.resetModules();
+    mockLimit.mockResolvedValue({ success: true });
+    mockSlidingWindow.mockClear();
+    setEnv(BASE_ENV);
+  });
+
+  afterEach(() => {
+    restoreEnv();
+  });
+
+  it("configures a sliding window of 60 requests per minute", async () => {
+    await import("@/app/api/job/[id]/trace/route");
+    expect(mockSlidingWindow).toHaveBeenCalledWith(60, "1 m");
+  });
+
+  it("returns 429 with RATE_LIMITED code when limit is exhausted", async () => {
+    mockLimit.mockResolvedValue({ success: false });
+    const { GET } = await import("@/app/api/job/[id]/trace/route");
+    const req = new Request("http://localhost:3000/api/job/test-id/trace");
+    const res = await GET(req as never, { params: Promise.resolve({ id: "test-id" }) });
+    expect(res.status).toBe(429);
+    const body = (await res.json()) as Record<string, string>;
+    expect(body.code).toBe("RATE_LIMITED");
+  });
+
+  it("passes the first IP from x-forwarded-for to the counter", async () => {
+    const { GET } = await import("@/app/api/job/[id]/trace/route");
+    const req = new Request("http://localhost:3000/api/job/test-id/trace", {
+      headers: { "x-forwarded-for": "198.51.100.3, 10.0.0.1" },
+    });
+    await GET(req as never, { params: Promise.resolve({ id: "test-id" }) });
+    expect(mockLimit).toHaveBeenCalledWith("198.51.100.3");
+  });
+
+  it("falls back to 'unknown' when x-forwarded-for is absent", async () => {
+    const { GET } = await import("@/app/api/job/[id]/trace/route");
+    const req = new Request("http://localhost:3000/api/job/test-id/trace");
+    await GET(req as never, { params: Promise.resolve({ id: "test-id" }) });
+    expect(mockLimit).toHaveBeenCalledWith("unknown");
   });
 });
