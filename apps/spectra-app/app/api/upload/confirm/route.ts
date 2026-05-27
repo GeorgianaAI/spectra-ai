@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from "next/server";
 import { z } from "zod";
-import { verifyJwt } from "@/lib/jwt";
 import { getSupabaseClient } from "@/lib/supabase";
+import { requireAuth } from "@/lib/apiHelpers";
 import { inngest } from "@/lib/inngest";
 
 const BodySchema = z.object({
@@ -14,17 +14,9 @@ const BodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const auth = request.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Missing token", code: "UNAUTHORIZED" }, { status: 401 });
-  }
-  let userId: string;
-  try {
-    const claims = await verifyJwt(auth.slice(7));
-    userId = claims.sub;
-  } catch {
-    return NextResponse.json({ error: "Invalid token", code: "UNAUTHORIZED" }, { status: 401 });
-  }
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
 
   let body: unknown;
   try {
@@ -35,7 +27,10 @@ export async function POST(request: NextRequest) {
 
   const parsed = BodySchema.safeParse(body);
   if (!parsed.success) {
-    return NextResponse.json({ error: "Invalid request body", code: "BAD_REQUEST" }, { status: 400 });
+    return NextResponse.json(
+      { error: "Invalid request body", code: "BAD_REQUEST" },
+      { status: 400 },
+    );
   }
 
   const { jobId, s3Keys } = parsed.data;

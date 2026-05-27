@@ -6,7 +6,8 @@ import { Redis } from "@upstash/redis";
 import { randomUUID } from "crypto";
 import { z } from "zod";
 import { getSupabaseClient } from "@/lib/supabase";
-import { verifyJwt } from "@/lib/jwt";
+import { getClientIp, requireAuth } from "@/lib/apiHelpers";
+import { ALLOWED_TYPES } from "@/lib/uploadConstants";
 
 const s3 = new S3Client({ region: process.env.AWS_REGION ?? "eu-west-1" });
 
@@ -15,31 +16,6 @@ const ratelimit = new Ratelimit({
   limiter: Ratelimit.slidingWindow(3, "1 d"),
   prefix: "rl:upload",
 });
-
-const ALLOWED_TYPES: Record<
-  string,
-  {
-    modality: "document" | "image" | "audio";
-    field: "document" | "vision" | "audio";
-    ext: string;
-    maxBytes: number;
-  }
-> = {
-  "application/pdf": {
-    modality: "document",
-    field: "document",
-    ext: "pdf",
-    maxBytes: 2 * 1024 * 1024,
-  },
-  "image/jpeg": { modality: "image", field: "vision", ext: "jpg", maxBytes: 1 * 1024 * 1024 },
-  "image/png": { modality: "image", field: "vision", ext: "png", maxBytes: 1 * 1024 * 1024 },
-  "image/webp": { modality: "image", field: "vision", ext: "webp", maxBytes: 1 * 1024 * 1024 },
-  "audio/mpeg": { modality: "audio", field: "audio", ext: "mp3", maxBytes: 50 * 1024 * 1024 },
-  "audio/wav": { modality: "audio", field: "audio", ext: "wav", maxBytes: 50 * 1024 * 1024 },
-  "audio/ogg": { modality: "audio", field: "audio", ext: "ogg", maxBytes: 50 * 1024 * 1024 },
-  "audio/mp4a": { modality: "audio", field: "audio", ext: "m4a", maxBytes: 50 * 1024 * 1024 },
-  "audio/x-m4a": { modality: "audio", field: "audio", ext: "m4a", maxBytes: 50 * 1024 * 1024 },
-};
 
 const FileMetaSchema = z.object({
   contentType: z.string(),
@@ -55,7 +31,7 @@ const BodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = getClientIp(request);
   const { success } = await ratelimit.limit(ip);
   if (!success) {
     return NextResponse.json(
@@ -64,17 +40,9 @@ export async function POST(request: NextRequest) {
     );
   }
 
-  const auth = request.headers.get("Authorization");
-  if (!auth?.startsWith("Bearer ")) {
-    return NextResponse.json({ error: "Missing token", code: "UNAUTHORIZED" }, { status: 401 });
-  }
-  let userId: string;
-  try {
-    const claims = await verifyJwt(auth.slice(7));
-    userId = claims.sub;
-  } catch {
-    return NextResponse.json({ error: "Invalid token", code: "UNAUTHORIZED" }, { status: 401 });
-  }
+  const auth = await requireAuth(request);
+  if (auth instanceof NextResponse) return auth;
+  const { userId } = auth;
 
   let body: unknown;
   try {
