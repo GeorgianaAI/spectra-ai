@@ -4,6 +4,8 @@ import { Redis } from "@upstash/redis";
 import { z } from "zod";
 import { getSupabaseClient } from "@/lib/supabase";
 import { issueJwt } from "@/lib/jwt";
+import { logAuthEvent } from "@/lib/authLogger";
+import { getClientIp } from "@/lib/apiHelpers";
 
 const ratelimit = new Ratelimit({
   redis: Redis.fromEnv(),
@@ -17,9 +19,10 @@ const BodySchema = z.object({
 });
 
 export async function POST(request: NextRequest) {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() ?? "unknown";
+  const ip = getClientIp(request);
   const { success } = await ratelimit.limit(ip);
   if (!success) {
+    logAuthEvent({ type: "login_rate_limited", ip });
     return NextResponse.json(
       { error: "Too many sign-in attempts — try again in an hour", code: "RATE_LIMITED" },
       { status: 429 },
@@ -46,6 +49,7 @@ export async function POST(request: NextRequest) {
 
   const { data, error } = await supabase.auth.signInWithPassword({ email, password });
   if (error || !data.user) {
+    logAuthEvent({ type: "login_failed", ip });
     return NextResponse.json(
       { error: "Invalid credentials", code: "UNAUTHORIZED" },
       { status: 401 },
@@ -53,5 +57,6 @@ export async function POST(request: NextRequest) {
   }
 
   const token = await issueJwt(data.user.id, data.user.email ?? email);
+  logAuthEvent({ type: "login_success", ip });
   return NextResponse.json({ token });
 }
