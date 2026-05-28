@@ -8,6 +8,7 @@ export const TEST_JWT_SECRET = "test-secret-32-chars-long-enough!!";
 export const VALID_INFRA_ENVS = {
   NEXT_PUBLIC_SUPABASE_URL: "https://supabase.example",
   NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-key",
+  SUPABASE_SERVICE_KEY: "service-key",
   UPSTASH_REDIS_REST_URL: "https://redis.example",
   UPSTASH_REDIS_REST_TOKEN: "redis-token",
 };

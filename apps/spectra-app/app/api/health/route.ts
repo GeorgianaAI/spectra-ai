@@ -25,13 +25,13 @@ export async function GET(req: Request) {
   const reqId = req.headers.get("x-request-id") ?? crypto.randomUUID();
 
   const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL;
-  const supabaseKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY;
+  const supabaseServiceKey = process.env.SUPABASE_SERVICE_KEY;
   const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
   const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
 
   const [supabase, redis] = await Promise.all<{ state: HealthState; detail?: string }>([
-    supabaseUrl && supabaseKey
-      ? probeSupabase(supabaseUrl, supabaseKey)
+    supabaseUrl && supabaseServiceKey
+      ? probeSupabase(supabaseUrl, supabaseServiceKey)
       : Promise.resolve({ state: "missing" }),
     redisUrl && redisToken
       ? probeRedis(redisUrl, redisToken)

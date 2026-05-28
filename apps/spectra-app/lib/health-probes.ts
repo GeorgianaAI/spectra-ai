@@ -4,7 +4,8 @@ type ProbeResult = { state: "ok" | "missing" | "error"; detail?: string };
 
 export async function probeSupabase(url: string, key: string): Promise<ProbeResult> {
   try {
-    const res = await fetch(`${url}/rest/v1/`, {
+    // Query a real table — the API gateway root returns 200 even when the DB is paused.
+    const res = await fetch(`${url}/rest/v1/jobs?select=id&limit=1`, {
       headers: { apikey: key, Authorization: `Bearer ${key}` },
       signal: AbortSignal.timeout(4000),
     });

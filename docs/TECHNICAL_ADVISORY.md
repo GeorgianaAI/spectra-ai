@@ -187,7 +187,7 @@ Instantiating the Supabase JS SDK client inside the health probe to make a simpl
 
 ### Solution
 
-The Supabase probe uses a raw `fetch()` to `${url}/rest/v1/` with the `apikey` header set to the anon key. A 200 response indicates the Supabase REST layer is alive. No SDK, no WebSocket, no client state. The Redis probe uses Upstash's REST API at `/ping` — returns `{ result: "PONG" }` on success. Both probes are wrapped in a 4-second `AbortSignal.timeout` to prevent the health handler from hanging.
+The Supabase probe uses a raw `fetch()` to `${url}/rest/v1/jobs?select=id&limit=1` with the `apikey` header set to the service key. Querying a real table is required — the PostgREST root (`/rest/v1/`) returns 200 even when the database is paused, so it is not a reliable liveness signal. The service key is used (not the anon key) because RLS blocks anon-key reads on the `jobs` table. A 200 response from the table query confirms the database is live. No SDK, no WebSocket, no client state. The Redis probe uses Upstash's REST API at `/ping` — returns `{ result: "PONG" }` on success. Both probes are wrapped in a 4-second `AbortSignal.timeout` to prevent the health handler from hanging.
 
 **Files:** `apps/spectra-app/lib/health-probes.ts`, `apps/spectra-app/app/api/health/route.ts`
 

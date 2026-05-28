@@ -213,23 +213,22 @@ A **scheduled dependency audit** runs automatically on the 1st of each month at 
 
 **Key characteristic:** **Manual remediation required.** If critical vulnerabilities are found, review the audit results, create a fix branch, and merge into main.
 
-### ping-supabase.yml — Supabase Keep-Alive
+### Vercel Cron — Supabase Keep-Alive
 
-A **Supabase keep-alive ping** runs automatically twice a week to prevent the project from being paused on the free tier.
+A **Supabase keep-alive ping** runs automatically three times a week via Vercel cron to prevent the project from being paused on the free tier.
 
 **Trigger:**
 
-- **Automatic:** Every Monday and Thursday at 09:00 UTC
-- **Manual:** via `workflow_dispatch` in GitHub Actions tab
+- **Automatic:** Every Monday, Wednesday, and Friday at 09:00 UTC (`0 9 * * 1,3,5` in `apps/spectra-app/vercel.json`)
 
 **What it does:**
 
-- Sends a real PostgREST query to `/rest/v1/jobs?select=id&limit=1`
+- Calls `GET /api/keepalive`, which sends a real PostgREST query to `/rest/v1/jobs?select=id&limit=1` using the service key
 - Resets the 7-day inactivity counter
 
-**Required secret:** `SUPABASE_SERVICE_KEY` must be set in GitHub Actions → Settings → Secrets.
+**Required env var:** `SUPABASE_SERVICE_KEY` must be set in Vercel project environment variables.
 
-**Why:** Supabase's inactivity scanner tracks real API usage, not health check probes. Hitting the PostgREST endpoint counts as activity.
+**Why:** Supabase's inactivity scanner tracks real database queries, not API gateway pings. Querying the `jobs` table with the service key bypasses RLS and confirms the database is live.
 
 #### Setting Up the Secret
 

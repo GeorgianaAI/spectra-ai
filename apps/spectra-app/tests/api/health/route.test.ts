@@ -145,7 +145,7 @@ describe("GET /api/health", () => {
     setEnv({
       NODE_ENV: "test",
       NEXT_PUBLIC_SUPABASE_URL: "https://abc.supabase.co",
-      NEXT_PUBLIC_SUPABASE_ANON_KEY: "anon-xyz",
+      SUPABASE_SERVICE_KEY: "service-xyz",
       UPSTASH_REDIS_REST_URL: "https://redis.upstash.io",
       UPSTASH_REDIS_REST_TOKEN: "token-xyz",
     });
@@ -159,7 +159,7 @@ describe("GET /api/health", () => {
 
     expect(vi.mocked(probes.probeSupabase)).toHaveBeenCalledWith(
       "https://abc.supabase.co",
-      "anon-xyz",
+      "service-xyz",
     );
     expect(vi.mocked(probes.probeRedis)).toHaveBeenCalledWith(
       "https://redis.upstash.io",
