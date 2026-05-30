@@ -636,3 +636,57 @@ For portfolio-scale MVP, document-head heuristic is acceptable. If coverage gaps
 Do not default to sending all chunks — the cost and quality degradation are real.
 
 **File:** `apps/spectra-api/src/graph/nodes/documentNode.ts` (lines 157-166)
+
+---
+
+## 24. Auditor Model Choice — Claude Sonnet over GPT-4o Mini
+
+### Context
+
+The Auditor node evaluates the Synthesis report for faithfulness and hallucinations by comparing it against source findings from the Document, Vision, and Audio agents. It scores confidence per modality (0-100), identifies ungrounded claims, and maps findings to NIST AI RMF control IDs.
+
+The model choice is Claude Sonnet. A natural cost-saving question: why not GPT-4o mini, which is smaller and cheaper?
+
+### Why Sonnet (Not Mini)
+
+The Auditor's core task is **hallucination detection**, which requires nuanced reasoning:
+
+| Capability                            | Claude Sonnet | GPT-4o Mini | Impact on Auditor                                                        |
+| :------------------------------------ | :------------ | :---------- | :----------------------------------------------------------------------- |
+| **Subtle hallucination detection**    | Strong        | Weak        | Mini misses plausible-sounding false claims not grounded in findings     |
+| **Structured JSON reliability**       | High          | Medium      | Mini parse failures trigger fallback scoring (75 default, not real grade) |
+| **NIST control ID mapping**           | Reliable      | Unreliable  | Mini invents or mis-assigns control IDs; Sonnet understands domain       |
+| **Faithfulness scoring nuance**       | 0-100 granular| Coarse      | Mini tends toward middle scores; Sonnet differentiates strong vs weak     |
+| **Cost per invocation**               | ~$0.015       | ~$0.0015    | 10× cheaper; not worth the quality loss                                  |
+
+**Example hallucination Auditor must catch:**
+```
+Source findings: "Patient had fever and cough"
+Synthesis report: "Patient had fever, cough, and shortness of breath"
+                                              ↑ hallucinated (not in source)
+
+Mini: May score 85 faithfulness (reads as plausible)
+Sonnet: Scores 60-70 faithfulness (detects extrapolation)
+```
+
+### Why Sonnet (Not Opus)
+
+Sonnet is the balance:
+- Cheap enough for portfolio scale
+- Strong enough for hallucination reasoning
+- Opus would be overkill and add unnecessary latency/cost
+
+### Trade-off Accepted
+
+Auditor is the **bottleneck LLM call** in the pipeline (runs after all 3 agents complete). Using Sonnet instead of mini adds ~$0.014 per job. At demo scale (100 jobs/month), this is <$1.50 overhead for significantly better hallucination detection.
+
+If you want to experiment with mini for cost reasons: expect to see more undetected hallucinations, more fallback scorings (75 default), and weaker NIST mappings. The savings ($1.50/month) are not worth the quality loss.
+
+### Future Monitoring
+
+If audit quality degrades in production (auditor scores drift toward 75, hallucinations escape undetected):
+1. Check `auditorNode` parse error rate in CloudWatch
+2. Review LangSmith runs for Auditor model performance
+3. Do not downgrade to mini; upgrade to Opus if needed
+
+**File:** `apps/spectra-api/src/graph/nodes/auditorNode.ts` (lines 49-99)
