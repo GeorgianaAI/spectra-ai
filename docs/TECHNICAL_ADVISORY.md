@@ -586,3 +586,53 @@ None. Grants are additive; RLS is the enforcement boundary. Granting all four DM
 **Future path:** All new migrations must include explicit grants alongside `CREATE TABLE` and RLS statements.
 
 **Files:** `apps/spectra-api/migrations/003_data_api_grants.sql`
+
+---
+
+## 23. Document Head as RAG Query — Heuristic Trade-off Between Efficiency and Coverage
+
+### Context
+
+`documentNode` chunks and vectorises PDF content to enable RAG (Retrieval Augmented Generation). The retrieval step selects the top-5 most relevant chunks to send to Claude Sonnet for extraction. Unlike a typical RAG pipeline where the user provides a query ("What is the patient's blood pressure?"), Spectra has no explicit user query — the system simply needs to extract all findings from the document.
+
+### Challenge
+
+A naive RAG approach would send all chunks to Claude, but this is expensive (large token count) and dilutes focus. A multi-query approach (querying with "Findings", "Key information", "Important details", etc.) would run the embedding model multiple times per document — acceptable at demo scale but not scalable.
+
+The original design selected the document's opening (first 1000 characters) as an implicit query vector, assuming that the document's introduction is representative of its overall content and structure. This retrieves chunks most similar to the opening.
+
+### Trade-off Analysis
+
+**Assumption:** Document openings are representative
+- **Works well for:** Reports, analyses, memos (topic set in opening, details follow)
+- **Works poorly for:** Unstructured documents where important details appear late, documents with headers/boilerplate at the top, long preambles before substantive content
+
+**Efficiency gain:** Only ~50 chunk embeddings per document + 1 query embedding + in-memory cosine similarity. No multi-query loops.
+
+**Coverage risk:** A critical fact buried in the document's conclusion may score low similarity to the opening and be filtered out in top-5 selection.
+
+### Solution Implemented
+
+The document head (first 1000 chars) is vectorized and used as the similarity query. The top-5 chunks are selected by cosine similarity and sent to Claude. This is fast and scalable but makes a structural assumption about document content distribution.
+
+### Alternatives Not Taken
+
+| Approach                        | Pros                                           | Cons                                                                              |
+| :------------------------------ | :--------------------------------------------- | :-------------------------------------------------------------------------------- |
+| **Send all chunks**             | Complete coverage; no risk of missed findings  | Large token count; costly; Claude loses focus; slower synthesis                  |
+| **Multi-query (5 different)**   | Better coverage; less bias to opening          | 5× embedding calls per document; higher latency; higher cost                     |
+| **Middle section as query**     | May be more representative than opening        | Still a heuristic; no principled reason to prefer middle                         |
+| **Claude selects chunks first** | Adaptive; Claude decides what's relevant       | Requires 2-step flow; doubles inference cost; breaks determinism                 |
+| **Entire document as query**    | Uses full context                              | Circular comparison (every chunk high similarity to whole); adds noise            |
+
+### Recommendation for Future Refinement
+
+For portfolio-scale MVP, document-head heuristic is acceptable. If coverage gaps appear in real user PDFs:
+
+1. **Increase top-k** from 5 to 7-10 chunks (modest token increase, better coverage)
+2. **Add fallback multi-query** for docs where top-5 similarity < 0.6 (signals opening is non-representative)
+3. **Sample document structure** (check if opening is boilerplate via length of first sentence, presence of "Contents" or "Table of Contents") and adjust strategy
+
+Do not default to sending all chunks — the cost and quality degradation are real.
+
+**File:** `apps/spectra-api/src/graph/nodes/documentNode.ts` (lines 157-166)
