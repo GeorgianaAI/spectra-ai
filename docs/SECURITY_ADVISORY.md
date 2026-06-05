@@ -12,7 +12,7 @@ Findings are grounded in reproducible test executions (`red-team.test.ts`) and a
 
 **Test coverage:**
 
-- `apps/spectra-api/src/__tests__/red-team.test.ts` — 48 adversarial tests across three suites
+- `apps/spectra-api/src/__tests__/red-team.test.ts` — 53 adversarial tests across three suites
 
 **Security surface under test:**
 
@@ -61,18 +61,18 @@ User-supplied PDF content or audio transcripts contain adversarial instruction f
 
 ### Attack pattern
 
-User-supplied documents containing personally identifiable information — email addresses, US phone numbers, Social Security Numbers, credit card numbers, and UK National Insurance numbers — flow into the vectorization and synthesis pipeline without redaction.
+User-supplied content containing personally identifiable information — across documents, audio transcripts, and vision model output — flows into the vectorization and synthesis pipeline without redaction.
 
 ### Defensive behavior observed
 
-- `redactPii()` runs regex patterns for five PII types before any text is embedded or sent to an LLM.
-- Each matched field is replaced with a typed placeholder: `[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`.
+- `redactPii()` runs nine regex patterns across all three text-producing modalities: `documentNode` (before vectorisation), `audioNode` (transcript before Claude Sonnet), `visionNode` (GPT-4o text output before graph state).
+- Each matched field is replaced with a typed placeholder: `[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`, `[REDACTED:DOB]`, `[REDACTED:DOB_ISO]`, `[REDACTED:ADDRESS]`, `[REDACTED:PERSON_NAME]`.
 - `redactedFields` accurately reports which types were found — no false positives on clean financial text, no duplicate labels when multiple instances of the same type appear.
-- Unredacted text is never written to the Upstash Vector index.
+- Unredacted text is never written to the Upstash Vector index or forwarded to LLM providers.
 
 ### Expected outcomes
 
-- PII types are replaced before vectorization and before synthesis context assembly.
+- PII types are replaced before vectorization, before LLM prompt construction, and before graph state propagation.
 - Clean text passes through unchanged with an empty `redactedFields` array.
 
 ---
@@ -132,7 +132,7 @@ Spectra enforces environment-aware behavior:
 
 ## Security Positioning Statement
 
-Spectra AI demonstrates adversarial resilience for tested injection, PII, and synthesis integrity scenarios, based on reproducible test evidence from `red-team.test.ts` (48 tests) and runtime behaviour controls active in both development and production.
+Spectra AI demonstrates adversarial resilience for tested injection, PII, and synthesis integrity scenarios, based on reproducible test evidence from `red-team.test.ts` (53 tests) and runtime behaviour controls active in both development and production.
 
 This advisory is a bounded security statement and should be maintained as the test suite, pipeline architecture, and threat model evolve.
 

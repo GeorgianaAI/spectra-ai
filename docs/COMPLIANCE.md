@@ -22,7 +22,7 @@ Spectra AI is architected around **NIST AI RMF**, a governance framework that or
 | **GOVERN**  | Establish accountability & organizational structures for AI risk | Model selection rationale documented; governance trace captures policy decisions                                                     |
 | **MAP**     | Identify & document AI system risks in context                   | Router classifies modalities; specialist agents scope scope/purpose; model cards document capabilities + limits                      |
 | **MEASURE** | Evaluate AI system performance & measure risk                    | LLM-as-Judge Auditor scores faithfulness (0–100); hallucination detection; confidence scores per modality; citation accuracy metrics |
-| **MANAGE**  | Implement controls & address identified risks                    | PII redaction (5 patterns); prompt injection detection (14 patterns); synthesis validation gates; rate limiting; RLS; audit trail    |
+| **MANAGE**  | Implement controls & address identified risks                    | PII redaction (9 patterns, all text modalities); prompt injection detection (14 patterns); synthesis validation gates; rate limiting; RLS; audit trail    |
 
 ### Governance Trace & NIST Control IDs
 
@@ -87,7 +87,7 @@ Spectra AI operates in a multi-jurisdictional landscape with overlapping complia
 **Spectra Implementation:**
 
 - JWT/Supabase Auth gate — users must authenticate (lawful basis: contract)
-- PII redaction before processing — masked values stored (`[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`)
+- PII redaction across all text-producing modalities — masked values stored (`[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`, `[REDACTED:DOB]`, `[REDACTED:DOB_ISO]`, `[REDACTED:ADDRESS]`, `[REDACTED:PERSON_NAME]`)
 - Supabase RLS — users read/write only their own jobs
 - Job deletion endpoint available (future: automatic cleanup after 90 days)
 - Error handling with PII stripping before Sentry (no data exfiltration)
@@ -468,7 +468,7 @@ For compliance audits, this table maps each NIST function/control to its framewo
 | :-------------------------------------------------- | :---------------------------------------------------------------------- | :----------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------------- |
 | **MAP 1.1** — Context & purpose documented          | [COMPLIANCE.md — Model Governance](#model-governance--model-cards)      | Model cards + README architecture diagrams | Model card contents                       | [COMPLIANCE.md — Model Cards](#model-cards)                              |
 | **MAP 2.1** — Domain expertise informs development  | [README.md — Core Architecture](../README.md#-core-architecture)        | Agent graph design matches modality tasks  | Multi-agent specialization                | [spectra-api/src/graph/graph.ts](../apps/spectra-api/src/graph/graph.ts) |
-| **MAP 3.5** — Risk identification practices applied | [COMPLIANCE.md — Risk Assessment Framework](#risk-assessment-framework) | Red team adversarial test matrix           | 48 tests across injection, PII, synthesis | [SECURITY_ADVISORY.md](./SECURITY_ADVISORY.md)                           |
+| **MAP 3.5** — Risk identification practices applied | [COMPLIANCE.md — Risk Assessment Framework](#risk-assessment-framework) | Red team adversarial test matrix           | 53 tests across injection, PII, synthesis | [SECURITY_ADVISORY.md](./SECURITY_ADVISORY.md)                           |
 
 ### NIST MEASURE Function
 

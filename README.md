@@ -142,7 +142,7 @@ See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for the full
 
 ## 🛡️ Guardrails & Defense Mechanisms
 
-Spectra AI enforces multi-stage guardrails to prevent prompt injection, PII leakage, and synthesis drift. All inputs are scanned before routing to agents; five PII pattern types (email, phone, SSN, credit card, UK NINO) are redacted before vectorization; synthesis output is validated for length, injection re-check, and citation presence; and access is protected by per-IP rate limiting, session-namespaced vector retrieval, and hard billing ceiling at $15/month.
+Spectra AI enforces multi-stage guardrails to prevent prompt injection, PII leakage, and synthesis drift. All inputs are scanned before routing to agents; nine PII pattern types (email, phone, SSN, credit card, UK NINO, date of birth, street address, contextual person name) are redacted across all text-producing modalities before vectorization or LLM calls; synthesis output is validated for length, injection re-check, and citation presence; and access is protected by per-IP rate limiting, session-namespaced vector retrieval, and hard billing ceiling at $15/month.
 
 See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for complete guardrail specifications, test coverage, and defense-in-depth rationale. _Maintained locally, not public_.
 
@@ -155,7 +155,7 @@ Spectra AI is architected around **NIST AI Risk Management Framework** (GOVERN /
 **Governance & Transparency:**
 
 - Every job produces an auditable **governance trace** with NIST control IDs, agent findings, confidence scores, and timestamps
-- PII is redacted before processing (5 patterns: email, phone, SSN, credit card, UK NINO)
+- PII is redacted across all text-producing modalities (9 patterns: email, phone, SSN, credit card, UK NINO, date of birth US/ISO, street address, contextual person name)
 - Users control their data via **Supabase RLS** (row-level security)
 - Model choices documented with capabilities, limitations, and bias mitigation per task
 
@@ -171,10 +171,10 @@ See [COMPLIANCE.md](./docs/COMPLIANCE.md) for NIST AI RMF alignment, regulatory 
 
 ## 🥊 Red-Team Validation
 
-Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 48 tests) covering three security-critical controls:
+Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 53 tests) covering three security-critical controls:
 
 - **Prompt injection detection** — 14 regex patterns, case-insensitive, tested against known attack variants (override instructions, jailbreak tokens, model-specific delimiters) buried in otherwise legitimate document text.
-- **PII redaction coverage** — five pattern types (email, US phone, SSN, credit card, UK NINO), verified against false positives, duplicate labelling, and clean-text passthrough.
+- **PII redaction coverage** — nine pattern types (email, US phone, SSN, credit card, UK NINO, DOB US/ISO, street address, contextual person name), verified against false positives, duplicate labelling, and clean-text passthrough. Redaction applied in `documentNode` (before vectorization), `audioNode` (transcript before Claude Sonnet), and `visionNode` (GPT-4o text output before graph state).
 - **Synthesis output guardrails** — length floor, injection re-check on LLM output, and citation tag presence validated before the auditor receives the report.
 
 See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence. _This document is maintained locally and intentionally not published to prevent detailed red-teaming methodology from being publicly available._
@@ -223,9 +223,9 @@ Spectra is not multi-agent by label — the architecture requires it by design. 
 
 2. **Document Agent (Claude Sonnet):** PDF parsing, chunking, PII redaction before vectorization, RAG retrieval from Upstash Vector under a session-namespaced key, citation extraction with page references.
 
-3. **Vision Agent (GPT-4o):** Native image understanding, entity extraction, structured annotations, bounding descriptions. GPT-4o is materially stronger here — no compromise.
+3. **Vision Agent (GPT-4o):** Native image understanding, entity extraction, structured annotations, bounding descriptions. GPT-4o's text output is PII-redacted before entering graph state. GPT-4o is materially stronger here — no compromise.
 
-4. **Audio Agent (Whisper → Claude Sonnet):** Whisper transcription followed by Claude Sonnet structured extraction. Not an LLM reasoning task — transcription first, then structured output.
+4. **Audio Agent (Whisper → Claude Sonnet):** Whisper transcription followed by PII redaction, then Claude Sonnet structured extraction. Not an LLM reasoning task — transcription first, then structured output.
 
 5. **Synthesis Agent (GPT-4o):** Receives all specialist outputs, merges findings, detects and flags contradictions between modalities (`[CONFLICT: D1 vs V2]`), generates a unified cited report with `[D1]`, `[V2]`, `[A1]` source tags.
 
@@ -300,7 +300,7 @@ At runtime, Spectra:
 - **Produces a governance trace** — per-finding decision log with NIST AI RMF tags (GOVERN / MAP / MEASURE / MANAGE).
 - **Flags conflicts** between modalities in the report: `[CONFLICT: D1 vs V2]`.
 - **Isolates retrieval per session** — Upstash Vector namespaced by `{jobId}_{userId}`.
-- **Redacts PII** before vectorization (Document Agent).
+- **Redacts PII** across all text-producing modalities — document (before vectorization), audio (transcript before LLM), vision (GPT-4o output before graph state).
 - **Persists job history** — past runs stored in Supabase, accessible from the History page with links to per-job synthesis and governance detail.
 
 ---

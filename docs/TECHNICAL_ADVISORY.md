@@ -215,21 +215,31 @@ To re-enable it: request a Lambda concurrency limit increase via AWS Support (Se
 
 ---
 
-## 7. PII Redaction Before Vectorisation
+## 7. PII Redaction — Coverage Across All Text Modalities
 
 ### Context
 
-The Document Agent chunks and vectorises PDF content. Upstash Vector stores embeddings with their source text as metadata. If the PDF contains names, email addresses, or identification numbers, that text would be stored verbatim in the vector index.
+All three text-producing modalities (document, audio, vision output) generate text that flows into LLM prompts, Upstash Vector, and LangSmith traces. Any PII in those texts would be: (1) embedded into vector store metadata and retrievable across future queries, (2) forwarded to LLM API providers as part of prompts, and (3) logged in LangSmith traces accessible to the operator.
 
 ### Challenge
 
-Redaction must happen before `upsert()` — not after. Post-hoc deletion from a vector index is unreliable because embeddings already carry semantic signal about the original text, and there is no guarantee all fragments are found and removed.
+Redaction must happen before `upsert()` — not after. Post-hoc deletion from a vector index is unreliable because embeddings already carry semantic signal about the original text, and there is no guarantee all fragments are found and removed. The same principle applies to LLM prompt construction: PII must be stripped before the API call, not after.
 
 ### Solution
 
-PII patterns (email, phone, SSN, credit card, full name heuristics) are stripped from each chunk using regex substitution in `documentNode` before the embedding call. The redacted text is what gets embedded and stored as metadata. The unredacted text is never written to Upstash. The synthesis report is generated from the redacted chunks — the auditor scores the redacted synthesis, not the original.
+`redactPii()` in `src/lib/pii-redaction.ts` applies nine regex patterns and is called at the appropriate boundary in each text-producing node:
 
-**File:** `apps/spectra-api/src/graph/nodes/documentNode.ts`
+- **`documentNode`** — raw PDF text is redacted before chunking and Upstash Vector upsert. The unredacted text is never written to the index.
+- **`audioNode`** — Whisper transcript is redacted immediately after injection check, before the Claude Sonnet extraction call. The redacted transcript is what Claude receives and what is stored in `AudioOutput.transcript`.
+- **`visionNode`** — GPT-4o's `rawDescription` and `findings` are redacted after JSON parsing, before `VisionOutputSchema.parse()`. GPT-4o sees the raw image (unavoidable — it is the vision model), but its text output is scrubbed before entering graph state.
+
+The synthesis report is generated from redacted modality outputs — the auditor scores the redacted synthesis, not the original. All three output schemas carry `redactedFields: string[]` listing which pattern labels fired.
+
+**Pattern coverage:** email, US phone, SSN, credit card, UK NINO, date of birth (US `MM/DD/YYYY` and ISO `YYYY-MM-DD`), street address, contextual person name (title-prefixed: `Patient: John Smith`).
+
+**Known limitation:** The person name pattern requires a preceding title or role token (`Name:`, `Patient:`, `Dr`, `Mr`, etc.) to avoid excessive false positives on any two capitalised words. Free-form names without context will not be caught. Production-grade coverage would require an NER model (e.g. spaCy, AWS Comprehend) — this is noted in HARDENING_ROADMAP.md.
+
+**Files:** `apps/spectra-api/src/lib/pii-redaction.ts`, `apps/spectra-api/src/graph/nodes/documentNode.ts`, `apps/spectra-api/src/graph/nodes/audioNode.ts`, `apps/spectra-api/src/graph/nodes/visionNode.ts`
 
 ---
 
@@ -372,7 +382,7 @@ Running the guardrail before `JSON.parse()` would block on the raw LLM output, w
 
 ### Context
 
-`documentNode` and `audioNode` both run `detectPromptInjection()` on extracted text. `visionNode` does not.
+`documentNode` and `audioNode` both run `detectPromptInjection()` on extracted text. `visionNode` does not run injection detection at the input boundary.
 
 ### Challenge
 
@@ -382,7 +392,31 @@ An attacker could embed injection text in a screenshot or image. Should `visionN
 
 `visionNode` sends raw image bytes (base64-encoded) directly to GPT-4o's vision API — there is no intermediate text extraction step before the model call. GPT-4o's system prompt constrains the output format; the model receives the image, not text derived from it. Adding a vision OCR step solely to run the injection check would add latency and cost with marginal benefit — GPT-4o's own safety guardrails handle injected image text. The injection surface in this pipeline is user-supplied text (PDFs, audio), not images.
 
+However, GPT-4o's text output (`rawDescription`, `findings`) is now PII-redacted before it enters graph state — see Section 7. This covers the case where an image contains visible PII (e.g. a photo of a document showing an email address or SSN).
+
 **File:** `apps/spectra-api/src/graph/nodes/visionNode.ts`
+
+---
+
+## 14. Semantic Input Gating — Trade-off Analysis
+
+### Context
+
+Current injection detection (`detectPromptInjection()`) is lexical: 14 regex patterns match known attack phrases verbatim. A paraphrased jailbreak — "disregard your prior instructions" rephrased as "pay no attention to what you were told before" — would not be caught.
+
+### Challenge
+
+Should a semantic classifier replace or supplement the regex gate?
+
+### Solution (not yet implemented — see HARDENING_ROADMAP)
+
+The production-hardening answer is a lightweight semantic classifier running on extracted text before the injection regex check. Nova Micro on Bedrock is the correct choice: it is already in the stack (Router node), costs ~$0.035/1M input tokens, and classification is exactly the task it was designed for.
+
+**Trade-off:** semantic gating adds a Bedrock round-trip (~50–100 ms, ~$0.000035/1K tokens) to every document and audio job. On the free tier with a hard $15/month billing ceiling, this cost is meaningful at scale. The mitigation is to gate only when the regex check is inconclusive, or to cap input to the first N tokens of extracted text (e.g. first 500 tokens) rather than the full document. You would not run the semantic gate over an entire 100-page PDF on every job.
+
+**Why Nova Micro over GPT-4o-mini:** Nova Micro is ~4–5× cheaper on input tokens ($0.035/1M vs $0.15/1M) and the classification task does not require GPT-4o-mini's broader reasoning capability. The trade-off is a second cloud vendor dependency (AWS Bedrock), which is already accepted for the Router node.
+
+**Status:** Noted in HARDENING_ROADMAP.md as a medium-effort security item.
 
 ---
 

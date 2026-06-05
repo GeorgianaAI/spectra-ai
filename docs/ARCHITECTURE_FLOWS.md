@@ -330,7 +330,7 @@ apps/spectra-app/tests/
 
 apps/spectra-api/src/__tests__/
 ├── schemas.test.ts                   # 23 tests — all 6 agent node schemas (Router → Auditor)
-├── red-team.redteam.test.ts          # 48 adversarial tests — injection patterns, PII redaction, synthesis guardrails
+├── red-team.redteam.test.ts          # 53 adversarial tests — injection patterns, PII redaction, synthesis guardrails
 └── retrieval-eval.test.ts            # 13 tests — chunk quality filter, cosine deduplication, golden-set pipeline
 ```
 
@@ -396,7 +396,31 @@ After first deploy, two SNS confirmation emails are sent — one per topic, one 
 
 `detectPromptInjection()` in `src/lib/prompt-injection.ts` is called on extracted text content before any LLM call in `documentNode` (PDF raw text) and `audioNode` (Whisper transcript). Matches against 14 regex patterns covering common injection techniques. Returns `{ safe: false, reason }` — the node throws immediately, failing the job with a structured error message rather than forwarding attacker-controlled text to Claude or GPT-4o.
 
-Vision node is exempt — raw image bytes carry no injection surface before the model call.
+`visionNode` sends raw image bytes to GPT-4o — there is no extractable text before the model call, so injection detection does not apply at the input boundary. PII redaction is applied to GPT-4o's text output after the call (see below).
+
+### PII Redaction
+
+`redactPii()` in `src/lib/pii-redaction.ts` strips nine pattern types across all text-producing modalities:
+
+| Pattern | Label |
+| :--- | :--- |
+| Email address | `email` |
+| US phone number | `phone_us` |
+| Social Security Number | `ssn` |
+| Credit card number | `credit_card` |
+| UK National Insurance Number | `uk_nino` |
+| Date of birth (US: MM/DD/YYYY) | `dob` |
+| Date of birth (ISO: YYYY-MM-DD) | `dob_iso` |
+| Street address | `address` |
+| Contextual person name (title-prefixed) | `person_name` |
+
+**Where applied:**
+
+- `documentNode` — raw PDF text before chunking and Upstash Vector upsert
+- `audioNode` — Whisper transcript before Claude Sonnet extraction; redacted transcript stored in output
+- `visionNode` — GPT-4o `rawDescription` and `findings` fields after parsing, before graph state
+
+All three modality output schemas (`DocumentOutputSchema`, `AudioOutputSchema`, `VisionOutputSchema`) carry a `redactedFields: string[]` field listing which pattern labels fired, enabling downstream audit and LangSmith tracing.
 
 ### Synthesis Guardrails
 
