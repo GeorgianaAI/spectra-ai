@@ -724,3 +724,56 @@ If audit quality degrades in production (auditor scores drift toward 75, halluci
 3. Do not downgrade to mini; upgrade to Opus if needed
 
 **File:** `apps/spectra-api/src/graph/nodes/auditorNode.ts` (lines 49-99)
+
+---
+
+## 25. Video as Fourth Modality — Architecture and Guardrail Considerations
+
+### Context
+
+The current pipeline supports three modalities: document (PDF), vision (image), and audio. Video is the most architecturally significant extension because it contains both visual and audio tracks — effectively bundling the vision and audio sub-pipelines into one node. This section documents how video would fit into the graph and what guardrail layers it would require.
+
+This is a roadmap item, not yet implemented. See [HARDENING_ROADMAP.md — Future Modalities](./HARDENING_ROADMAP.md#future-modalities).
+
+### Architecture
+
+A `videoNode` would run two internal sub-pipelines in parallel before merging results:
+
+- **Video frames** — keyframe sampler (e.g. 1 frame/second, capped at ~60 keyframes) → batched GPT-4o vision calls → `VisionOutput[]`
+- **Audio track** — extracted audio stream → Whisper transcription → Claude Sonnet structured extraction → `AudioOutput`
+
+The LangGraph parallel tier would become: `documentNode ‖ visionNode ‖ audioNode ‖ videoNode → synthesisNode → auditorNode`.
+
+A `VideoOutput` schema would include `frames: VisionOutput[]`, `transcript: AudioOutput`, and `timeline: Array<{ timestamp: number; event: string }>` for temporal anchoring of findings.
+
+### Guardrail Stack for Video
+
+| Layer | What | Implementation |
+| :--- | :--- | :--- |
+| Pre-gate | Duration + size cap | 30s / 25 MB limit enforced at `ingestHandler` before S3 write — rejects before any processing cost is incurred |
+| Metadata strip | EXIF / container metadata | Videos embed GPS coordinates, device serial numbers, and capture timestamps — strip at ingest using an `ffprobe`/`ffmpeg` Lambda layer before the file is written to S3 |
+| Injection gate (audio track) | Regex + semantic on transcript | Same path as `audioNode` — `detectPromptInjection()` then semantic gate |
+| PII redaction (audio track) | `redactPii(transcript)` | Identical to `audioNode` — transcript redacted before Claude Sonnet and before graph state |
+| PII redaction (frame descriptions) | `redactPii` on GPT-4o text output | Identical to `visionNode` — `rawDescription` and `findings` scrubbed after GPT-4o response parsing |
+| Biometric PII | Faces, voice prints | **New hard problem — see below** |
+| Output guardrail | `validateSynthesisReport` | Unchanged — `videoNode` output feeds `synthesisNode`, same post-synthesis gate applies |
+
+### The New Hard Problem: Biometric PII
+
+Regex and semantic classifiers operate on text. Faces and voice prints are biometric identifiers that exist in the pixel and audio sample domains — no text-level pattern can redact them.
+
+**Faces in frames:** AWS Rekognition face detection identifies bounding boxes for detected faces. Frames are blurred at those regions before base64 encoding for GPT-4o. This prevents the model from receiving or describing biometric data, and the blurred frame is what gets processed — never the original.
+
+**Voices:** Voice anonymization (pitch shift + formant modification) before Whisper transcription is technically possible but uncommon in practice. The more pragmatic position: document the limitation, note that Whisper's output is text (not audio), and apply standard PII redaction on the transcript. The raw audio is not stored beyond the Whisper API call.
+
+**Portfolio scope answer:** implement frame-level `redactPii` on GPT-4o text output (catches OCR-visible PII like email addresses or SSNs in video frames) and call out AWS Rekognition face blurring as the production addition. The gap is documented — it is not a silent omission.
+
+### Why Not SQS or a Separate Lambda for Video?
+
+Same reason as the main pipeline: LangGraph handles node orchestration; Inngest handles job lifecycle. Video is a wider input to the same graph, not a different workflow. The `videoNode` would be a parallel branch in the existing graph — no new infrastructure required.
+
+### Cost Consideration
+
+Video is meaningfully more expensive than single modalities: it invokes both GPT-4o (frames) and Whisper + Claude Sonnet (audio track), plus the keyframe sampling compute. At demo scale with a $15/month ceiling, video jobs would need to count against a tighter per-job budget. A reasonable constraint: 1 video job ≈ 3 standard jobs in the rate limiter.
+
+**Related:** [HARDENING_ROADMAP.md — Future Modalities](./HARDENING_ROADMAP.md#future-modalities)

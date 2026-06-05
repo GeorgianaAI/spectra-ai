@@ -103,6 +103,16 @@ Features required before Spectra AI could be offered as a multi-tenant SaaS prod
 
 ---
 
+## Future Modalities
+
+Architectural extensions beyond the current three-modality pipeline (document, vision, audio). None are in scope for the current build — captured here for completeness and interview preparation.
+
+| Item | Why | Skill | Effort |
+| :--- | :--- | :--- | :--- |
+| **Video (Fourth Modality)** | Video bundles vision and audio into one node: a keyframe sampler feeds GPT-4o (same as `visionNode`) and the extracted audio track feeds Whisper → Claude Sonnet (same as `audioNode`). Guardrail stack: duration/size cap at ingest, EXIF/GPS metadata strip, injection gate + PII redaction on audio transcript, PII redaction on GPT-4o frame descriptions. **New hard problem:** faces in frames are biometric PII — requires AWS Rekognition face detection + blur before GPT-4o receives the frame. Text-level `redactPii` covers OCR-visible PII (emails, SSNs visible in video frames) but cannot redact faces. Cost: a video job invokes GPT-4o (frames) + Whisper + Claude Sonnet — equivalent to ~3 standard jobs; rate limiter weight should reflect this. See [TECHNICAL_ADVISORY.md §25](./TECHNICAL_ADVISORY.md#25-video-as-fourth-modality--architecture-and-guardrail-considerations) for the full architecture and guardrail breakdown. | 2 · Tool & Contract Design | High |
+
+---
+
 ## Update Rules
 
 Add entries when a known limitation is accepted at demo-scale that would need to be resolved before a production launch. Mark `[RESOLVED]` or apply strikethrough + ✅ when addressed.
