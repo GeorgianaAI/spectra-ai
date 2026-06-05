@@ -1,6 +1,7 @@
 import OpenAI from "openai";
 import { downloadFromS3 } from "../../lib/s3-client";
 import { VisionInputSchema, VisionOutputSchema, type VisionOutput } from "../../lib/schemas";
+import { redactPii } from "../../lib/pii-redaction";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -71,6 +72,23 @@ Focus on: entities present, spatial relationships, anomalies, text visible in th
     };
   }
 
-  const output = VisionOutputSchema.parse(parsedResult);
+  const redactedFields: string[] = [];
+  const collectRedactions = (text: string): string => {
+    const { text: redacted, redactedFields: found } = redactPii(text);
+    for (const f of found) {
+      if (!redactedFields.includes(f)) redactedFields.push(f);
+    }
+    return redacted;
+  };
+
+  const redactedDescription = collectRedactions(parsedResult.rawDescription);
+  const redactedFindings = parsedResult.findings.map(collectRedactions);
+
+  const output = VisionOutputSchema.parse({
+    ...parsedResult,
+    rawDescription: redactedDescription,
+    findings: redactedFindings,
+    redactedFields,
+  });
   return { visionOutput: output };
 }

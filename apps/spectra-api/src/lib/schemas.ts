@@ -60,6 +60,7 @@ export const VisionOutputSchema = z.object({
     }),
   ),
   rawDescription: z.string(),
+  redactedFields: z.array(z.string()).default([]),
 });
 
 // ─── Audio Agent ──────────────────────────────────────────────────────────────
@@ -73,6 +74,7 @@ export const AudioOutputSchema = z.object({
   transcript: z.string(),
   findings: z.array(z.string()),
   durationSeconds: z.number(),
+  redactedFields: z.array(z.string()).default([]),
 });
 
 // ─── Synthesis Agent ──────────────────────────────────────────────────────────

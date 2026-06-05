@@ -2,6 +2,7 @@ import Anthropic from "@anthropic-ai/sdk";
 import OpenAI from "openai";
 import { downloadFromS3 } from "../../lib/s3-client";
 import { detectPromptInjection } from "../../lib/prompt-injection";
+import { redactPii } from "../../lib/pii-redaction";
 import { AudioInputSchema, AudioOutputSchema, type AudioOutput } from "../../lib/schemas";
 
 const openai = new OpenAI({
@@ -44,6 +45,8 @@ export async function audioNode(
     throw new Error(`Audio transcript rejected: ${injectionCheck.reason}`);
   }
 
+  const { text: redactedTranscript, redactedFields } = redactPii(transcript);
+
   // Claude Sonnet extracts structured findings from the transcript
   const message = await anthropic.messages.create({
     model: "claude-sonnet-4-6",
@@ -52,7 +55,7 @@ export async function audioNode(
       {
         role: "user",
         content: `<transcript>
-${transcript}
+${redactedTranscript}
 </transcript>
 
 Extract structured intelligence findings from this audio transcript.
@@ -78,6 +81,11 @@ Focus on: named entities, decisions made, dates/times mentioned, locations, tech
     findings = ["Audio transcribed — structured extraction unavailable"];
   }
 
-  const output = AudioOutputSchema.parse({ transcript, findings, durationSeconds });
+  const output = AudioOutputSchema.parse({
+    transcript: redactedTranscript,
+    findings,
+    durationSeconds,
+    redactedFields,
+  });
   return { audioOutput: output };
 }
