@@ -4,6 +4,27 @@ const PII_PATTERNS: Array<{ label: string; pattern: RegExp }> = [
   { label: "ssn", pattern: /\b\d{3}[\s\-]\d{2}[\s\-]\d{4}\b/g },
   { label: "credit_card", pattern: /\b(?:\d{4}[\s\-]){3}\d{4}\b/g },
   { label: "uk_nino", pattern: /\b[A-Z]{2}\s?\d{6}\s?[A-D]\b/g },
+  // DOB — US (MM/DD/YYYY or MM-DD-YYYY) and ISO (YYYY-MM-DD)
+  {
+    label: "dob",
+    pattern: /\b(0?[1-9]|1[0-2])[\/\-](0?[1-9]|[12]\d|3[01])[\/\-](\d{2}|\d{4})\b/g,
+  },
+  {
+    label: "dob_iso",
+    pattern: /\b\d{4}-(0[1-9]|1[0-2])-(0[1-9]|[12]\d|3[01])\b/g,
+  },
+  // Street address — number + street name + type
+  {
+    label: "address",
+    pattern:
+      /\b\d{1,5}\s+(?:[A-Za-z]+\s+){1,3}(?:Street|St|Avenue|Ave|Boulevard|Blvd|Road|Rd|Drive|Dr|Lane|Ln|Court|Ct|Way|Place|Pl|Circle|Cir|Highway|Hwy|Parkway|Pkwy)\b\.?/gi,
+  },
+  // Contextual person names — requires a title/role prefix to avoid false positives
+  {
+    label: "person_name",
+    pattern:
+      /\b(?:Name|Patient|Client|Author|Signatory|Doctor|Dr|Mr|Mrs|Ms|Miss|Prof)\.?\s*:?\s+([A-Z][a-z]+(?:\s+[A-Z][a-z]+)+)/g,
+  },
 ];
 
 export interface RedactionResult {
