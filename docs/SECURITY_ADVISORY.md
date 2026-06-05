@@ -12,7 +12,7 @@ Findings are grounded in reproducible test executions (`red-team.test.ts`) and a
 
 **Test coverage:**
 
-- `apps/spectra-api/src/__tests__/red-team.test.ts` — 53 adversarial tests across three suites
+- `apps/spectra-api/src/__tests__/red-team.test.ts` — 75 adversarial tests across four suites
 
 **Security surface under test:**
 
@@ -132,7 +132,7 @@ Spectra enforces environment-aware behavior:
 
 ## Security Positioning Statement
 
-Spectra AI demonstrates adversarial resilience for tested injection, PII, and synthesis integrity scenarios, based on reproducible test evidence from `red-team.test.ts` (53 tests) and runtime behaviour controls active in both development and production.
+Spectra AI demonstrates adversarial resilience for tested injection, PII, synthesis integrity, and vision output scenarios, based on reproducible test evidence from `red-team.test.ts` (75 tests) and runtime behaviour controls active in both development and production.
 
 This advisory is a bounded security statement and should be maintained as the test suite, pipeline architecture, and threat model evolve.
 

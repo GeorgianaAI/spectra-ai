@@ -107,7 +107,8 @@ See [App Structure reference](MEMORY.md) for full directory mapping.
 - **Always sequential:** `synthesisNode` runs after all specialist nodes; `auditorNode` always runs last.
 - **Schema validation on every node boundary:** Use Zod `.parse()` on input and output at each node.
 - **LangSmith tracing:** The graph is wrapped with a LangSmith tracer in all environments (dev + prod).
-- **PII redaction:** Applied in `documentNode` before vectorization. Reuse the Sentinel Docs pattern.
+- **PII redaction:** Applied in `documentNode` (before vectorization), `audioNode` (transcript before LLM), and `visionNode` (GPT-4o text output before graph state). 9 patterns: email, phone, SSN, credit card, UK NINO, DOB US/ISO, street address, contextual person name.
+- **Vision output guardrails:** `visionNode` runs minimum content validation and `detectPromptInjection()` on GPT-4o text output before graph state — guards run post-LLM since raw image bytes carry no pre-gate surface.
 - **Session-namespaced vectors:** Upstash Vector keys prefixed with `{jobId}/{userId}/` to isolate retrieval.
 
 ## 6. Database Schema

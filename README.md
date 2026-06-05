@@ -171,10 +171,11 @@ See [COMPLIANCE.md](./docs/COMPLIANCE.md) for NIST AI RMF alignment, regulatory 
 
 ## 🥊 Red-Team Validation
 
-Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 53 tests) covering three security-critical controls:
+Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 75 tests) covering four security-critical controls:
 
 - **Prompt injection detection** — 14 regex patterns, case-insensitive, tested against known attack variants (override instructions, jailbreak tokens, model-specific delimiters) buried in otherwise legitimate document text.
 - **PII redaction coverage** — nine pattern types (email, US phone, SSN, credit card, UK NINO, DOB US/ISO, street address, contextual person name), verified against false positives, duplicate labelling, and clean-text passthrough. Redaction applied in `documentNode` (before vectorization), `audioNode` (transcript before Claude Sonnet), and `visionNode` (GPT-4o text output before graph state).
+- **Vision output guardrails** — all 14 injection patterns tested in realistic GPT-4o output strings (image descriptions and findings), including injection buried mid-description and false positive checks for legitimate uses of trigger words.
 - **Synthesis output guardrails** — length floor, injection re-check on LLM output, and citation tag presence validated before the auditor receives the report.
 
 See [`SECURITY_ADVISORY.md`](./docs/SECURITY_ADVISORY.md) for adversarial test scenarios, observed defences, and security control evidence. _This document is maintained locally and intentionally not published to prevent detailed red-teaming methodology from being publicly available._

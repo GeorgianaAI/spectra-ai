@@ -265,7 +265,7 @@ Failure modes:
 Mitigation:
   - Auditor validates citations against source chunks
   - Document split into sub-PDFs if > 200 pages
-  - 5-pattern PII regex + visual inspection of sensitive documents
+  - 9-pattern PII regex across all text-producing modalities + visual inspection of sensitive documents
 ```
 
 #### Vision Agent (GPT-4o)
@@ -422,7 +422,7 @@ Every job produces an auditable record:
 
 | Risk                          | Level  | Mitigation                                                                 | Evidence                                      |
 | :---------------------------- | :----- | :------------------------------------------------------------------------- | :-------------------------------------------- |
-| PII exposed to LLMs           | Medium | 5-pattern redaction before vectorization + test coverage                   | documentNode.ts; red-team.test.ts (15+ tests) |
+| PII exposed to LLMs           | Medium | 9-pattern redaction across all text-producing modalities + test coverage   | pii-redaction.ts; red-team.test.ts (75 tests) |
 | Cross-user data contamination | Low    | Supabase RLS + session-namespaced vector keys                              | supabase-client.ts; documentNode.ts           |
 | Subprocessor data handling    | Medium | Users sign DPA with Anthropic/OpenAI; Spectra responsible for lawful basis | README: subprocessors table                   |
 
@@ -468,7 +468,7 @@ For compliance audits, this table maps each NIST function/control to its framewo
 | :-------------------------------------------------- | :---------------------------------------------------------------------- | :----------------------------------------- | :---------------------------------------- | :----------------------------------------------------------------------- |
 | **MAP 1.1** — Context & purpose documented          | [COMPLIANCE.md — Model Governance](#model-governance--model-cards)      | Model cards + README architecture diagrams | Model card contents                       | [COMPLIANCE.md — Model Cards](#model-cards)                              |
 | **MAP 2.1** — Domain expertise informs development  | [README.md — Core Architecture](../README.md#-core-architecture)        | Agent graph design matches modality tasks  | Multi-agent specialization                | [spectra-api/src/graph/graph.ts](../apps/spectra-api/src/graph/graph.ts) |
-| **MAP 3.5** — Risk identification practices applied | [COMPLIANCE.md — Risk Assessment Framework](#risk-assessment-framework) | Red team adversarial test matrix           | 53 tests across injection, PII, synthesis | [SECURITY_ADVISORY.md](./SECURITY_ADVISORY.md)                           |
+| **MAP 3.5** — Risk identification practices applied | [COMPLIANCE.md — Risk Assessment Framework](#risk-assessment-framework) | Red team adversarial test matrix           | 75 tests across injection, PII, synthesis, vision output | [SECURITY_ADVISORY.md](./SECURITY_ADVISORY.md)                           |
 
 ### NIST MEASURE Function
 

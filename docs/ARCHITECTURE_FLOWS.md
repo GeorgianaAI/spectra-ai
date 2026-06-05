@@ -1,7 +1,7 @@
 # 🏛️ Spectra AI — Architecture Flows
 
 This document captures the core runtime flows that define Spectra AI's current behavior.
-Updated as each Phase ships — if a code change alters runtime behavior without updating this doc, treat that as an incomplete PR.
+Updated as the system evolves — if a code change alters runtime behavior without updating this doc, treat that as an incomplete PR.
 
 Use this file as the engineering source of truth for flow-level behavior.
 
@@ -247,7 +247,7 @@ flowchart LR
 
 ---
 
-## 6) Dashboard UI State Machine (Phase 3)
+## 6) Dashboard UI State Machine
 
 The dashboard manages a client-side state machine that drives all four output panels.
 
@@ -296,7 +296,7 @@ sequenceDiagram
 
 ---
 
-## 7) Phase 4 Observability + Test Architecture
+## 7) Observability + Test Architecture
 
 ### Sentry Integration Points
 
@@ -340,7 +340,7 @@ Playwright `webServer` block starts the Next.js dev server and injects `NEXT_PUB
 
 ---
 
-## 8) Phase 5 AWS Deployment Topology
+## 8) AWS Deployment Topology
 
 ### CDK Stack Deployment Order
 
@@ -390,7 +390,7 @@ After first deploy, two SNS confirmation emails are sent — one per topic, one 
 
 ---
 
-## 9) Phase 6 Hardening Architecture
+## 9) Security & Guardrail Architecture
 
 ### Prompt Injection Detection
 
@@ -463,7 +463,7 @@ All interactive and structural components hardened to WCAG 2.1 AA:
 
 ---
 
-## 10) Phase 8 Hardening Architecture
+## 10) Upload & Presigned URL Architecture
 
 ### Upload Flow — Presign → Direct S3 PUT → Confirm
 
@@ -522,6 +522,147 @@ Update this document whenever any of the following changes:
 - JWT verification logic or protected route set
 - Dependency strictness policy or health endpoint semantics
 - Agent graph execution order or node responsibilities
+
+---
+
+## 11) Image File Journey — Browser to GPT-4o
+
+When a user uploads an image, the file never passes through the Next.js server. It travels from the browser directly to S3, then Lambda downloads it into memory and encodes it for GPT-4o. This keeps Vercel function memory usage near zero and eliminates egress cost on the server.
+
+```
+User selects image in browser
+       ↓
+POST /api/upload/presign
+  Supabase verifies auth
+  generates a 5-min presigned S3 PUT URL
+  returns { url, s3Key: "jobs/{jobId}/image.png" }
+       ↓
+Browser PUTs raw binary bytes directly to S3
+(Vercel function is not in this path)
+       ↓
+POST /api/upload/confirm
+  creates job row in Supabase: { status: "pending", s3Key }
+  fires Inngest event: { jobId, s3Key }
+       ↓
+S3 stores the file — raw binary, persisted at rest
+       ↓  (async — Inngest triggers Lambda)
+visionNode receives s3Key from graph state
+  imageBuffer = await downloadFromS3(s3Key)
+  → Buffer: raw binary bytes loaded into Lambda memory
+       ↓
+base64Image = imageBuffer.toString("base64")
+  binary bytes → ASCII text-safe encoding
+  (required because JSON API request bodies cannot carry raw binary)
+       ↓
+GPT-4o API call carries a self-contained data URI:
+  data:image/jpeg;base64,{base64Image}
+  no S3 URL, no second network fetch — the file is in the request body
+       ↓
+GPT-4o processes the image pixel-natively
+  no OCR step, no intermediate text extraction
+  the model returns: { rawDescription, findings, annotations }
+       ↓
+Lambda discards imageBuffer (garbage collected)
+S3 file remains until job cleanup
+```
+
+The MIME type (`image/jpeg`, `image/png`, etc.) is derived from the file extension and included in the data URI so GPT-4o knows how to decode the bytes. Without it, the API would not know whether the bytes represent a JPEG, PNG, or something else.
+
+---
+
+## 12) Error Propagation — Node Throw to Dashboard UI
+
+Errors thrown inside the agent graph never produce raw 500 responses to the user. They are caught at the Lambda boundary, written to structured state in Supabase, and surfaced as a failed job status in the UI. Retries are handled by Inngest — the Lambda itself does not retry.
+
+```
+Any agent node throws Error
+(e.g. injection detected, GPT-4o returned empty output, S3 download failed)
+       ↓
+LangGraph catches the exception
+  graph execution stops immediately
+  no further nodes run
+       ↓
+jobProcessor Lambda catch block:
+  → writes to Supabase: { status: "failed", error: message, completed_at: now }
+  → logs full stack trace to CloudWatch (/aws/lambda/spectra-job-processor)
+  → Sentry wrapHandler() captures it with request context and stack trace
+       ↓
+Lambda returns normally (no re-throw)
+Inngest sees the function completed — checks Supabase for job status
+       ↓
+If status is "failed": Inngest applies retry policy (exponential backoff)
+  → retries up to configured limit
+  → on exhaustion: job remains "failed" permanently
+       ↓
+Frontend polls GET /api/jobs/[id]
+  reads { status: "failed", error } from Supabase
+       ↓
+Dashboard renders error state:
+  agent graph nodes frozen at last known state
+  red status badge displayed
+  error message shown to user
+```
+
+The error string lives in three places simultaneously: Supabase `jobs.error` (structured, queryable), CloudWatch (full stack trace for debugging), and Sentry (grouped by type, with context for alerting). The user sees the Supabase version — surfaced through the frontend — not the raw Lambda log.
+
+---
+
+## 13) Guardrail Pipeline — Per Modality
+
+Every piece of user-supplied text passes through the same three-layer guard before reaching an LLM: injection detection, PII redaction, and Zod schema validation. Vision is the exception at the input boundary — raw image bytes carry no extractable text before GPT-4o — so its guards run on the output instead.
+
+```
+┌─────────────────────────────────────────────────────────────────┐
+│ DOCUMENT (PDF text)                                             │
+│                                                                 │
+│  extracted text                                                 │
+│    → detectPromptInjection()   14 regex patterns               │
+│    → redactPii()               9 patterns → [REDACTED:*] tokens│
+│    → Claude Sonnet             chunked RAG + citation extract  │
+│    → DocumentOutputSchema.parse()   Zod — shape + types        │
+│    → graph state                                                │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ AUDIO (Whisper transcript)                                      │
+│                                                                 │
+│  transcript                                                     │
+│    → detectPromptInjection()   14 regex patterns               │
+│    → redactPii()               9 patterns → [REDACTED:*] tokens│
+│    → Claude Sonnet             structured extraction           │
+│    → AudioOutputSchema.parse()      Zod — shape + types        │
+│    → graph state                                                │
+└─────────────────────────────────────────────────────────────────┘
+
+┌─────────────────────────────────────────────────────────────────┐
+│ VISION (GPT-4o)                                                 │
+│                                                                 │
+│  raw image bytes → GPT-4o    ← no pre-gate (Software 3.0:     │
+│                                 model reads pixels natively,   │
+│                                 no text to intercept before)   │
+│  GPT-4o text output (rawDescription + findings)                │
+│    → minimum content check    non-empty, length ≥ 20 chars    │
+│    → detectPromptInjection()   14 regex patterns               │
+│    → redactPii()               9 patterns → [REDACTED:*] tokens│
+│    → VisionOutputSchema.parse()     Zod — shape + types        │
+│    → graph state                                                │
+└─────────────────────────────────────────────────────────────────┘
+
+All three modality outputs converge at:
+
+  synthesisNode
+    → SynthesisOutputSchema.parse()       Zod
+    → validateSynthesisReport()
+        minimum 100-char length
+        injection re-check on LLM output
+        citation tag presence warn ([D1], [V1], [A1])
+    ↓
+  auditorNode   LLM-as-Judge faithfulness scoring
+    → AuditorOutputSchema.parse()         Zod
+    → governance trace written to Supabase
+```
+
+Each Zod `.parse()` call is a hard boundary — if the LLM returns malformed output the job fails immediately rather than propagating corrupt data downstream.
 
 ---
 
