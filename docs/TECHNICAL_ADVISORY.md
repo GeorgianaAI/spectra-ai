@@ -777,3 +777,79 @@ Same reason as the main pipeline: LangGraph handles node orchestration; Inngest 
 Video is meaningfully more expensive than single modalities: it invokes both GPT-4o (frames) and Whisper + Claude Sonnet (audio track), plus the keyframe sampling compute. At demo scale with a $15/month ceiling, video jobs would need to count against a tighter per-job budget. A reasonable constraint: 1 video job ≈ 3 standard jobs in the rate limiter.
 
 **Related:** [HARDENING_ROADMAP.md — Future Modalities](./HARDENING_ROADMAP.md#future-modalities)
+
+---
+
+## 26. Circuit Breaker and Iteration Cap — Current Gap and Production Fix
+
+### Context
+
+Spectra's LangGraph pipeline is not a reasoning loop — it is a directed acyclic pipeline: `routerNode → [documentNode ‖ visionNode ‖ audioNode] → synthesisNode → auditorNode`. Each job traverses the graph exactly once. There is no cycle. For this reason, an application-level iteration cap is not required.
+
+However, two production risks are currently unaddressed:
+
+---
+
+### Risk 1 — No explicit `recursionLimit`
+
+The graph is compiled without a `recursionLimit`:
+
+```typescript
+.compile({ checkpointer })
+```
+
+LangGraph defaults to 25 steps. The current pipeline uses ~6 steps per job. If a graph bug introduced a cycle (e.g., a conditional edge that routes back to `routerNode`), the default of 25 would be the only backstop — not 6 as intended.
+
+**Fix:**
+
+```typescript
+// In the Lambda handler invoking the graph:
+const result = await spectraGraph.invoke(input, {
+  configurable: { thread_id: jobId },
+  recursionLimit: 8,  // tight ceiling: 6 nodes + 2 headroom
+});
+```
+
+This makes the expected step budget explicit and catches graph regressions immediately rather than silently exhausting the default budget.
+
+---
+
+### Risk 2 — No circuit breaker around external model API calls
+
+Each job calls up to 5 external model APIs: Bedrock Nova Micro, Claude Sonnet (×2), GPT-4o (×2 vision/audit), Whisper. If one provider is degraded, the node will throw. Inngest handles retries at the job level (retries the entire Lambda invocation), but there is no node-level circuit breaker — a degraded provider gets hammered on every retry.
+
+**What a circuit breaker looks like here:**
+
+Unlike VanguardAgent (where the circuit breaker lives in graph state and the supervisor node), Spectra's natural circuit breaker layer is in each node's error handler — catch provider errors, classify them, and decide whether to retry or degrade gracefully.
+
+```typescript
+// In documentNode.ts (pattern for all nodes):
+async function documentNode(state: SpectraStateType) {
+  try {
+    const result = await callBedrock(state.documentText);
+    return { documentFindings: result };
+  } catch (err) {
+    if (isProviderUnavailable(err)) {
+      // Circuit trips: degrade gracefully instead of throwing
+      return {
+        documentFindings: null,
+        warnings: [`documentNode: Bedrock unavailable — findings skipped. ${err.message}`],
+      };
+    }
+    throw err; // Unknown errors still propagate to Inngest for retry
+  }
+}
+```
+
+The synthesis and auditor nodes already handle `null` modality inputs — so a degraded node producing `null` findings rather than throwing is architecturally supported. The job completes with a partial result and a warning, rather than failing entirely.
+
+**Current state vs production target:**
+
+| | Current | Production target |
+|---|---|---|
+| `recursionLimit` | LangGraph default (25) | Explicit `8` in `invoke()` |
+| Provider error handling | Node throws → Inngest retries full job | Node degrades gracefully → job completes with partial result + warning |
+| Tool-error circuit breaker | None | Per-node try/catch with provider-error classification |
+
+**See also:** HARDENING_ROADMAP.md — §1 System Design gap ("No circuit breakers around external model APIs")
+
