@@ -4,7 +4,7 @@ This document records the implementation challenges encountered during developme
 
 ---
 
-## 1. LangGraph Checkpointing Inside a Lambda Cold Start
+## 1. LangGraph Checkpointing — MemorySaver Is Intentional
 
 ### Context
 
@@ -12,11 +12,15 @@ This document records the implementation challenges encountered during developme
 
 ### Challenge
 
-Lambda functions are stateless and ephemeral. The default in-memory checkpointer is destroyed when the invocation ends, making it useless for cross-invocation resume. A naive Upstash Redis checkpointer instantiated at module scope re-creates a client on every cold start and leaves TCP connections open after the handler returns — causing Lambda to bill for idle time and occasionally hang on teardown.
+Lambda functions are stateless. The default `MemorySaver` checkpointer is in-process — it is destroyed when the invocation ends, so there is no cross-invocation resume. An external Redis checkpointer would enable resume, but adds a network round-trip on every node transition and requires careful connection lifecycle management to avoid billing Lambda for idle TCP connections after the handler returns.
 
-### Solution
+### Decision
 
-The Redis checkpointer client is initialised lazily inside the graph factory function, not at module scope. The connection is explicitly closed in a `finally` block after the graph run completes. Checkpointing is keyed by `jobId` so that Inngest retries land on the same checkpoint namespace and skip already-completed nodes.
+Spectra's graph is a **single-shot directed pipeline** — `routerNode → [documentNode ‖ visionNode ‖ audioNode] → synthesisNode → auditorNode` — with no human-in-the-loop steps and no inter-invocation pause. The graph starts and completes within a single Lambda invocation. There is no second invocation that needs to resume mid-graph state.
+
+`MemorySaver` is correct for this execution model. Inngest retries on failure restart the graph from `__start__`, which is the right behavior — partial results from a failed run should not be carried forward into a retry.
+
+A Redis-backed checkpointer (custom `BaseCheckpointSaver` over `@upstash/redis`, or `@langchain/langgraph-checkpoint-redis`) would be warranted only if the graph were extended with human-in-the-loop pause steps, split across multiple Lambda invocations, or if Inngest retries needed to skip already-completed nodes rather than rerun the full graph.
 
 **File:** `apps/spectra-api/src/graph/graph.ts`
 
