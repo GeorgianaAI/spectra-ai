@@ -6,6 +6,7 @@ import { downloadFromS3 } from "../../lib/s3-client";
 import { redactPii } from "../../lib/pii-redaction";
 import { detectPromptInjection } from "../../lib/prompt-injection";
 import { DocumentInputSchema, DocumentOutputSchema, type DocumentOutput } from "../../lib/schemas";
+import { computeRetrievalMetrics, logRetrievalMetrics } from "../../lib/retrieval-metrics";
 
 const anthropic = new Anthropic({ apiKey: process.env.ANTHROPIC_API_KEY });
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
@@ -118,7 +119,9 @@ export async function documentNode(
   const rawText = await parsePdf(rawBuffer);
 
   if (!rawText.trim()) {
-    console.warn(`[documentNode] PDF yielded no text for job ${input.jobId} — returning empty output`);
+    console.warn(
+      `[documentNode] PDF yielded no text for job ${input.jobId} — returning empty output`,
+    );
     return { documentOutput: EMPTY_OUTPUT };
   }
 
@@ -164,6 +167,8 @@ export async function documentNode(
     }))
     .sort((a, b) => b.relevanceScore - a.relevanceScore)
     .slice(0, 5);
+
+  logRetrievalMetrics(computeRetrievalMetrics(input.jobId, embeddedChunks.length, topChunks));
 
   // Claude Sonnet extracts structured findings and citations.
   const citationContext = topChunks.map((c) => `[${c.id}] ${c.chunk}`).join("\n\n");

@@ -11,6 +11,7 @@
  */
 
 import { describe, expect, it } from "vitest";
+import { computeRetrievalMetrics, RETRIEVAL_QUALITY_FLOOR } from "../lib/retrieval-metrics";
 
 // ─── Re-export the private helpers under test ─────────────────────────────────
 // We test the chunk pipeline logic directly by replicating the functions here.
@@ -141,5 +142,54 @@ describe("chunk pipeline — golden set", () => {
     for (const chunk of chunks) {
       expect(chunk.trim().length).toBeGreaterThan(0);
     }
+  });
+});
+
+// ─── Retrieval quality metrics ────────────────────────────────────────────────
+
+describe("computeRetrievalMetrics", () => {
+  const JOB_ID = "job-test-001";
+
+  it("returns zero metrics for empty topChunks", () => {
+    const m = computeRetrievalMetrics(JOB_ID, 10, []);
+    expect(m.topKRetrieved).toBe(0);
+    expect(m.minScore).toBe(0);
+    expect(m.maxScore).toBe(0);
+    expect(m.avgScore).toBe(0);
+    expect(m.aboveFloor).toBe(0);
+    expect(m.floor).toBe(RETRIEVAL_QUALITY_FLOOR);
+  });
+
+  it("computes min, max, avg correctly", () => {
+    const chunks = [{ relevanceScore: 0.8 }, { relevanceScore: 0.5 }, { relevanceScore: 0.2 }];
+    const m = computeRetrievalMetrics(JOB_ID, 20, chunks);
+    expect(m.minScore).toBeCloseTo(0.2, 3);
+    expect(m.maxScore).toBeCloseTo(0.8, 3);
+    expect(m.avgScore).toBeCloseTo(0.5, 3);
+    expect(m.topKRetrieved).toBe(3);
+    expect(m.totalChunksEmbedded).toBe(20);
+  });
+
+  it("counts only chunks at or above RETRIEVAL_QUALITY_FLOOR", () => {
+    const chunks = [
+      { relevanceScore: 0.9 },
+      { relevanceScore: 0.35 },
+      { relevanceScore: 0.34 },
+      { relevanceScore: 0.1 },
+    ];
+    const m = computeRetrievalMetrics(JOB_ID, 30, chunks);
+    expect(m.aboveFloor).toBe(2); // 0.9 and 0.35 qualify; 0.34 does not
+  });
+
+  it("propagates jobId", () => {
+    const m = computeRetrievalMetrics("my-job", 5, [{ relevanceScore: 0.7 }]);
+    expect(m.jobId).toBe("my-job");
+  });
+
+  it("single-chunk case sets min === max === avg", () => {
+    const m = computeRetrievalMetrics(JOB_ID, 1, [{ relevanceScore: 0.6 }]);
+    expect(m.minScore).toBe(m.maxScore);
+    expect(m.minScore).toBe(m.avgScore);
+    expect(m.minScore).toBeCloseTo(0.6, 3);
   });
 });
