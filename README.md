@@ -142,7 +142,7 @@ See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for the full
 
 ## 🛡️ Guardrails & Defense Mechanisms
 
-Spectra AI enforces multi-stage guardrails to prevent prompt injection, PII leakage, and synthesis drift. All inputs are scanned before routing to agents; nine PII pattern types (email, phone, SSN, credit card, UK NINO, date of birth, street address, contextual person name) are redacted across all text-producing modalities before vectorization or LLM calls; synthesis output is validated for length, injection re-check, and citation presence; and access is protected by per-IP rate limiting, session-namespaced vector retrieval, and hard billing ceiling at $15/month.
+Spectra AI enforces multi-stage guardrails to prevent prompt injection, PII leakage, and synthesis drift. All inputs are scanned before routing to agents; eleven PII pattern types (email, US phone, international phone, IBAN, SSN, credit card, UK NINO, date of birth, street address, contextual person name) are redacted across all text-producing modalities before vectorization or LLM calls; synthesis output is validated for length, injection re-check, and citation presence; and access is protected by per-IP rate limiting, session-namespaced vector retrieval, and hard billing ceiling at $15/month.
 
 See [EVALUATION_AND_CONTROLS.md](./docs/EVALUATION_AND_CONTROLS.md) for complete guardrail specifications, test coverage, and defense-in-depth rationale. _Maintained locally, not public_.
 
@@ -155,7 +155,7 @@ Spectra AI is architected around **NIST AI Risk Management Framework** (GOVERN /
 **Governance & Transparency:**
 
 - Every job produces an auditable **governance trace** with NIST control IDs, agent findings, confidence scores, and timestamps
-- PII is redacted across all text-producing modalities (9 patterns: email, phone, SSN, credit card, UK NINO, date of birth US/ISO, street address, contextual person name)
+- PII is redacted across all text-producing modalities (11 patterns: email, US phone, international phone, IBAN, SSN, credit card, UK NINO, date of birth US/ISO, street address, contextual person name)
 - Users control their data via **Supabase RLS** (row-level security)
 - Model choices documented with capabilities, limitations, and bias mitigation per task
 
@@ -171,10 +171,10 @@ See [COMPLIANCE.md](./docs/COMPLIANCE.md) for NIST AI RMF alignment, regulatory 
 
 ## 🥊 Red-Team Validation
 
-Spectra AI ships with a structured adversarial test suite (`red-team.test.ts` — 75 tests) covering four security-critical controls:
+Spectra AI ships with a structured adversarial test suite (`red-team.redteam.test.ts` — 57 adversarial tests; 98 total in the API suite) covering four security-critical controls:
 
 - **Prompt injection detection** — 14 regex patterns, case-insensitive, tested against known attack variants (override instructions, jailbreak tokens, model-specific delimiters) buried in otherwise legitimate document text.
-- **PII redaction coverage** — nine pattern types (email, US phone, SSN, credit card, UK NINO, DOB US/ISO, street address, contextual person name), verified against false positives, duplicate labelling, and clean-text passthrough. Redaction applied in `documentNode` (before vectorization), `audioNode` (transcript before Claude Sonnet), and `visionNode` (GPT-4o text output before graph state).
+- **PII redaction coverage** — eleven pattern types (email, US phone, international phone +44/+33/+49/+34/+39/+31, IBAN, SSN, credit card, UK NINO, DOB US/ISO, street address, contextual person name), verified against false positives, duplicate labelling, and clean-text passthrough. Redaction applied in `documentNode` (before vectorization), `audioNode` (transcript before Claude Sonnet), and `visionNode` (GPT-4o text output before graph state).
 - **Vision output guardrails** — all 14 injection patterns tested in realistic GPT-4o output strings (image descriptions and findings), including injection buried mid-description and false positive checks for legitimate uses of trigger words.
 - **Synthesis output guardrails** — length floor, injection re-check on LLM output, and citation tag presence validated before the auditor receives the report.
 

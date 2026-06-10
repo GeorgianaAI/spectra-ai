@@ -271,6 +271,30 @@ describe("redactPii — detection coverage", () => {
     const { redactedFields } = redactPii("The United Nations issued a statement.");
     expect(redactedFields).not.toContain("person_name");
   });
+
+  it("redacts UK international phone number (+44)", () => {
+    const { text, redactedFields } = redactPii("Call +44 20 7946 0958 for details.");
+    expect(text).not.toContain("+44 20 7946 0958");
+    expect(redactedFields).toContain("phone_intl");
+  });
+
+  it("redacts French international phone number (+33)", () => {
+    const { text, redactedFields } = redactPii("Reach +33 1 42 86 83 26 before Friday.");
+    expect(text).not.toContain("+33 1 42 86 83 26");
+    expect(redactedFields).toContain("phone_intl");
+  });
+
+  it("redacts IBAN with spaces", () => {
+    const { text, redactedFields } = redactPii("Transfer to GB29 NWBK 6016 1331 9268 19.");
+    expect(text).not.toContain("GB29 NWBK 6016 1331 9268 19");
+    expect(redactedFields).toContain("iban");
+  });
+
+  it("redacts IBAN without spaces", () => {
+    const { text, redactedFields } = redactPii("Account: DE89370400440532013000");
+    expect(text).not.toContain("DE89370400440532013000");
+    expect(redactedFields).toContain("iban");
+  });
 });
 
 // ─── Synthesis Output Guardrails ──────────────────────────────────────────────

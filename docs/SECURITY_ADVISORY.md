@@ -2,7 +2,7 @@
 
 This advisory documents security behaviors observed in Spectra AI under structured adversarial testing, including prompt injection attempts embedded in user-supplied documents, PII redaction coverage verification, and synthesis output integrity validation.
 
-Findings are grounded in reproducible test executions (`red-team.test.ts`) and are traceable to specific library controls in `src/lib/`.
+Findings are grounded in reproducible test executions (`red-team.redteam.test.ts`) and are traceable to specific library controls in `src/lib/`.
 
 > **Scope note:** This advisory reports evidence-based outcomes from tested scenarios. It is not a claim of universal security against all prompts, models, document types, or deployment conditions.
 
@@ -12,20 +12,20 @@ Findings are grounded in reproducible test executions (`red-team.test.ts`) and a
 
 **Test coverage:**
 
-- `apps/spectra-api/src/__tests__/red-team.test.ts` — 75 adversarial tests across four suites
+- `apps/spectra-api/src/__tests__/red-team.redteam.test.ts` — 57 adversarial tests across four suites (98 total in the API test suite)
 
 **Security surface under test:**
 
 - `src/lib/prompt-injection.ts` — 14-pattern injection detection, case-insensitive, all text-derived inputs
-- `src/lib/pii-redaction.ts` — regex-based PII redaction before vectorization and synthesis
+- `src/lib/pii-redaction.ts` — 11-pattern PII redaction before vectorization and synthesis
 - `src/lib/synthesis-guardrails.ts` — post-parse output integrity validation before auditor execution
 
 **Governed pipeline paths:**
 
-- `documentNode` — PDF text extracted and checked before any LLM call
-- `audioNode` — Whisper transcript checked before any LLM call
+- `documentNode` — PDF text injection-checked and PII-redacted before any LLM call
+- `audioNode` — Whisper transcript injection-checked and PII-redacted before any LLM call
+- `visionNode` — GPT-4o text output PII-redacted before graph state. ⚠️ Injection check on vision output is an open gap (tracked in HARDENING_ROADMAP.md — visionNode Injection Gate, PRIO)
 - `synthesisNode` — LLM output re-checked before passing to auditor and Supabase write
-- Vision node is intentionally exempt — raw image bytes carry no text injection surface
 
 **Evidence surface:**
 
@@ -65,8 +65,9 @@ User-supplied content containing personally identifiable information — across 
 
 ### Defensive behavior observed
 
-- `redactPii()` runs nine regex patterns across all three text-producing modalities: `documentNode` (before vectorisation), `audioNode` (transcript before Claude Sonnet), `visionNode` (GPT-4o text output before graph state).
-- Each matched field is replaced with a typed placeholder: `[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`, `[REDACTED:DOB]`, `[REDACTED:DOB_ISO]`, `[REDACTED:ADDRESS]`, `[REDACTED:PERSON_NAME]`.
+- `redactPii()` runs eleven regex patterns across all three text-producing modalities: `documentNode` (before vectorisation), `audioNode` (transcript before Claude Sonnet), `visionNode` (GPT-4o text output before graph state).
+- Each matched field is replaced with a typed placeholder: `[REDACTED:EMAIL]`, `[REDACTED:PHONE_US]`, `[REDACTED:PHONE_INTL]`, `[REDACTED:IBAN]`, `[REDACTED:SSN]`, `[REDACTED:CREDIT_CARD]`, `[REDACTED:UK_NINO]`, `[REDACTED:DOB]`, `[REDACTED:DOB_ISO]`, `[REDACTED:ADDRESS]`, `[REDACTED:PERSON_NAME]`.
+- IBAN pattern is ordered before `phone_us` to prevent digit-sequence overlap between the two patterns.
 - `redactedFields` accurately reports which types were found — no false positives on clean financial text, no duplicate labels when multiple instances of the same type appear.
 - Unredacted text is never written to the Upstash Vector index or forwarded to LLM providers.
 
@@ -132,7 +133,9 @@ Spectra enforces environment-aware behavior:
 
 ## Security Positioning Statement
 
-Spectra AI demonstrates adversarial resilience for tested injection, PII, synthesis integrity, and vision output scenarios, based on reproducible test evidence from `red-team.test.ts` (75 tests) and runtime behaviour controls active in both development and production.
+Spectra AI demonstrates adversarial resilience for tested injection, PII, synthesis integrity, and vision output scenarios, based on reproducible test evidence from `red-team.redteam.test.ts` (57 adversarial tests; 98 total API tests) and runtime behaviour controls active in both development and production.
+
+**Open gaps (tracked in HARDENING_ROADMAP.md):** visionNode injection check not yet wired (PRIO); auditor fallback grants 75/100 silently on parse failure (PRIO); Unicode/encoding bypasses on regex injection detector (Medium); rate-limit IP header pinning (Medium); passport numbers and free-form person names require NER model (Medium).
 
 This advisory is a bounded security statement and should be maintained as the test suite, pipeline architecture, and threat model evolve.
 

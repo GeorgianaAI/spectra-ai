@@ -263,7 +263,7 @@ Real-world attack scenarios the guard detects:
 4. **Disguised as section headers** — "## System Prompt Override:" looks like document structure
 5. **Multiple payload variants** — same override phrased multiple ways to evade single regex
 
-See `red-team.test.ts` (14 injection tests) for full test matrix.
+See `red-team.redteam.test.ts` (14 injection tests) for full test matrix.
 
 #### Blocking Behavior
 
@@ -278,21 +278,27 @@ See `red-team.test.ts` (14 injection tests) for full test matrix.
 
 ### PII Redaction
 
-Before any user-supplied content is vectorized, forwarded to an LLM, or written to graph state, nine pattern types are identified and redacted across all three text-producing modalities.
+Before any user-supplied content is vectorized, forwarded to an LLM, or written to graph state, eleven pattern types are identified and redacted across all three text-producing modalities.
 
 #### Pattern Types & Masks
 
-| Pattern              | Format                           | Redaction                  | Modality                       |
-| :------------------- | :------------------------------- | :------------------------- | :----------------------------- |
-| **Email**            | `user@domain.com`                | `[REDACTED:EMAIL]`         | document, audio, vision output |
-| **US Phone**         | `(555) 123-4567`, `555-123-4567` | `[REDACTED:PHONE_US]`      | document, audio, vision output |
-| **SSN**              | `123-45-6789`                    | `[REDACTED:SSN]`           | document, audio, vision output |
-| **Credit Card**      | 16-digit grouped                 | `[REDACTED:CREDIT_CARD]`   | document, audio, vision output |
-| **UK NINO**          | `AB 12 34 56 C`                  | `[REDACTED:UK_NINO]`       | document, audio, vision output |
-| **DOB (US)**         | `MM/DD/YYYY`, `MM-DD-YYYY`       | `[REDACTED:DOB]`           | document, audio, vision output |
-| **DOB (ISO)**        | `YYYY-MM-DD`                     | `[REDACTED:DOB_ISO]`       | document, audio, vision output |
-| **Street address**   | `42 Maple Street`                | `[REDACTED:ADDRESS]`       | document, audio, vision output |
-| **Person name**      | `Patient: John Smith`            | `[REDACTED:PERSON_NAME]`   | document, audio, vision output |
+| Pattern                   | Format                                  | Redaction                  | Modality                       |
+| :------------------------ | :-------------------------------------- | :------------------------- | :----------------------------- |
+| **IBAN**                  | `GB29 NWBK 6016 1331 9268 19`           | `[REDACTED:IBAN]`          | document, audio, vision output |
+| **Email**                 | `user@domain.com`                       | `[REDACTED:EMAIL]`         | document, audio, vision output |
+| **US Phone**              | `(555) 123-4567`, `555-123-4567`        | `[REDACTED:PHONE_US]`      | document, audio, vision output |
+| **International Phone**   | `+44 20 7946 0958`, `+33 1 42 86 83 26` | `[REDACTED:PHONE_INTL]`    | document, audio, vision output |
+| **SSN**                   | `123-45-6789`                           | `[REDACTED:SSN]`           | document, audio, vision output |
+| **Credit Card**           | 16-digit grouped                        | `[REDACTED:CREDIT_CARD]`   | document, audio, vision output |
+| **UK NINO**               | `AB 12 34 56 C`                         | `[REDACTED:UK_NINO]`       | document, audio, vision output |
+| **DOB (US)**              | `MM/DD/YYYY`, `MM-DD-YYYY`              | `[REDACTED:DOB]`           | document, audio, vision output |
+| **DOB (ISO)**             | `YYYY-MM-DD`                            | `[REDACTED:DOB_ISO]`       | document, audio, vision output |
+| **Street address**        | `42 Maple Street`                       | `[REDACTED:ADDRESS]`       | document, audio, vision output |
+| **Person name**           | `Patient: John Smith`                   | `[REDACTED:PERSON_NAME]`   | document, audio, vision output |
+
+**Ordering note:** IBAN is matched before US phone to prevent the phone pattern consuming digit runs inside IBAN account numbers. International phone covers UK (+44), France (+33), Germany (+49), Spain (+34), Italy (+39), Netherlands (+31).
+
+**Remaining gaps (tracked in HARDENING_ROADMAP.md):** passport numbers, free-form person names without a title prefix (NER model required), additional EU/international phone country codes.
 
 #### Redaction Rules
 
@@ -306,17 +312,17 @@ Before any user-supplied content is vectorized, forwarded to an LLM, or written 
 
 ```typescript
 // Date "01-02-2025" should NOT match SSN pattern "123-45-6789"
-expect(redactPII("The report dated 01-02-2025...")).not.toContain("[SSN]");
+expect(redactPii("The report dated 01-02-2025...")).not.toContain("[SSN]");
 
 // Real SSN "123-45-6789" MUST match
-expect(redactPII("SSN: 123-45-6789")).toContain("[SSN]");
+expect(redactPii("SSN: 123-45-6789")).toContain("[SSN]");
 ```
 
-See `red-team.test.ts` (15+ false positive tests) for coverage.
+See `red-team.redteam.test.ts` (15+ false positive tests) for coverage.
 
 #### Evidence
 
-`src/graph/nodes/documentNode.ts` — `redactPII()` function applied to all PDF text before chunking and vectorization.
+`src/graph/nodes/documentNode.ts` — `redactPii()` function applied to all PDF text before chunking and vectorization.
 
 ---
 
@@ -467,7 +473,7 @@ Each entry includes `timestamp`, `service`, `type`, and `ip`. No credentials or 
 
 ## Test Coverage & Evidence
 
-All controls are tested. Test file: `src/__tests__/red-team.test.ts` (53 tests total).
+All controls are tested. Test file: `src/__tests__/red-team.redteam.test.ts` (57 adversarial tests; 98 total in spectra-api suite).
 
 ### Injection Detection (14 tests)
 
@@ -486,11 +492,11 @@ describe("detectPromptInjection — known attack patterns", () => {
 ```typescript
 describe("PII Redaction", () => {
   it("redacts email: user@domain.com → [EMAIL]", () => {
-    expect(redactPII("Contact: john@acme.com")).toContain("[EMAIL]");
+    expect(redactPii("Contact: john@acme.com")).toContain("[EMAIL]");
   });
 
   it("does not redact dates resembling SSN", () => {
-    expect(redactPII("Due: 01-02-2025")).not.toContain("[SSN]");
+    expect(redactPii("Due: 01-02-2025")).not.toContain("[SSN]");
   });
   // 13 more PII pattern tests...
 });
@@ -527,8 +533,8 @@ Vitest suite covering chunk quality, deduplication, overlaps, and golden-set sig
 | **Quality Metrics**         | Post-Run   | Programmatic evaluators → LangSmith                                                           | `langsmith-evaluators.ts`             |
 | **Retrieval Quality**       | CI         | Golden-set Vitest tests                                                                       | `retrieval-eval.test.ts`              |
 | **Injection Detection**     | Ingestion  | 14-pattern regex scan                                                                         | `red-team.redteam.test.ts` (14 tests) |
-| **PII Redaction**           | Processing | 5-pattern masking before vectorization                                                        | `red-team.test.ts` (15+ tests)        |
-| **Synthesis Validation**    | Synthesis  | Length + injection re-check + citations                                                       | `red-team.test.ts` (5+ tests)         |
+| **PII Redaction**           | Processing | 11-pattern masking before vectorization                                                       | `red-team.redteam.test.ts` (15+ tests)        |
+| **Synthesis Validation**    | Synthesis  | Length + injection re-check + citations                                                       | `red-team.redteam.test.ts` (5+ tests)         |
 | **Rate Limiting**           | Access     | Upstash sliding window — 3/day upload; 10/hr auth/token; 5/min auth/refresh; 60/min job reads | `rateLimit.test.ts` (30 tests)        |
 | **Security Headers**        | Transport  | `X-Frame-Options`, `X-Content-Type-Options`, `Referrer-Policy`, `Permissions-Policy`          | `next.config.ts`                      |
 | **Auth Event Logging**      | Audit      | Structured JSON logs for rate limit hits, login failures, successes                           | `authLogger.test.ts`                  |
