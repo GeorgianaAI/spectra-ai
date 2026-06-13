@@ -857,3 +857,128 @@ The synthesis and auditor nodes already handle `null` modality inputs — so a d
 
 **See also:** HARDENING_ROADMAP.md — §1 System Design gap ("No circuit breakers around external model APIs")
 
+---
+
+## 27. Agentic RAG in documentNode — Static Retrieval vs. Tool-Driven Retrieval
+
+### Context
+
+`documentNode` currently implements **static RAG**: chunk the PDF, embed all chunks, pick the top-5 by cosine similarity to the document head, and pass those 5 chunks to Claude Sonnet in a single prompt. Claude has no ability to ask for more context — it works with whatever the heuristic retrieval returned.
+
+### The Limitation
+
+The retrieval query is hardcoded to the document's first 1000 characters (see Section 23). Claude cannot steer what it reads. If the 5 retrieved chunks happen to be boilerplate headers or an unrelated section, Claude extracts findings from them regardless. There is no feedback loop between the model's reasoning and the retrieval step.
+
+### What Agentic RAG Looks Like Here
+
+Replace the single `anthropic.messages.create` call with a **tool-use loop**. Claude is given a `retrieve(query: string)` tool backed by the in-memory `embeddedChunks` array. It can issue multiple targeted queries before deciding it has enough context:
+
+```
+chunks embedded in memory
+  ↓
+Claude receives system prompt + retrieve() tool
+  ↓
+Claude: tool_use { name: "retrieve", input: { query: "revenue figures Q3" } }
+  → cosine similarity against embeddedChunks → return top-3 chunks
+Claude: tool_use { name: "retrieve", input: { query: "risk factors section" } }
+  → cosine similarity against embeddedChunks → return top-3 chunks
+Claude: stop_reason: "end_turn" — emit findings + citations
+```
+
+The model decides **what to look for** and **when it has enough** — that is the agent part. The vector store is the same in-memory cosine similarity function already in the file (no Upstash reads, no eventual-consistency risk).
+
+### Trade-offs
+
+| Dimension | Static RAG (current) | Agentic RAG |
+| :--- | :--- | :--- |
+| **LLM calls per job** | 1 | 2–5 (tool loop iterations) |
+| **Tokens per job** | ~5k (5 chunks + prompt) | Higher — each round-trip includes prior context |
+| **Retrieval quality** | Fixed top-5, query heuristic | Model-directed; adapts to document structure |
+| **Determinism** | High — same query always returns same top-5 | Lower — tool call sequence varies |
+| **Cost** | ~$0.015/job (Sonnet) | ~$0.03–0.06/job depending on loop depth |
+| **Complexity** | Single `messages.create` call | Tool-use loop with `stop_reason` check |
+
+### Why It Is Not Yet Implemented
+
+At portfolio scale (demo account, $15/month ceiling), the cost difference per job is acceptable but the added complexity is not warranted for the current retrieval heuristic. The document-head heuristic works well for the structured PDFs the demo targets (reports, analyses, financial documents with representative openings).
+
+Agentic RAG becomes the right choice when:
+1. Retrieval gaps appear — critical facts in the document's conclusion are consistently missed in synthesis
+2. Document variety increases — unstructured PDFs, legal contracts, or multi-section reports where the opening is boilerplate
+3. The pipeline is extended with an explicit user query (e.g., "summarise the risk section") — at that point, using Claude to issue targeted retrieval against that query is the natural fit
+
+### Implementation Shape (if adopted)
+
+The chunking, embedding, and in-memory `embeddedChunks` array are unchanged. Only the lower half of `documentNode.ts` changes — the `anthropic.messages.create` call is replaced with a tool-use loop:
+
+```typescript
+const tool = {
+  name: "retrieve",
+  description: "Retrieve the most relevant chunks from the document by semantic query.",
+  input_schema: {
+    type: "object",
+    properties: { query: { type: "string" } },
+    required: ["query"],
+  },
+};
+
+let messages = [{ role: "user", content: "Analyse this document and extract findings..." }];
+while (true) {
+  const response = await anthropic.messages.create({ model, tools: [tool], messages });
+  if (response.stop_reason === "end_turn") break;
+  // Handle tool_use blocks: run cosine similarity, append tool_result
+  messages = [...messages, { role: "assistant", content: response.content }, toolResultBlock];
+}
+```
+
+No new infrastructure. The `retrieve` function is a closure over `embeddedChunks` and the existing `cosineSimilarity` helper.
+
+**File:** `apps/spectra-api/src/graph/nodes/documentNode.ts`
+
+---
+
+## 28. Supabase Keepalive — Migration from Vercel Cron to pg_cron
+
+### Context
+
+Supabase free-tier projects are paused after 7 days of database inactivity. The original keepalive strategy used a Vercel cron (`0 9 * * *` in `apps/spectra-app/vercel.json`) that hit a Next.js API route (`GET /api/keepalive`), which in turn issued a raw PostgREST `fetch()` to `/rest/v1/jobs?select=id&limit=1` with the service key.
+
+### Challenge
+
+The Vercel cron approach had two failure modes: (1) if the Vercel deployment was paused, misconfigured, or the `SUPABASE_SERVICE_KEY` env var was missing, the keepalive silently stopped firing; (2) Vercel's free hobby plan does not guarantee cron execution frequency — it rate-limits and may skip invocations. Both cases result in Supabase suspension without any observable signal in the app itself.
+
+### Solution
+
+The keepalive now runs as a `pg_cron` job **inside Supabase's own Postgres infrastructure**, registered once via the SQL Editor:
+
+```sql
+create extension if not exists pg_cron;
+
+select cron.schedule(
+  'supabase-keepalive',
+  '0 12 */3 * *',
+  $$select count(*) from jobs$$
+);
+```
+
+The job fires at noon UTC every 3 days — well within the 7-day suspension window — and requires no external caller. `pg_cron` is a first-party Supabase extension available on all plans.
+
+**Removed:** `apps/spectra-app/app/api/keepalive/route.ts` (dead code — nothing calls it), and the `crons` array from `apps/spectra-app/vercel.json`.
+
+**Why pg_cron is strictly better here:** The scheduler runs in the same Postgres process as the data; it cannot fail due to app deployment state, Vercel plan limits, or missing environment variables. The job is durable — it survives database restarts and persists across Supabase maintenance events.
+
+**Verify job registration:**
+```sql
+select jobid, jobname, schedule, command, active
+from cron.job
+where jobname = 'supabase-keepalive';
+```
+
+**Check execution history:**
+```sql
+select status, start_time, return_message
+from cron.job_run_details
+order by start_time desc
+limit 5;
+```
+

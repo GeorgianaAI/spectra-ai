@@ -179,7 +179,7 @@ After Vercel deployment:
 
 ## GitHub Actions CI/CD Workflows
 
-Spectra AI uses three GitHub Actions workflows for pull request validation, dependency audits, and Supabase keep-alive.
+Spectra AI uses two GitHub Actions workflows for pull request validation and dependency audits. Supabase keep-alive is handled by pg_cron running inside Supabase's own Postgres infrastructure (see [pg_cron — Supabase Keep-Alive](#pg_cron--supabase-keep-alive) below).
 
 ### ci.yml — Pull Request Quality Gates
 
@@ -213,30 +213,48 @@ A **scheduled dependency audit** runs automatically on the 1st of each month at 
 
 **Key characteristic:** **Manual remediation required.** If critical vulnerabilities are found, review the audit results, create a fix branch, and merge into main.
 
-### Vercel Cron — Supabase Keep-Alive
+### pg_cron — Supabase Keep-Alive
 
-A **Supabase keep-alive ping** runs automatically three times a week via Vercel cron to prevent the project from being paused on the free tier.
+Supabase free-tier projects are suspended after **7 days of inactivity**. Rather than relying on an external caller (Vercel cron, GitHub Actions, or any app-side route), the keepalive runs as a pg_cron job **inside Supabase's own Postgres infrastructure** — it fires every 3 days regardless of whether the app is deployed or running.
 
-**Trigger:**
+**Mechanism:** `pg_cron` is a Postgres extension available on all Supabase plans. The registered job runs `SELECT count(*) FROM jobs` on a `0 12 */3 * *` schedule (noon UTC every 3 days), which constitutes real database activity and resets the inactivity window.
 
-- **Automatic:** Every Monday, Wednesday, and Friday at 09:00 UTC (`0 9 * * 1,3,5` in `apps/spectra-app/vercel.json`)
+**No external dependency:** Once configured, no app code, Vercel cron config, or GitHub secret is required to keep the project alive.
 
-**What it does:**
+#### Setup (one-time, in Supabase SQL Editor)
 
-- Calls `GET /api/keepalive`, which sends a real PostgREST query to `/rest/v1/jobs?select=id&limit=1` using the service key
-- Resets the 7-day inactivity counter
+**Step 1 — Enable pg_cron and register the job (paste and run together):**
 
-**Required env var:** `SUPABASE_SERVICE_KEY` must be set in Vercel project environment variables.
+```sql
+create extension if not exists pg_cron;
 
-**Why:** Supabase's inactivity scanner tracks real database queries, not API gateway pings. Querying the `jobs` table with the service key bypasses RLS and confirms the database is live.
+select cron.schedule(
+  'supabase-keepalive',
+  '0 12 */3 * *',
+  $$select count(*) from jobs$$
+);
+```
 
-#### Setting Up the Secret
+**Step 2 — Verify registration (paste and run separately):**
 
-1. Go to GitHub → Your Repository → Settings → Secrets and variables → Actions
-2. Click **New repository secret**
-3. Name: `SUPABASE_SERVICE_KEY`
-4. Value: Your Supabase service role key (from Supabase dashboard)
-5. Click **Add secret**
+```sql
+select jobid, jobname, schedule, command, active
+from cron.job
+where jobname = 'supabase-keepalive';
+```
+
+You should see one row with `active = true`.
+
+**Check execution history after it fires:**
+
+```sql
+select status, start_time, return_message
+from cron.job_run_details
+order by start_time desc
+limit 5;
+```
+
+**Why this works:** Supabase's inactivity scanner tracks real database queries. `pg_cron` runs inside Supabase's own Postgres, so the query fires at the scheduled interval without any external trigger. The 3-day interval stays well clear of the 7-day suspension window.
 
 ---
 

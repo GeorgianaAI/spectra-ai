@@ -98,7 +98,7 @@ write to Supabase
 | Rate Limiting     | Upstash Redis (Sliding window per IP)                                                                                                                                                                                        |
 | Error Tracking    | Sentry (Full-stack: Client + Server + Lambda)                                                                                                                                                                                |
 | Testing           | Vitest (Unit) · Red Teaming (Adversarial Suite) · Playwright (E2E)                                                                                                                                                           |
-| CI/Workflows      | GitHub Actions ([ci.yml](README.md#ciyml--pull-request-quality-gates), [scheduled-audit.yml](README.md#scheduled-audityml--dependency-security-audit)) · Vercel cron (Supabase keep-alive 3×/week) |
+| CI/Workflows      | GitHub Actions ([ci.yml](README.md#ciyml--pull-request-quality-gates), [scheduled-audit.yml](README.md#scheduled-audityml--dependency-security-audit)) · pg_cron (Supabase keepalive every 3 days, self-contained in Postgres) |
 
 ---
 
