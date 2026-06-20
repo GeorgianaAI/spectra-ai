@@ -48,10 +48,12 @@ export const keepaliveFn = inngest.createFunction(
   { id: "supabase-keepalive", triggers: [{ cron: "0 9 * * 1,3,5" }] },
   async () => {
     const supabase = getSupabaseClient();
-    const { error } = await supabase.from("jobs").select("id", { count: "exact", head: true });
+    const { error } = await supabase
+      .from("_keepalive")
+      .upsert({ id: 1, pinged_at: new Date().toISOString() });
 
     if (error) {
-      throw new Error(`Keepalive DB ping failed: ${error.message}`);
+      throw new Error(`Keepalive DB write failed: ${error.message}`);
     }
 
     return { status: "ok", timestamp: new Date().toISOString() };
