@@ -1,5 +1,6 @@
 import { Inngest } from "inngest";
 import { LambdaClient, InvokeCommand, InvocationType } from "@aws-sdk/client-lambda";
+import { getSupabaseClient } from "@/lib/supabase";
 
 export const inngest = new Inngest({ id: "spectra-app" });
 
@@ -39,5 +40,20 @@ export const processJobFn = inngest.createFunction(
     }
 
     return { status: "dispatched", jobId: event.data.jobId as string };
+  },
+);
+
+// Fires Mon/Wed/Fri at 09:00 UTC — keeps Supabase project alive (archives after 7 days of inactivity).
+export const keepaliveFn = inngest.createFunction(
+  { id: "supabase-keepalive", triggers: [{ cron: "0 9 * * 1,3,5" }] },
+  async () => {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.from("jobs").select("id", { count: "exact", head: true });
+
+    if (error) {
+      throw new Error(`Keepalive DB ping failed: ${error.message}`);
+    }
+
+    return { status: "ok", timestamp: new Date().toISOString() };
   },
 );
