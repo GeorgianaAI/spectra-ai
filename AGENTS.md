@@ -10,7 +10,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 ## 2. Technical Stack
 
-**Frontend (spectra-app):** Next.js 16 App Router + TypeScript strict, Tailwind CSS 4, Vercel AI SDK (streaming), Zod, JWT/RBAC, Supabase JS SDK, Upstash Redis + Ratelimit, Inngest, Sentry.
+**Frontend (spectra-app):** Next.js 16 App Router + TypeScript strict, Tailwind CSS 4, Vercel AI SDK (streaming), Zod, JWT, Supabase JS SDK, Upstash Redis + Ratelimit, Inngest, Sentry.
 
 **Backend (spectra-api):** AWS CDK (IaC), Lambda (ingestHandler, jobProcessor), S3, Bedrock (Nova Micro for Router only), LangGraph (agent orchestration), LangSmith (tracing), Supabase PostgreSQL, Upstash Vector (session-namespaced) + Redis (checkpointing), Inngest.
 

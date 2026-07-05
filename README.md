@@ -49,7 +49,7 @@ spectra-app (Vercel)                     spectra-api (AWS)
 ──────────────────────                   ─────────────────────────────
 Next.js 16 App Router                    CDK: StorageStack + ComputeStack
 Vercel AI SDK (streaming)                S3: spectra-uploads (versioned)
-JWT/RBAC middleware                      Lambda: ingestHandler (S3 trigger)
+JWT middleware                           Lambda: ingestHandler (S3 trigger)
 Inngest serve handler                    Lambda: jobProcessor (Inngest HTTP)
 Upstash rate limiting                    Bedrock: Nova Micro (Router only)
 Supabase client (polling)                LangGraph (inside jobProcessor)
@@ -93,7 +93,7 @@ write to Supabase
 | Embeddings        | text-embedding-3-small                                                                                                                                                                                                       |
 | Vector Store      | Upstash Vector (Session-namespaced retrieval)                                                                                                                                                                                |
 | Database          | Supabase PostgreSQL (Relational schema + RLS)                                                                                                                                                                                |
-| Auth & Security   | Supabase Auth · jose (Edge-JWT) · RBAC Middleware                                                                                                                                                                            |
+| Auth & Security   | Supabase Auth · jose (Edge-JWT) · Middleware Guard                                                                                                                                                                           |
 | Job Orchestration | Inngest (Event-driven, retries, state tracking)                                                                                                                                                                              |
 | Rate Limiting     | Upstash Redis (Sliding window per IP)                                                                                                                                                                                        |
 | Error Tracking    | Sentry (Full-stack: Client + Server + Lambda)                                                                                                                                                                                |
@@ -124,7 +124,7 @@ Spectra AI deliberately matches model capability to task rather than defaulting 
 | 1     | Monorepo shell + CDK scaffold + Next.js scaffold                              | ✅ Complete |
 | 2     | LangGraph agent graph + Inngest + API surface                                 | ✅ Complete |
 | 3     | UploadZone + AgentGraph + SynthesisPanel + GovernanceTrace                    | ✅ Complete |
-| 4     | Integration + hardening (JWT/RBAC, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete |
+| 4     | Integration + hardening (JWT auth, PII redaction, Sentry, Vitest, Playwright) | ✅ Complete |
 | 5     | AWS deployment (cdk deploy, concurrency limit, UptimeRobot)                   | ✅ Complete |
 | 6     | Security hardening (prompt injection detection, synthesis guardrails, NIST AI RMF control IDs, accessibility) | ✅ Complete |
 | 7     | Red-team adversarial suite, retrieval evaluation harness, citation deep-linking | ✅ Complete |

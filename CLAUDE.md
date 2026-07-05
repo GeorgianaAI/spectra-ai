@@ -10,7 +10,7 @@ Portfolio-scale project. AWS free tier priority. Hard billing ceiling at 15/mont
 
 ## 2. Technical Stack
 
-**Frontend (spectra-app):** Next.js 16 App Router + TypeScript strict, Tailwind CSS 4, Vercel AI SDK (streaming), Zod, JWT/RBAC, Supabase JS SDK, Upstash Redis + Ratelimit, Inngest, Sentry.
+**Frontend (spectra-app):** Next.js 16 App Router + TypeScript strict, Tailwind CSS 4, Vercel AI SDK (streaming), Zod, JWT, Supabase JS SDK, Upstash Redis + Ratelimit, Inngest, Sentry.
 
 **Backend (spectra-api):** AWS CDK (IaC), Lambda (ingestHandler, jobProcessor), S3, Bedrock (Nova Micro for Router only), LangGraph (agent orchestration), LangSmith (tracing), Supabase PostgreSQL, Upstash Vector (session-namespaced) + Redis (checkpointing), Inngest.
 
@@ -135,7 +135,7 @@ See [App Structure reference](MEMORY.md) for full directory mapping.
 
 ## 7. Auth & Demo Access
 
-Auth is implemented (JWT/RBAC middleware, Supabase Auth) but the demo account has publicly visible credentials so recruiters can use the app without friction:
+Auth is implemented (JWT middleware, Supabase Auth) but the demo account has publicly visible credentials so recruiters can use the app without friction:
 
 ```
 Email:    demo@spectra.app

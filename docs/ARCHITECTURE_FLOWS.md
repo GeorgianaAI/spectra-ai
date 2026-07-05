@@ -44,7 +44,7 @@ flowchart TD
     classDef data   fill:#fef9c3,stroke:#d97706,color:#422006
     classDef out    fill:#dcfce7,stroke:#16a34a,color:#166534
 
-    USER["User Input — Next.js 16 · Vercel\nPDF · Image · Audio · JWT/RBAC · Rate limiting · Sentry"]:::ui
+    USER["User Input — Next.js 16 · Vercel\nPDF · Image · Audio · JWT · Rate limiting · Sentry"]:::ui
 
     subgraph JOBS ["Inngest — Job Lifecycle"]
         INN["spectra/job.process\nretries · deduplication · exponential backoff"]:::job

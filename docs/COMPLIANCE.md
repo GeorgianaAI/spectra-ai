@@ -460,7 +460,7 @@ For compliance audits, this table maps each NIST function/control to its framewo
 | Control                                    | Framework                                                               | Implementation                                 | Evidence                  | Source Code                                                              |
 | :----------------------------------------- | :---------------------------------------------------------------------- | :--------------------------------------------- | :------------------------ | :----------------------------------------------------------------------- |
 | **GOVERN 1.1** — Policies & accountability | [COMPLIANCE.md — Model Governance](#model-governance--model-cards)      | Model cards document capability per task       | Model card specs in table | [README.md — Model-to-Task Mapping](../README.md#-model-to-task-mapping) |
-| **GOVERN 1.2** — Roles & responsibilities  | [COMPLIANCE.md — Compliance Mechanisms](#spectra-compliance-mechanisms) | JWT/RBAC middleware enforces role-based access | RLS policy test coverage  | [spectra-app/middleware.ts](../apps/spectra-app/middleware.ts)           |
+| **GOVERN 1.2** — Roles & responsibilities  | [COMPLIANCE.md — Compliance Mechanisms](#spectra-compliance-mechanisms) | JWT middleware + per-user ownership checks enforce data isolation | RLS policy test coverage  | [spectra-app/middleware.ts](../apps/spectra-app/middleware.ts)           |
 
 ### NIST MAP Function
 
