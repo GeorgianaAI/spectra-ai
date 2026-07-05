@@ -2,6 +2,7 @@ import OpenAI from "openai";
 import { downloadFromS3 } from "../../lib/s3-client";
 import { VisionInputSchema, VisionOutputSchema, type VisionOutput } from "../../lib/schemas";
 import { redactPii } from "../../lib/pii-redaction";
+import { detectPromptInjection } from "../../lib/prompt-injection";
 
 const openai = new OpenAI({ apiKey: process.env.OPENAI_API_KEY });
 
@@ -70,6 +71,19 @@ Focus on: entities present, spatial relationships, anomalies, text visible in th
       findings: ["Visual analysis complete — structured extraction unavailable"],
       annotations: [],
     };
+  }
+
+  if (!parsedResult.rawDescription || parsedResult.rawDescription.trim().length < 20) {
+    throw new Error("Vision node: GPT-4o returned an empty or unusable description");
+  }
+  if (!parsedResult.findings || parsedResult.findings.length === 0) {
+    throw new Error("Vision node: GPT-4o returned no findings — pipeline may have failed silently");
+  }
+
+  const combinedOutput = [parsedResult.rawDescription, ...parsedResult.findings].join(" ");
+  const injectionCheck = detectPromptInjection(combinedOutput);
+  if (!injectionCheck.safe) {
+    throw new Error(`Vision output rejected: ${injectionCheck.reason}`);
   }
 
   const redactedFields: string[] = [];
