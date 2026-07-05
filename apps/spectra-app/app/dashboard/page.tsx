@@ -431,13 +431,13 @@ export default function DashboardPage() {
         }}
       >
         <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
-          Auth: <span style={{ color: "#0f2b2a" }}>JWT / RBAC</span>
+          Audit: <span style={{ color: "#0f2b2a" }}>LLM-as-Judge</span>
         </span>
         <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
           Infra: <span style={{ color: "#0f2b2a" }}>AWS / EU-West-1</span>
         </span>
         <span style={{ color: "#9ab5b3", fontWeight: 500 }}>
-          Trace: <span style={{ color: "#0d9488" }}>Active</span>
+          Governance: <span style={{ color: "#0d9488" }}>NIST AI RMF</span>
         </span>
       </div>
     </div>
