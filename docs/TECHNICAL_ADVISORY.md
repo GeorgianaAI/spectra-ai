@@ -396,7 +396,7 @@ An attacker could embed injection text in a screenshot or image. Should `visionN
 
 `visionNode` sends raw image bytes (base64-encoded) directly to GPT-4o's vision API — there is no intermediate text extraction step before the model call. GPT-4o's system prompt constrains the output format; the model receives the image, not text derived from it. Adding a vision OCR step solely to run the injection check would add latency and cost with marginal benefit — GPT-4o's own safety guardrails handle injected image text. The injection surface in this pipeline is user-supplied text (PDFs, audio), not images.
 
-However, GPT-4o's text output (`rawDescription`, `findings`) is now PII-redacted before it enters graph state — see Section 7. This covers the case where an image contains visible PII (e.g. a photo of a document showing an email address or SSN).
+However, GPT-4o's text output (`rawDescription`, `findings`) is PII-redacted and injection-checked (`detectPromptInjection()`) before it enters graph state — see Section 7. This covers the case where an image contains visible PII (e.g. a photo of a document showing an email address or SSN) or embedded injection text that GPT-4o echoes verbatim into its description.
 
 **File:** `apps/spectra-api/src/graph/nodes/visionNode.ts`
 

@@ -12,7 +12,7 @@ Findings are grounded in reproducible test executions (`red-team.redteam.test.ts
 
 **Test coverage:**
 
-- `apps/spectra-api/src/__tests__/red-team.redteam.test.ts` — 57 adversarial tests across four suites (98 total in the API test suite)
+- `apps/spectra-api/src/__tests__/red-team.redteam.test.ts` — 79 adversarial tests across four suites (120 total in the API test suite)
 
 **Security surface under test:**
 
@@ -24,7 +24,7 @@ Findings are grounded in reproducible test executions (`red-team.redteam.test.ts
 
 - `documentNode` — PDF text injection-checked and PII-redacted before any LLM call
 - `audioNode` — Whisper transcript injection-checked and PII-redacted before any LLM call
-- `visionNode` — GPT-4o text output PII-redacted before graph state. ⚠️ Injection check on vision output is an open gap (tracked in HARDENING_ROADMAP.md — visionNode Injection Gate, PRIO)
+- `visionNode` — GPT-4o text output PII-redacted and injection-checked (`detectPromptInjection()`) before graph state
 - `synthesisNode` — LLM output re-checked before passing to auditor and Supabase write
 
 **Evidence surface:**
@@ -133,9 +133,9 @@ Spectra enforces environment-aware behavior:
 
 ## Security Positioning Statement
 
-Spectra AI demonstrates adversarial resilience for tested injection, PII, synthesis integrity, and vision output scenarios, based on reproducible test evidence from `red-team.redteam.test.ts` (57 adversarial tests; 98 total API tests) and runtime behaviour controls active in both development and production.
+Spectra AI demonstrates adversarial resilience for tested injection, PII, synthesis integrity, and vision output scenarios, based on reproducible test evidence from `red-team.redteam.test.ts` (79 adversarial tests; 120 total API tests) and runtime behaviour controls active in both development and production.
 
-**Open gaps (tracked in HARDENING_ROADMAP.md):** visionNode injection check not yet wired (PRIO); auditor fallback grants 75/100 silently on parse failure (PRIO); Unicode/encoding bypasses on regex injection detector (Medium); rate-limit IP header pinning (Medium); passport numbers and free-form person names require NER model (Medium).
+**Open gaps (tracked in HARDENING_ROADMAP.md):** auditor fallback grants 75/100 silently on parse failure (PRIO); Unicode/encoding bypasses on regex injection detector (Medium); rate-limit IP header pinning (Medium); passport numbers and free-form person names require NER model (Medium).
 
 This advisory is a bounded security statement and should be maintained as the test suite, pipeline architecture, and threat model evolve.
 

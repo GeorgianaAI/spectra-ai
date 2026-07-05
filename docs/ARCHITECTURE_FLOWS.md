@@ -330,7 +330,7 @@ apps/spectra-app/tests/
 
 apps/spectra-api/src/__tests__/
 ├── schemas.test.ts                   # 23 tests — all 6 agent node schemas (Router → Auditor)
-├── red-team.redteam.test.ts          # 53 adversarial tests — injection patterns, PII redaction, synthesis guardrails
+├── red-team.redteam.test.ts          # 79 adversarial tests — injection patterns, PII redaction, synthesis guardrails, vision output guardrails
 └── retrieval-eval.test.ts            # 13 tests — chunk quality filter, cosine deduplication, golden-set pipeline
 ```
 

@@ -281,7 +281,7 @@ The four functions (GOVERN → MAP → MEASURE → MANAGE) translate to concrete
 - Auditor scores (faithfulness, hallucination rate) must be stored, not discarded
 - PII detection must be tested on every deploy, not just once
 - Injection detection patterns must be versioned (adding a pattern is a breaking change to existing behaviour)
-- Spectra implementation: red-team suite (75 tests), Auditor scores in `confidence_scores` jsonb
+- Spectra implementation: red-team suite (79 tests), Auditor scores in `confidence_scores` jsonb
 
 **MANAGE — How do you respond when something goes wrong?**
 
