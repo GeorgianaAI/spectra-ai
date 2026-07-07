@@ -7,7 +7,6 @@ Next.js 16 frontend for Spectra AI. Independently deployable to Vercel — no sh
 - **Framework:** Next.js 16 App Router
 - **Language:** TypeScript (strict mode)
 - **UI:** Tailwind CSS 4 (layout only), CSS variables for dark theme
-- **AI streaming:** Vercel AI SDK (`ai`)
 - **Schema validation:** Zod
 - **Auth:** JWT (middleware guard on `/dashboard`)
 - **Database:** Supabase JS SDK

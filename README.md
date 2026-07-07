@@ -48,7 +48,7 @@ Each app is independently deployable. Spectra-app deploys to Vercel; spectra-api
 spectra-app (Vercel)                     spectra-api (AWS)
 ──────────────────────                   ─────────────────────────────
 Next.js 16 App Router                    CDK: StorageStack + ComputeStack
-Vercel AI SDK (streaming)                S3: spectra-uploads (versioned)
+Job status polling (2s interval)         S3: spectra-uploads (versioned)
 JWT middleware                           Lambda: ingestHandler (S3 trigger)
 Inngest serve handler                    Lambda: jobProcessor (Inngest HTTP)
 Upstash rate limiting                    Bedrock: Nova Micro (Router only)
@@ -295,7 +295,7 @@ At runtime, Spectra:
 
 - **Accepts file uploads** from the user — PDF, image, audio (up to 2 MB / 1 MB, or preset sample files).
 - **Routes each file** to its specialist agent via LangGraph parallel branching.
-- **Streams the synthesis report** progressively to the UI via Vercel AI SDK.
+- **Polls job status** every 2s until the synthesis report and per-modality scores are ready.
 - **Shows the agent graph live** — which node is processing, which is complete, which is idle.
 - **Scores the output** per modality (Document / Vision / Audio confidence %) via the LLM-as-Judge Auditor.
 - **Produces a governance trace** — per-finding decision log with NIST AI RMF tags (GOVERN / MAP / MEASURE / MANAGE).
